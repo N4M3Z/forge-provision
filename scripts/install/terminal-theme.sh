@@ -42,9 +42,19 @@ if [[ ! -f "${THEME_FILE}" ]]; then
     exit 1
 fi
 
-# Idempotency: skip if Default Window Settings already matches
-CURRENT=$(defaults read com.apple.terminal "Default Window Settings" 2>/dev/null | tr -d '"')
-if [[ "${CURRENT}" == "${THEME}" ]]; then
+# Idempotency: skip only if BOTH the plist AND the running Terminal.app already agree.
+# Plist alone isn't enough — Terminal caches default-settings at launch and ignores plist
+# changes until it sees them via AppleScript (or until it restarts).
+PLIST_DEFAULT=$(defaults read com.apple.terminal "Default Window Settings" 2>/dev/null | tr -d '"')
+TERMINAL_VIEW=$(osascript <<'APPLESCRIPT' 2>/dev/null
+tell application "System Events"
+    if (name of processes) contains "Terminal" then
+        tell application "Terminal" to return name of default settings
+    end if
+end tell
+APPLESCRIPT
+)
+if [[ "${PLIST_DEFAULT}" == "${THEME}" && ( -z "${TERMINAL_VIEW}" || "${TERMINAL_VIEW}" == "${THEME}" ) ]]; then
     echo "skip:terminal-theme (Default Window Settings already ${THEME})"
     exit 0
 fi
@@ -54,10 +64,23 @@ echo "import:${THEME}.terminal"
 open "${THEME_FILE}"
 sleep 2
 
-# Set as default + startup
+# Set the plist (so the next Terminal launch picks it up)
 echo "set:default-window-settings=${THEME}"
 defaults write com.apple.terminal "Default Window Settings" -string "${THEME}"
 defaults write com.apple.terminal "Startup Window Settings" -string "${THEME}"
+
+# Sync the running Terminal.app's internal state. Only runs if Terminal is up
+# (we avoid launching it just for this).
+osascript <<APPLESCRIPT >/dev/null 2>&1
+tell application "System Events"
+    if (name of processes) contains "Terminal" then
+        tell application "Terminal"
+            set default settings to settings set "${THEME}"
+            set startup settings to settings set "${THEME}"
+        end tell
+    end if
+end tell
+APPLESCRIPT
 
 echo "ok:terminal-theme=${THEME}"
 echo "      open a new Terminal window (Cmd+N) to see the theme"
