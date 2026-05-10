@@ -12,3 +12,7 @@ cask "protonvpn"
 
 # Local LLM runner.
 cask "lm-studio"
+
+# AI coding agent (CLI). Configured locally with lm-studio + Proton Lumo as providers.
+# Config TBD — capture as scripts/configure/opencode.sh once provider files settle.
+brew "opencode"
