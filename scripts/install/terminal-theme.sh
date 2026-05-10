@@ -16,17 +16,23 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "${SCRIPT_DIR}/../lib/env.sh"
 
 THEME="${TERMINAL_THEME:-Dracula}"
-SCHEMES_REPO="${DEV_DIR}/iTerm2-Color-Schemes"
+SCHEMES_REPO="${TERMINAL_SCHEMES_REPO:-${DEV_DIR}/iTerm2-Color-Schemes}"
 SCHEMES_URL="https://github.com/mbadolato/iTerm2-Color-Schemes.git"
 THEME_FILE="${SCHEMES_REPO}/terminal/${THEME}.terminal"
 
-# Clone the schemes repo if missing (shallow — files only)
+# Auto-clone mbadolato if SCHEMES_REPO points at it and is missing.
+# Custom local repos (e.g. ${DEV_DIR}/themes) are NOT auto-cloned — the user owns them.
 if [[ ! -d "${SCHEMES_REPO}" ]]; then
-    echo "clone:iTerm2-Color-Schemes"
-    git clone --depth 1 --quiet "${SCHEMES_URL}" "${SCHEMES_REPO}" || {
-        echo "fail:clone iTerm2-Color-Schemes"
+    if [[ "${SCHEMES_REPO}" == "${DEV_DIR}/iTerm2-Color-Schemes" ]]; then
+        echo "clone:iTerm2-Color-Schemes"
+        git clone --depth 1 --quiet "${SCHEMES_URL}" "${SCHEMES_REPO}" || {
+            echo "fail:clone iTerm2-Color-Schemes"
+            exit 1
+        }
+    else
+        echo "fail:terminal-theme (SCHEMES_REPO missing: ${SCHEMES_REPO})"
         exit 1
-    }
+    fi
 fi
 
 # Verify the theme file exists
