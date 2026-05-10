@@ -1,0 +1,14 @@
+# forge-provision Brewfile — apps installed via Homebrew on this Mac.
+# Apply with: brew bundle install --file=manifests/Brewfile
+# Reference: https://github.com/Homebrew/homebrew-bundle
+
+# Proton suite (the user is a Proton co-founder — defaults to Proton-native).
+cask "proton-drive"
+cask "proton-mail"
+cask "proton-mail-bridge"
+cask "proton-meet"
+cask "proton-pass"
+cask "protonvpn"
+
+# Local LLM runner.
+cask "lm-studio"
