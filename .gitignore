@@ -1,0 +1,9 @@
+.DS_Store
+*.swp
+*.bak
+*.orig
+.env
+.env.*
+!.env.example
+.claude/
+config.yaml
