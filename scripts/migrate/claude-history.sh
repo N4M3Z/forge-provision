@@ -27,17 +27,26 @@ if [[ ! -d "${OLD_CLAUDE_DIR}/projects" ]]; then
     exit 1
 fi
 
+# Prefer Homebrew rsync over the Apple-shipped openrsync 2.6.9-compatible, which
+# does not support --info=progress2 and other modern flags. brew install rsync.
+RSYNC=/opt/homebrew/bin/rsync
+[[ -x "${RSYNC}" ]] || RSYNC=/usr/local/bin/rsync
+if [[ ! -x "${RSYNC}" ]]; then
+    echo "fail:claude-history (modern rsync 3+ required — install via: brew install rsync)"
+    exit 1
+fi
+
 mkdir -p "${NEW_CLAUDE_DIR}/projects"
 
 echo "rsync:projects/"
-rsync -a --info=progress2 "${OLD_CLAUDE_DIR}/projects/" "${NEW_CLAUDE_DIR}/projects/" || {
+"${RSYNC}" -a --info=progress2 "${OLD_CLAUDE_DIR}/projects/" "${NEW_CLAUDE_DIR}/projects/" || {
     echo "fail:rsync projects/"
     exit 1
 }
 
 if [[ -f "${OLD_CLAUDE_DIR}/history.jsonl" ]]; then
     echo "rsync:history.jsonl"
-    rsync -a "${OLD_CLAUDE_DIR}/history.jsonl" "${NEW_CLAUDE_DIR}/history.jsonl"
+    "${RSYNC}" -a "${OLD_CLAUDE_DIR}/history.jsonl" "${NEW_CLAUDE_DIR}/history.jsonl"
 fi
 
 echo "ok:claude-history"
