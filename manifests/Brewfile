@@ -25,6 +25,12 @@ brew "rsync"
 # Alternative for end-users: download a prebuilt release from github.com/N4M3Z/forge-cli/releases.
 brew "rust"
 
+# GitHub CLI — repo creation, ssh-key registration, gh auth.
+brew "gh"
+
+# JSON munging — used by scripts/configure/claude-settings.sh to merge settings into ~/.claude/settings.json.
+brew "jq"
+
 # Captured 2026-05-11 — installed via `brew install` manually.
 cask "microsoft-teams"
 cask "steam"
