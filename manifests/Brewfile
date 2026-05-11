@@ -16,3 +16,7 @@ cask "lm-studio"
 # AI coding agent (CLI). Configured locally with lm-studio + Proton Lumo as providers.
 # Config TBD — capture as scripts/configure/opencode.sh once provider files settle.
 brew "opencode"
+
+# Modern rsync 3+ (Apple ships openrsync 2.6.9-compatible which lacks --info=progress2 etc).
+# scripts/migrate/claude-history.sh requires this.
+brew "rsync"
