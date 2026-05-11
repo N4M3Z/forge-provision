@@ -31,6 +31,10 @@ brew "gh"
 # JSON munging — used by scripts/configure/claude-settings.sh to merge settings into ~/.claude/settings.json.
 brew "jq"
 
+# RTK (Rust Token Killer) — CLI proxy that compacts dev-tool output, 60–90% token savings.
+# Wired into Claude Code via ~/.claude/hooks/rtk-rewrite.sh (see scripts/configure/rtk-hook.sh).
+brew "rtk"
+
 # Captured 2026-05-11 — installed via `brew install` manually.
 cask "microsoft-teams"
 cask "steam"
