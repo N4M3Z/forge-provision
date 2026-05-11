@@ -20,3 +20,12 @@ brew "opencode"
 # Modern rsync 3+ (Apple ships openrsync 2.6.9-compatible which lacks --info=progress2 etc).
 # scripts/migrate/claude-history.sh requires this.
 brew "rsync"
+
+# Rust toolchain — required to build forge-cli from source.
+# Alternative for end-users: download a prebuilt release from github.com/N4M3Z/forge-cli/releases.
+brew "rust"
+
+# Captured 2026-05-11 — installed via `brew install` manually.
+cask "microsoft-teams"
+cask "steam"
+cask "visual-studio-code"
