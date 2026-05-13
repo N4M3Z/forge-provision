@@ -35,7 +35,34 @@ brew "jq"
 # Wired into Claude Code via ~/.claude/hooks/rtk-rewrite.sh (see scripts/configure/rtk-hook.sh).
 brew "rtk"
 
+# GitLab CLI — sibling to gh for GitLab repos.
+brew "glab"
+
+# Yubico Authenticator — modern GUI for FIDO2 / PIV / OATH / OpenPGP slot management.
+# Replaces the discontinued yubico-yubikey-manager cask (disabled upstream 2025-07-27).
+cask "yubico-authenticator"
+
+# OpenSSH (brew's build) — bundled with FIDO2 security-key support (pulls libfido2 as a dep).
+# macOS's /usr/bin/ssh* binaries know the ed25519-sk algorithm but lack the FIDO middleware,
+# so scripts/install/ssh-yubikey-key.sh calls /opt/homebrew/bin/ssh-keygen explicitly.
+brew "openssh"
+
+# Native macOS ssh-askpass GUI — pops a Cocoa dialog for FIDO2 PIN entry. Without it,
+# git commits signed via SSH hang waiting on a TTY prompt when run from non-interactive
+# contexts (CI, agents, etc.). Configured via SSH_ASKPASS env var.
+tap "theseal/ssh-askpass"
+brew "theseal/ssh-askpass/ssh-askpass"
+
+# gitleaks — pattern-based secret scanner. Catches AWS keys, tokens, PEM blocks,
+# entropy-flagged strings in git history + working tree. Deterministic, fast, runs
+# locally (no LLM). Pairs with deeper LLM-based scans via the SecretScan skill.
+brew "gitleaks"
+
+# GitHub Desktop — GUI client.
+cask "github"
+
 # Captured 2026-05-11 — installed via `brew install` manually.
 cask "microsoft-teams"
 cask "steam"
 cask "visual-studio-code"
+cask "raycast"
