@@ -31,6 +31,17 @@ set_and_show com.apple.finder ShowPathbar -bool true
 set_and_show com.apple.finder ShowStatusBar -bool true
 set_and_show com.apple.finder FXPreferredViewStyle -string "Nlsv"
 set_and_show com.apple.finder FXEnableExtensionChangeWarning -bool false
+# Show external + removable media on the Desktop; hide internal drives.
+set_and_show com.apple.finder ShowExternalHardDrivesOnDesktop -bool true
+set_and_show com.apple.finder ShowHardDrivesOnDesktop -bool false
+set_and_show com.apple.finder ShowRemovableMediaOnDesktop -bool true
+# Auto-empty Trash after 30 days.
+set_and_show com.apple.finder FXRemoveOldTrashItems -bool true
+# Group and arrange by Kind in the app-centric Finder view.
+set_and_show com.apple.finder FXPreferredGroupBy -string "Kind"
+set_and_show com.apple.finder FK_ArrangeBy -string "Kind"
+# Show sidebar in app-centric Finder windows.
+set_and_show com.apple.finder FK_AppCentricShowSidebar -bool true
 killall Finder 2>/dev/null || true
 
 echo ""
@@ -45,6 +56,8 @@ set_and_show com.apple.dock orientation -string "right"
 # 5=Start screen saver, 6=Disable screen saver, 7=Dashboard, 10=Sleep, 11=Launchpad,
 # 12=Notification Center, 13=Lock Screen, 14=Quick Note.
 set_and_show com.apple.dock wvous-br-corner -int 14
+# Use 'scale' (not 'genie') minimize animation.
+set_and_show com.apple.dock mineffect -string "scale"
 killall Dock 2>/dev/null || true
 
 echo ""
@@ -53,7 +66,21 @@ set_and_show com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool t
 set_and_show NSGlobalDomain com.apple.mouse.tapBehavior -int 1
 set_and_show NSGlobalDomain KeyRepeat -int 2
 set_and_show NSGlobalDomain InitialKeyRepeat -int 15
+# Disable corner-as-right-click (two-finger tap handles secondary-click).
+set_and_show com.apple.AppleMultitouchTrackpad TrackpadCornerSecondaryClick -int 0
+# Keep trackpad active even when a USB mouse is plugged in.
+set_and_show com.apple.AppleMultitouchTrackpad USBMouseStopsTrackpad -int 0
+# Two-finger swipe from the right edge opens Notification Center.
+set_and_show com.apple.AppleMultitouchTrackpad TrackpadTwoFingerFromRightEdgeSwipeGesture -int 3
 killall SystemUIServer 2>/dev/null || true
+
+echo ""
+echo "configure:window-manager"
+# Stage Manager off.
+set_and_show com.apple.WindowManager GloballyEnabled -bool false
+# Clicking the wallpaper does NOT hide windows.
+set_and_show com.apple.WindowManager HideDesktop -bool true
+killall WindowManager 2>/dev/null || true
 
 echo ""
 echo "ok:macos-defaults"
