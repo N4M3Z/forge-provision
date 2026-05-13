@@ -6,4 +6,7 @@
 .env.*
 !.env.example
 .claude/
+.codex/
+.gemini/
+.opencode/
 config.yaml
