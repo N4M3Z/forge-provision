@@ -61,7 +61,33 @@ brew "gitleaks"
 # GitHub Desktop — GUI client.
 cask "github"
 
-# Captured 2026-05-11 — installed via `brew install` manually.
+# Dotfiles engine (ARCH-0005). Manages canonical source at ~/Developer/N4M3Z/dotfiles/
+# with copy-or-symlink laydown into $HOME plus templating for per-machine variance.
+brew "chezmoi"
+
+# Shell prompt (ARCH-0007). Rust binary, cross-shell, overrides Prezto's prompt module.
+brew "starship"
+
+# Shell history with SQLite backend (ARCH-0007). Replaces zsh-history-substring-search:
+# search_mode_shell_up_key_binding="fulltext" gives substring-on-Up against atuin.
+brew "atuin"
+
+# JavaScript runtime and global package installer, primary (PROV-0004).
+# Used for `bun install -g @cometix/ccline` plus future global npm tools.
+tap "oven-sh/bun"
+brew "oven-sh/bun/bun"
+
+# JavaScript runtime, fallback (PROV-0004). Some npm packages still assume Node.
+brew "node"
+
+# Mac App Store CLI for inventory and reinstalls.
+brew "mas"
+
+# YAML/JSON processor (mikefarah's, NOT Andrey Kislyuk's Python yq). Required by
+# scripts/audit-dotfiles.sh in the AuditDotfiles skill (forge-dev).
+brew "yq"
+
+# Captured 2026-05-11, installed via `brew install` manually.
 cask "microsoft-teams"
 cask "steam"
 cask "visual-studio-code"
