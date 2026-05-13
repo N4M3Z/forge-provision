@@ -92,3 +92,56 @@ cask "microsoft-teams"
 cask "steam"
 cask "visual-studio-code"
 cask "raycast"
+
+# Mac App Store apps. `mas install <id>` requires being signed into the same
+# Apple ID that owns / purchased the app. Bundled iWork (Pages/Numbers/Keynote)
+# is auto-entitled after first Apple ID sign-in; the entries below let `brew
+# bundle` ensure they're actually downloaded onto a fresh Mac.
+
+# Apple Pro audio + video
+mas "Compressor",     id: 6746516157
+mas "Final Cut Pro",  id: 1631624924
+mas "GarageBand",     id: 682658836
+mas "iMovie",         id: 408981434
+mas "Logic Pro",      id: 1615087040
+mas "MainStage",      id: 6746637089
+mas "Motion",         id: 6746637149
+
+# Apple iWork
+mas "Keynote",        id: 361285480
+mas "Numbers",        id: 361304891
+mas "Pages",          id: 361309726
+
+# Apple dev
+mas "Developer",      id: 640199958
+mas "TestFlight",     id: 899247664
+mas "Xcode",          id: 497799835
+
+# Microsoft Office
+mas "Microsoft Excel",      id: 462058435
+mas "Microsoft OneNote",    id: 784801555
+mas "Microsoft Outlook",    id: 985367838
+mas "Microsoft PowerPoint", id: 462062816
+mas "Microsoft Word",       id: 462054704
+mas "OneDrive",             id: 823766827
+
+# Pixelmator family (only current Pixelmator Pro v4.2; the v3.8 install at id
+# 1289583905 is a stale legacy build, not included).
+mas "Pixelmator Pro", id: 6746662575
+mas "Photomator",     id: 1444636541
+
+# Communication
+mas "Slack",     id: 803453959
+mas "Telegram",  id: 747648890
+mas "WhatsApp",  id: 310633997
+
+# Utilities + browser extensions
+mas "DaisyDisk",              id: 411643860
+mas "Obsidian Web Clipper",   id: 6720708363
+mas "Prime Video",            id: 545519333
+mas "Proton Pass for Safari", id: 6502835663
+mas "Shazam",                 id: 897118787
+mas "uBlock Origin Lite",     id: 6745342698
+mas "Wayback Machine",        id: 1472432422
+mas "Windows App",            id: 1295203466
+mas "WireGuard",              id: 1451685025
