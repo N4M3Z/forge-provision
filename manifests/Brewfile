@@ -28,6 +28,27 @@ brew "rust"
 # GitHub CLI — repo creation, ssh-key registration, gh auth.
 brew "gh"
 
+# gitui (Rust-based terminal UI for git). Replaces SourceTree for the day-to-day
+# stage/commit/rebase/stash flow without leaving the terminal. Faster startup
+# than lazygit, leaner feature surface. Vim-style keys; `?` shows the keymap.
+brew "gitui"
+
+# Helix. Rust-native modal editor, batteries-included (LSP, fuzzy picker, multi-cursor
+# built in, no plugin system). Selection-first model (verb after noun, unlike vim).
+# Installed alongside Neovim for hands-on comparison; the lack of a plugin system
+# means no render-markdown-style inline rendering, so pair with `glow` in a split.
+brew "helix"
+
+# Neovim. Modal editor with a deep plugin ecosystem. Paired with LazyVim distro
+# (see scripts/configure/nvim.sh) plus render-markdown.nvim for Obsidian-style
+# inline markdown rendering. The "notes for Claude to read" workflow lives here.
+brew "neovim"
+
+# glow. Rust+Go terminal markdown renderer by Charm. Used as a viewer in a tmux or
+# zellij split next to Helix (which has no inline markdown rendering), and standalone
+# for reading READMEs without leaving the terminal. `glow -p file.md` for pager mode.
+brew "glow"
+
 # JSON munging — used by scripts/configure/claude-settings.sh to merge settings into ~/.claude/settings.json.
 brew "jq"
 
@@ -66,11 +87,22 @@ cask "github"
 brew "chezmoi"
 
 # Shell prompt (ARCH-0007). Rust binary, cross-shell, overrides Prezto's prompt module.
+# Active theme is the official tokyo-night preset (powerline two-line layout).
 brew "starship"
 
 # Shell history with SQLite backend (ARCH-0007). Replaces zsh-history-substring-search:
 # search_mode_shell_up_key_binding="fulltext" gives substring-on-Up against atuin.
 brew "atuin"
+
+# zoxide — smarter cd, frecency-ranked directory jumper. Replaces enhancd.
+# Loaded via the dotzsh-contrib zoxide module (`'zoxide'` in zpreztorc's
+# pmodule list). Adds `z <query>` for top-match jump and `zi <query>` for
+# fzf picker. cd stays the zsh builtin. Coexists with atuin (history).
+brew "zoxide"
+
+# fzf — interactive fuzzy finder. Backs zoxide's `zi` picker; also useful
+# for vim plugins, git tools, completion menus.
+brew "fzf"
 
 # JavaScript runtime and global package installer, primary (PROV-0004).
 # Used for `bun install -g @cometix/ccline` plus future global npm tools.
@@ -92,6 +124,33 @@ cask "microsoft-teams"
 cask "steam"
 cask "visual-studio-code"
 cask "raycast"
+
+# Cursor (AI-native editor). Sibling to the existing VS Code install; reuses
+# the VS Code extension ecosystem. Used for AI-assisted editing alongside
+# the terminal-first stack (helix, neovim, gitui).
+cask "cursor"
+
+# Ghostty — Zig+Swift terminal emulator, replaces Apple Terminal.app. Config
+# at ~/.config/ghostty/config (managed via chezmoi). Reference:
+# https://ghostty.org/docs/config
+cask "ghostty"
+
+# Meslo LG Nerd Font — Powerline-glyph-patched Meslo. MesloLGS Nerd Font Mono
+# variant is the p10k canonical face and what ghostty's font-family points at.
+cask "font-meslo-lg-nerd-font"
+
+# Google Chrome (Chromium browser). Safari is the default; Chrome stays for
+# cross-browser dev/testing and sites that need Chromium quirks.
+cask "google-chrome"
+
+# Claude desktop app (Anthropic's native client). Already installed on this
+# Mac; declaration closes the Brewfile gap so a fresh machine matches.
+cask "claude"
+
+# Obsidian (local-first markdown vault editor). Sibling to the "Obsidian Web
+# Clipper" MAS entry, which captures pages into the vault. Vault location is
+# chosen on first launch (typically ~/Developer or iCloud Drive).
+cask "obsidian"
 
 # Mac App Store apps. `mas install <id>` requires being signed into the same
 # Apple ID that owns / purchased the app. Bundled iWork (Pages/Numbers/Keynote)
