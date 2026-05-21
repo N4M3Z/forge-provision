@@ -33,6 +33,23 @@ brew "gh"
 # than lazygit, leaner feature surface. Vim-style keys; `?` shows the keymap.
 brew "gitui"
 
+# revdiff (Go-based terminal UI for AI-session diff review). Reads uncommitted
+# changes / commit ranges / staged / single files. Inline annotations exported
+# as structured stdout for piping back to Claude Code or OpenCode. The opencode
+# plan-review integration is wired by scripts/configure/revdiff.sh.
+tap "umputun/apps"
+brew "umputun/apps/revdiff"
+
+# tuicr (Rust Ratatui TUI for code review). Covers both local diff review
+# (`tuicr -w` for working tree, `tuicr -r main..HEAD` for commit ranges)
+# and GitHub PR review (`tuicr pr <num>` with `:submit` posting real PR
+# review comments back). Clipboard export classifies comments as
+# ISSUE/SUGGESTION/NOTE/PRAISE for AI-agent consumption. Pairs with the
+# revdiff binary for local-only review; tuicr adds the GitHub PR posting
+# layer revdiff doesn't have.
+tap "agavra/tap"
+brew "agavra/tap/tuicr"
+
 # Helix. Rust-native modal editor, batteries-included (LSP, fuzzy picker, multi-cursor
 # built in, no plugin system). Selection-first model (verb after noun, unlike vim).
 # Installed alongside Neovim for hands-on comparison; the lack of a plugin system
@@ -134,6 +151,14 @@ cask "cursor"
 # at ~/.config/ghostty/config (managed via chezmoi). Reference:
 # https://ghostty.org/docs/config
 cask "ghostty"
+
+# cmux — intentionally NOT installed via Homebrew. Reproduced on fresh
+# Mac by `scripts/install/cmux.sh`, which curls the canonical-latest DMG
+# from https://github.com/manaflow-ai/cmux/releases/latest/download/cmux-macos.dmg
+# and drops cmux.app into /Applications. Rationale: cmux ships rapidly;
+# we'd rather opt into upgrades manually than have `brew upgrade` overwrite
+# a known-good version. The brew cask was uninstalled on 2026-05-21
+# (see docs/journal/) after a brief detour.
 
 # Meslo LG Nerd Font — Powerline-glyph-patched Meslo. MesloLGS Nerd Font Mono
 # variant is the p10k canonical face and what ghostty's font-family points at.

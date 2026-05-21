@@ -23,6 +23,19 @@ focused on dotfiles + git tooling instead. Pull into a future Brewfile pass.
       under `[core] pager = delta` and `[interactive] diffFilter = delta`)
     - `ripgrep` is already present (pulled in by the `rust` toolchain).
 
+## Adoption queue
+
+- **revdiff Claude Code plugin → AdoptArtifact**. The upstream
+  [`umputun/revdiff` Claude Code plugin](https://github.com/umputun/revdiff/tree/master/.claude-plugin)
+  was uninstalled from the local Claude Code marketplace on 2026-05-17 in
+  favor of `tuicr` as the primary review TUI. The revdiff binary stays
+  installed (`brew "umputun/apps/revdiff"`) for local-only use. The plugin
+  is queued for `AdoptArtifact` adoption into forge so the skill can be
+  redeployed to other CLI tools beyond Claude Code (Codex, Cursor, Aider,
+  OpenCode plan-review remains wired separately via
+  `scripts/configure/revdiff.sh`). Source for adoption:
+  `https://github.com/umputun/revdiff/blob/master/.claude-plugin/skills/revdiff/SKILL.md`.
+
 ## Carry-over from prior journals
 
 - **GitHub repo rename**: `gh repo rename --repo N4M3Z/dotfiles dotfiles-legacy`,
@@ -35,6 +48,14 @@ focused on dotfiles + git tooling instead. Pull into a future Brewfile pass.
 - **OneDrive MAS install**: `brew bundle install --file=manifests/Brewfile`
   failed at a sudo prompt during the 2026-05-14 evening run. Re-run in a
   session where the admin password can be typed.
+- **cmux fresh-Mac install**: handled by `scripts/install/cmux.sh`.
+  Idempotent: skips if `/Applications/cmux.app` exists. Downloads from
+  `https://github.com/manaflow-ai/cmux/releases/latest/download/cmux-macos.dmg`
+  (canonical-latest redirect, no version pinning), mounts via `hdiutil`,
+  copies the `.app` to `/Applications`, detaches, recreates the
+  `~/.local/bin/cmux` CLI symlink. After install, run `cmux hooks setup`
+  manually once to wire Claude Code lifecycle hooks into
+  `~/.claude/settings.json`.
 
 ## How items leave this list
 
