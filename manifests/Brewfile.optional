@@ -1,0 +1,23 @@
+# forge-provision optional Brewfile — apps tried and not currently relied on.
+# Apply with: brew bundle install --file=manifests/Brewfile.optional
+# Reference: https://github.com/Homebrew/homebrew-bundle
+#
+# Entries here are evaluation installs: useful enough to keep declared so a
+# fresh Mac can opt in with one command, but not part of the baseline because
+# they overlap with primary tools or carry costs (subscription, performance,
+# duplication) that make them poor defaults. Move an entry back into
+# manifests/Brewfile if it earns daily-driver status.
+
+# Warp (Rust-based terminal with AI-assisted command-line features). Free
+# tier is just a fast terminal; the differentiating AI / agent features sit
+# behind a paid tier that overlaps with Claude Code Max. Kept here for
+# occasional comparison runs. Reference: https://www.warp.dev/
+cask "warp"
+
+# Wave Terminal (open-source, Electron + React frontend with a Go backend).
+# Carries the typical Electron weight (cold-start memory, redraw lag) and
+# the renderer is not GPU-accelerated like Ghostty's. Worth installing when
+# you want graphical blocks (inline image previews, embedded HTML reports,
+# database-browser plugin). Skip for daily driving on this Mac.
+# Reference: https://www.waveterm.dev/
+cask "wave"
