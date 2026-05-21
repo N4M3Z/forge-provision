@@ -15,6 +15,7 @@ author: "@N4M3Z"
 project: forge-provision
 related:
     - "ARCH-0002 New machine provisioning order.md"
+    - "ARCH-0008 Config home dotfiles vs provisioning.md"
 responsible: ["@N4M3Z"]
 accountable: ["@N4M3Z"]
 consulted: []
