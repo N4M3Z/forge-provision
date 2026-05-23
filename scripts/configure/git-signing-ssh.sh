@@ -24,13 +24,11 @@ fi
 echo "config:gpg.format=ssh"
 git config --global gpg.format ssh
 
-# Apple's /usr/bin/ssh-keygen lacks the libsk-libfido2 FIDO middleware. brew's
-# /opt/homebrew/bin/ssh-keygen has it. Without this config, git signing fails
-# with "No FIDO SecurityKeyProvider specified" on every commit.
-SSH_KEYGEN=/opt/homebrew/bin/ssh-keygen
-[[ -x "${SSH_KEYGEN}" ]] || SSH_KEYGEN=/usr/local/bin/ssh-keygen  # Intel
-echo "config:gpg.ssh.program=${SSH_KEYGEN}"
-git config --global gpg.ssh.program "${SSH_KEYGEN}"
+# gpg.ssh.program is set by scripts/configure/git-ssh-sign.sh, which installs
+# a wrapper around /opt/homebrew/bin/ssh-keygen that strips SSH_AUTH_SOCK so
+# ssh-keygen bypasses Apple's launchd ssh-agent (which refuses FIDO2 keys).
+# Without the wrapper, git commit fails with "agent refused operation". Run
+# git-ssh-sign.sh after this script.
 
 echo "config:user.signingkey=${PUBKEY}"
 git config --global user.signingkey "${PUBKEY}"
