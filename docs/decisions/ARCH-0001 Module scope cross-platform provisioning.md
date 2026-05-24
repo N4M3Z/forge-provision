@@ -1,15 +1,18 @@
 ---
-title: Setup as provisioning artifacts
-description: Every mutating command during machine setup becomes a script in forge-provision/scripts/ or a journal entry — recorded as-it-happens
+title: "Module scope: best-practice provisioning artifacts, cross-platform"
+description: "forge-provision codifies best practices for provisioning developer machines on macOS, Linux, and Windows. Every mutating action lands as a script or journal entry, with the why crystallizing into ADRs over time."
 type: adr
 category: architecture
 tags:
     - provisioning
     - reproducibility
     - working-principle
+    - module-scope
+    - best-practices
+    - cross-platform
 status: accepted
 created: 2026-05-11
-updated: 2026-05-11
+updated: 2026-05-24
 author: "@N4M3Z"
 project: forge-provision
 related: []
@@ -20,7 +23,24 @@ informed: []
 upstream: []
 ---
 
-# Setup as provisioning artifacts
+# Module scope: best-practice provisioning artifacts, cross-platform
+
+## Module Scope
+
+forge-provision is the canonical home for **best practices around developer-machine provisioning and the surrounding tool ecosystem**. The output is a runnable, idempotent recipe for bringing a fresh machine to a configured baseline, plus the design rationale for every choice along the way.
+
+The module covers:
+
+- **Provisioning scripts** that mutate the host (install, configure, migrate) — idempotent, env-configurable, dry-run-aware.
+- **Skills** (`skills/`) that capture best-practice knowledge about the tools we install (terminal multiplexers, shells, version managers, package managers, signing setups, etc.).
+- **TLDRs** (`docs/tldrs/`) as the day-to-day reference for tools whose 80% path benefits from a curated one-pager.
+- **ADRs** (`docs/decisions/`) that crystallize design decisions out of session narratives.
+- **Rules** (`rules/`) that encode the conventions the scripts and skills must follow.
+- **Journals** (`docs/journal/`) that record what landed and why, dated.
+
+The module provisions **macOS, Linux, and Windows** developer machines. Platform-specific scripts live under `scripts/install/<platform>/`, `scripts/configure/<platform>/`, and so on, with `scripts/lib/` helpers handling OS dispatch. Skills and TLDRs that are platform-agnostic stay at the top level; platform-specific ones get an OS suffix or live under a platform-named subdirectory.
+
+The module is **opinionated** — every script reflects a particular best-practice choice the author has converged on through use. Alternatives discussed and rejected belong in ADRs, not in inline comments inside scripts. Skills should provide options, configuration, and expertise oriented toward the chosen path; landscape surveys ("tmux vs zellij", "Ghostty vs WezTerm") belong in ADRs, not in skill bodies.
 
 ## Context and Problem Statement
 
