@@ -1,6 +1,6 @@
 ---
-title: "Dotfiles engine: chezmoi"
-description: Use chezmoi as the dotfiles engine with local pass-store for secret resolution
+title: "Dotfiles engine: chezmoi (with externals for plugin/sub-repo management)"
+description: Use chezmoi as the dotfiles engine with local pass-store for secret resolution. chezmoi externals replace git submodules and run_onchange scripts for plugin/sub-repo management (tmux plugins, etc.).
 type: adr
 category: tooling
 tags:
@@ -8,14 +8,17 @@ tags:
     - chezmoi
     - secrets
     - pass
+    - externals
+    - plugins
 status: accepted
 created: 2026-05-11
-updated: 2026-05-11
+updated: 2026-05-21
 author: "@N4M3Z"
 project: forge-provision
 related:
     - "ARCH-0002 New machine provisioning order.md"
     - "ARCH-0008 Config home dotfiles vs provisioning.md"
+    - "ARCH-0009 Terminal multiplexer tmux.md"
 responsible: ["@N4M3Z"]
 accountable: ["@N4M3Z"]
 consulted: []
@@ -61,9 +64,48 @@ Status: accepted; implementation deferred until core machine tooling is settled.
 - [-] Cross-machine secret sync needs a separate mechanism (Proton Pass CLI or `pass-git-helper`)
 - [-] Migration cost from existing stow-based dotfiles
 
+## Plugin and sub-repo management via chezmoi externals
+
+Plugins that live as separate git repos (tmux plugins under `~/.config/tmux/plugins/`, vim/neovim plugin managers, theme repos) historically use one of three patterns:
+
+1. **Git submodules** — declarative but friction-heavy (initialize, deinit, depth, sparse-checkout quirks)
+2. **Plugin manager's own install command** (`prefix + I` for TPM) — imperative; a fresh Mac would have no plugins until you press the key
+3. **`run_onchange_*.tmpl` scripts in chezmoi** — runs a shell script on apply; works but adds shell logic to the dotfiles tree
+
+**chezmoi externals** is the chosen pattern. Declare each external repo in `dotfiles/.chezmoiexternal.toml`:
+
+```toml
+[".config/tmux/plugins/tpm"]
+    type = "git-repo"
+    url = "https://github.com/tmux-plugins/tpm.git"
+    refreshPeriod = "168h"
+
+[".config/tmux/plugins/tmux-resurrect"]
+    type = "git-repo"
+    url = "https://github.com/tmux-plugins/tmux-resurrect.git"
+    refreshPeriod = "168h"
+```
+
+`chezmoi apply` clones each repo at first run and refreshes on the `refreshPeriod` interval (weekly default in the setup above). Plugin manager registration (e.g., TPM's `@plugin` lines in `tmux.conf`) still happens normally — only the clone step is taken out of TPM's hands.
+
+Pin to a specific commit by setting `refreshPeriod = "8760h"` (one year). Pin to a specific tag/branch by adding `refs = "v1.2.3"` or `refs = "main"`.
+
+The pattern generalizes to any plugin or sub-repo dependency: vim/neovim plugin managers, theme repos, font sets, shell-framework modules. See [ARCH-0009 Terminal multiplexer tmux](ARCH-0009 Terminal multiplexer tmux.md) for the load-bearing application (tmux plugins via externals) and [TmuxToolkit skill](../../skills/TmuxToolkit/SKILL.md) for the config-side recipe.
+
+### Consequences (externals)
+
+- [+] Plugin clones are declarative — fresh Mac gets all plugins from `chezmoi apply`
+- [+] Refresh cadence is per-external — pin individual plugins long, refresh others weekly
+- [+] No `run_onchange_*.tmpl` shell scripts in the dotfiles tree for plugin management
+- [+] Works for any git URL (GitHub, GitLab, self-hosted)
+- [-] TPM's `prefix + I` still works as a manual escape hatch; two paths to install plugins
+- [-] Refresh happens on `chezmoi apply` — a long-deferred apply pulls many updates at once
+- [-] No equivalent of submodule-style commit pinning by default (workaround: `refreshPeriod = "8760h"`)
+
 ## More Information
 
 - [chezmoi password-manager functions](https://www.chezmoi.io/reference/templates/password-manager-functions/pass/) — built-in `pass` template function
+- [chezmoi externals reference](https://www.chezmoi.io/reference/special-files-and-directories/chezmoiexternal-format/)
 - [passwordstore.org](https://www.passwordstore.org/) — traditional pass
 - [passage](https://github.com/FiloSottile/passage) — age-based pass fork
 - [Proton Pass CLI](https://protonpass.github.io/pass-cli/) — reserved for cross-machine sync
