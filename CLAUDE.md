@@ -2,7 +2,7 @@
 
 ## What this is
 
-A repo of macOS provisioning scripts plus the agentic scaffold that lets an agent (Claude Code, Codex, Gemini) read, compose, and run them.
+Best-practice provisioning for developer machines — macOS, Linux, and Windows — plus the agentic scaffold (skills, ADRs, rules, TLDRs, journals) that lets an agent (Claude Code, Codex, Gemini) read, compose, and run the scripts. See [ARCH-0001](docs/decisions/ARCH-0001%20Module%20scope%20cross-platform%20provisioning.md) for the module scope.
 
 Scripts come first. Everything else exists to make scripts easier to read, compose, and reason about.
 
