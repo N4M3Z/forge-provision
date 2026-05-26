@@ -59,13 +59,42 @@ This is how the sidebar knows which workspace produced which notification, and h
 | `Cmd+Shift+,` doesn't reload config                          | Overridden in our config to `Cmd+Shift+R`.                                                                                                                                                   |
 | `cmux` CLI not on PATH                                       | `scripts/install/cmux.sh` symlinks `<App>/Contents/Resources/bin/cmux` → `~/.local/bin/cmux`. Verify `~/.local/bin` is in PATH.                                                              |
 
+## Layout templates (commands[])
+
+`commands[]` in cmux.json defines workspace layout recipes invokable from the Command Palette (`Cmd+Shift+P`) or the plus-button menu. Each entry creates a named workspace with a pre-defined pane arrangement. Think tmuxinator but declarative JSON.
+
+```jsonc
+"commands": [
+    {
+        "name": "Split Workspace",
+        "workspace": {
+            "layout": {
+                "direction": "horizontal",   // "horizontal" or "vertical"
+                "split": 0.5,                // ratio (0.0-1.0)
+                "children": [
+                    { "surface": { "type": "terminal" } },
+                    { "surface": { "type": "terminal" } }
+                ]
+            }
+        }
+    }
+]
+```
+
+Layouts nest recursively: a child can be another split node (with its own `direction`, `split`, `children`) or a leaf surface (`terminal` or `browser` with optional `command`, `url`, `cwd`, `env`). Structural templates don't reference versions or APIs, so they're durable across cmux updates (`schemaVersion` guards breakage). See [cmux custom commands docs][CMDS].
+
+`actions{}` is a separate registry (nightly, unstable) that wires buttons/shortcuts into the tab bar and Command Palette. Defer until the API stabilizes.
+
 ## Notable config baked in
 
 - `matchTerminalBackground: true` — sidebar bg follows Ghostty's terminal background
-- `indicatorStyle: "leftRail"` — thin colored bar + subtle tinted bg for active workspace
-- `selectionColor: "#5E81AC"` — Nord Frost Deep accent
-- `notifications: { dockBadge, showInMenuBar, unreadPaneRing, paneFlash, sound: "default" }`
+- `workspaceColors.indicatorStyle: "leftRail"` — thin colored bar + subtle tinted bg for active workspace
+- `workspaceColors.selectionColor: "#5E81AC"` — Nord Frost Deep accent
+- `notifications: { dockBadge, unreadPaneRing }` on; `paneFlash` + `sound` off (fatigue reduction)
 - `sidebar.branchLayout: "vertical"` — vertical branch list per workspace
+- `app.commandPaletteSearchesAllSurfaces: true` — cross-workspace search in Cmd+Shift+P
+- `app.openMarkdownInCmuxViewer: true` — .md files render in cmux's viewer
+- `terminal.agentHibernation: { enabled, idleSeconds: 1800, maxLiveTerminals: 8 }` — suspends idle agents after 30 min
 
 ## Config + reload
 
@@ -83,8 +112,10 @@ This is how the sidebar knows which workspace produced which notification, and h
 - [Issue #2086 — named session save/restore][I2086]
 - [Issue #2895 — snapshot overwrite][I2895]
 - [Lawrence Chen (founder) on X][LC]
+- [Custom commands docs][CMDS]
 
 [REPO]: https://github.com/manaflow-ai/cmux
+[CMDS]: https://cmux.com/docs/custom-commands
 [DOCS]: https://cmux.com/docs
 [CCINT]: https://manaflow-ai-cmux.mintlify.app/integrations/claude-code
 [SCHEMA]: https://raw.githubusercontent.com/manaflow-ai/cmux/main/web/data/cmux.schema.json
