@@ -45,6 +45,116 @@ Alternative: [Lumiwealth/cmux-agent-recovery](https://github.com/Lumiwealth/cmux
 is a lighter single-workspace-at-a-time tool. crex is more mature (v1.14.0,
 34 releases).
 
+## Push local commits to origin
+
+Three repos have local-only commits from the 2026-05-21 through 2026-05-26
+LearnFrom + terminal-stack session. None have been pushed.
+
+- **forge-provision** (main): ~20 commits (skills, ADRs, scripts, TLDRs,
+  ARCH-0001 reframe, CLAUDE.md update, cmux TLDR). `git push origin main`.
+- **forge-core** (main): ResearchTopic skill, WriteDocs skill, BuildSkill
+  line-limit tighten, BehavioralSteering row. `git push origin main`.
+- **forge-council** (main): ResearchCouncil skill. `git push origin main`.
+
+## Dotfiles working-tree edits (awaiting concurrent session)
+
+Three edits live in the dotfiles working tree but are not committed because
+the concurrent dotfiles session owns the staging area (renames in flight).
+Fold into a commit when that session wraps up.
+
+- `dot_gitconfig`: `[gpg "ssh"] program` changed from
+  `/opt/homebrew/bin/ssh-keygen` to `/Users/N4M3Z/.local/bin/git-ssh-sign-macos`
+  (the FIDO2 wrapper).
+- `dot_zshrc`: `claude()` function updated to bypass the tmux wrap when any
+  args are passed (fixes `claude --resume` dropping into the wrong session).
+- `dot_config/tmux/tmux.conf`: added `set-environment -g COLORTERM truecolor`
+  and `set -as terminal-overrides ",*-256color:Tc"` (fixes tmux color
+  degradation vs bare Ghostty/cmux). Already applied live via
+  `tmux source-file`.
+
+## Skill companion extraction (~100-line rule)
+
+BuildSkill constraint tightened from ~150 to ~100 lines (excluding
+frontmatter) on 2026-05-25. Five skills authored in this session exceed
+the limit and need companion-file extraction per the ExtractPrompt skill.
+
+| Skill            | Body lines | Over by |
+| ---------------- | ---------: | ------: |
+| SshToolkit       |        233 |     133 |
+| GhosttyToolkit   |        214 |     114 |
+| HomebrewToolkit  |        175 |      75 |
+| DmgInstall       |        164 |      64 |
+| TmuxToolkit      |        161 |      61 |
+| Chezmoi          |        135 |      35 |
+
+Extraction candidates per skill: pitfalls tables, config snippets, and
+plugin recommendation tables move to companion files (`@Pitfalls.md`,
+`@Plugins.md`, `@Config.md`). The SKILL.md keeps the summary + workflow
+routing + constraints.
+
+## tmux advanced adoption (from ResearchCouncil 2026-05-26)
+
+High-value additions beyond the current baseline (resurrect + continuum +
+catppuccin). Adopt in a dedicated tmux session.
+
+**Adopt now (high confidence):**
+- `display-popup` bindings: fzf session switcher, inline gitui, scratch shell
+- [tmux-thumbs](https://github.com/fcsonline/tmux-thumbs): Rust hint-based
+  copy (vimium-style letter hints on URLs/paths/hashes, prefix+Space)
+- [tmux-nerd-font-window-name](https://github.com/joshmedeski/tmux-nerd-font-window-name):
+  auto-rename windows to Nerd Font icons matching the running process
+
+**Evaluate (test compatibility with cmux):**
+- [sesh](https://github.com/joshmedeski/sesh) OR
+  [tmux-sessionx](https://github.com/omerxx/tmux-sessionx): modern session
+  manager with zoxide integration, fzf picker, git-aware naming. Pick one.
+- [tmux-floax](https://github.com/omerxx/tmux-floax): persistent floating
+  panes (closest tmux gets to zellij's floating panes)
+- [tmux-fzf](https://github.com/sainnhe/tmux-fzf): popup command palette
+  for tmux commands via fzf
+- [Samoshkin nested-session pattern](https://gist.github.com/samoshkin/05e65f7f1c9b55d3fc7690b59d678734):
+  F12 toggles outer tmux off for SSH-inside-tmux workflows
+
+**Skip (superseded or low value):**
+- tmux-fingers (superseded by tmux-thumbs)
+- tmux-copycat (superseded by tmux-thumbs pattern matching)
+- tmuxinator/tmuxp (cmux workspaces + raw scripts already cover layout)
+- claude-squad (overlaps cmux workspace model + native Agent Teams)
+
+Cross-reference: [TmuxToolkit skill](skills/TmuxToolkit/SKILL.md),
+[docs/tldrs/tmux.md](docs/tldrs/tmux.md).
+
+## zellij adoption
+
+Plan to adopt zellij alongside tmux. The zellij feature delta that tmux
+cannot match: floating panes (native, pinnable), edit-scrollback
+(`Ctrl-s e` opens in `$EDITOR`), WASM plugins (sandboxed, UI-rendering),
+full kitty keyboard protocol support (tmux PR #4068 was closed unmerged),
+context-sensitive keybinding discoverability in the status bar.
+
+**Blocker**: Claude Code agent teams require tmux (zellij support tracked
+in upstream issues #24122 / #31901 but not shipped). Until that ships,
+zellij is for non-AI-agent terminal work only.
+
+- `brew install zellij`
+- Add `brew "zellij"` to `manifests/Brewfile`
+- Create `dotfiles/dot_config/zellij/config.kdl` with baseline config
+- Author a ZellijToolkit skill in forge-provision (mirroring TmuxToolkit)
+- Author a `docs/tldrs/zellij.md`
+- Evaluate side-by-side for one week before committing to dual-stack
+
+Cross-reference: [ARCH-0009 Terminal multiplexer tmux](docs/decisions/ARCH-0009%20Terminal%20multiplexer%20tmux.md)
+(update when zellij earns a co-primary role).
+
+## TLDRs not yet authored
+
+- **gitui.md** — deferred from the LearnFrom session. Key content: gitui's
+  one-key-per-action keybinding model (no dual-binding, no fallback),
+  vim preset adoption, Ctrl+b/f page navigation.
+- **ghostty.md** — referenced in GhosttyToolkit but not yet authored. The
+  skill covers design + diagnostics; the TLDR would cover the day-to-day
+  keybinding + reload + config-file reference.
+
 ## Deferred installs
 
 These were vetted on 2026-05-14 and approved for inclusion, but the session
