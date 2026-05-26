@@ -25,6 +25,26 @@ preferred path on a fresh Mac, the next dedicated GPG session needs:
 Cross-reference: [forge-core CommitSigning skill](https://github.com/N4M3Z/forge-core/blob/main/skills/VersionControl/CommitSigning.md)
 already documents both signing paths.
 
+## crex (cmux-resurrect) install
+
+[crex](https://github.com/drolosoft/cmux-resurrect) is a standalone Go CLI
+that saves/restores cmux workspace snapshots (tabs, pane layouts, CWDs,
+pinned state, startup commands, browser URLs) and auto-resumes Claude Code
+sessions via `claude --resume <session-id>`. Fills the gap tracked by
+[cmux #2086](https://github.com/manaflow-ai/cmux/issues/2086) (named
+session save/restore) until cmux ships native support.
+
+- `brew install drolosoft/tap/crex`
+- Add `brew "drolosoft/tap/crex"` to `manifests/Brewfile`
+- Test: `crex save`, quit cmux, relaunch, `crex restore`
+- Evaluate markdown Blueprints (`crex export-to-md` / `crex import-from-md`)
+  for Obsidian vault integration
+- Update `docs/tldrs/cmux.md` with crex commands after adoption
+
+Alternative: [Lumiwealth/cmux-agent-recovery](https://github.com/Lumiwealth/cmux-agent-recovery)
+is a lighter single-workspace-at-a-time tool. crex is more mature (v1.14.0,
+34 releases).
+
 ## Deferred installs
 
 These were vetted on 2026-05-14 and approved for inclusion, but the session
