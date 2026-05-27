@@ -14,7 +14,25 @@ libghostty-based AI-pane manager for parallel Claude Code (and other agent) sess
 | `cmux surface resume set "<cmd>"` | Pin a resume command for the active surface                                            |
 | `cmux surface resume show`       | Show what's pinned                                                                      |
 | `cmux surface resume clear`      | Release the pin                                                                         |
+| `cmux claude-teams [claude-args]` | Launch Claude with agent teams visible as sidebar splits (tmux shim). Accepts any claude flag (`--resume`, `--continue`, `--model`). |
 | `cmux --version`                 | Version check                                                                           |
+
+## Shell integration
+
+The `claude()` function in `dot_zshrc` routes invocations by environment:
+
+```
+cmux detected (CMUX_SURFACE_ID set) → cmux claude-teams "$@"
+    Agent teams spawn as visible vertical splits with sidebar metadata.
+outside cmux, no tmux                  → tmux new-session -A -s claude "command claude"
+    Wraps in a persistent tmux session for Ghostty restarts.
+otherwise (args passed, or in tmux)    → command claude "$@"
+    Bare binary, no wrapping.
+```
+
+Three env vars cmux injects per pane: `CMUX_SURFACE_ID` (pane identity), `CMUX_WORKSPACE_ID` (workspace identity), `CMUX_SOCKET_PATH` (socket for CLI API).
+
+The cmux claude wrapper at `/Applications/cmux.app/Contents/Resources/bin/claude` injects 6 hooks via `--settings` (SessionStart, Stop, SessionEnd, Notification, UserPromptSubmit, PreToolUse). Opt out with `CMUX_CLAUDE_HOOKS_DISABLED=1` if a Claude Code update breaks the wrapper ([#3059](https://github.com/manaflow-ai/cmux/issues/3059)).
 
 ## Keybindings (in our `dot_config/cmux/cmux.json`)
 
@@ -35,7 +53,15 @@ Default chord set is otherwise close to Ghostty — splits, tab nav, etc. `cmux 
 | cmux crash        | Same as quit, with snapshot-overwrite caveats ([#2895][I2895], [#2745][I2745], [#2387][I2387]).                                                                                                                          |
 | Laptop reboot     | Layout maybe restored; processes gone. Snapshot can lose workspaces. For durable process state, layer tmux inside a cmux pane.                                                                                            |
 
-Snapshot lives at `~/Library/Application Support/cmux/`. Per-agent session mappings at `~/.cmuxterm/`. There is no explicit close/archive/resume-by-name command — [#2086][I2086] tracks the feature request.
+State locations:
+
+| Path                                       | Contents                                                                                          |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| `~/Library/Application Support/cmux/`      | Socket (`cmux.sock`), search DB (SQLite FTS), session restore JSON (workspace layouts + session IDs) |
+| `~/.cmuxterm/`                             | Claude-teams tmux shim, hook session tracking (`claude-hook-sessions.json`), event telemetry       |
+| `~/.config/cmux/cmux.json`                 | User config (chezmoi-managed)                                                                     |
+
+No explicit close/archive/resume-by-name command — [#2086][I2086] tracks the feature request. [crex](https://github.com/drolosoft/cmux-resurrect) fills the gap externally.
 
 ## Claude Code hook integration
 

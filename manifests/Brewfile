@@ -121,6 +121,10 @@ brew "zoxide"
 # for vim plugins, git tools, completion menus.
 brew "fzf"
 
+# sesh — tmux session manager with zoxide integration and fzf picker.
+# Standalone Go binary, not a TPM plugin. Replaces ad-hoc sessionizer scripts.
+brew "sesh"
+
 # JavaScript runtime and global package installer, primary (PROV-0004).
 # Used for `bun install -g @cometix/ccline` plus future global npm tools.
 tap "oven-sh/bun"
@@ -159,6 +163,13 @@ cask "ghostty"
 # we'd rather opt into upgrades manually than have `brew upgrade` overwrite
 # a known-good version. The brew cask was uninstalled on 2026-05-21
 # (see docs/journal/) after a brief detour.
+
+# crex (cmux-resurrect) — workspace snapshot save/restore for cmux. Saves
+# tabs, pane layouts, CWDs, pinned state, startup commands, and auto-resumes
+# Claude Code sessions via session IDs. Fills the gap tracked by cmux #2086
+# (named session save/restore) until cmux ships native support.
+tap "drolosoft/tap"
+brew "drolosoft/tap/crex"
 
 # Meslo LG Nerd Font — Powerline-glyph-patched Meslo. MesloLGS Nerd Font Mono
 # variant is the p10k canonical face and what ghostty's font-family points at.
