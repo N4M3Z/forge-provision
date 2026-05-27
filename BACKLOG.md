@@ -25,25 +25,6 @@ preferred path on a fresh Mac, the next dedicated GPG session needs:
 Cross-reference: [forge-core CommitSigning skill](https://github.com/N4M3Z/forge-core/blob/main/skills/VersionControl/CommitSigning.md)
 already documents both signing paths.
 
-## crex (cmux-resurrect) install
-
-[crex](https://github.com/drolosoft/cmux-resurrect) is a standalone Go CLI
-that saves/restores cmux workspace snapshots (tabs, pane layouts, CWDs,
-pinned state, startup commands, browser URLs) and auto-resumes Claude Code
-sessions via `claude --resume <session-id>`. Fills the gap tracked by
-[cmux #2086](https://github.com/manaflow-ai/cmux/issues/2086) (named
-session save/restore) until cmux ships native support.
-
-- `brew install drolosoft/tap/crex`
-- Add `brew "drolosoft/tap/crex"` to `manifests/Brewfile`
-- Test: `crex save`, quit cmux, relaunch, `crex restore`
-- Evaluate markdown Blueprints (`crex export-to-md` / `crex import-from-md`)
-  for Obsidian vault integration
-- Update `docs/tldrs/cmux.md` with crex commands after adoption
-
-Alternative: [Lumiwealth/cmux-agent-recovery](https://github.com/Lumiwealth/cmux-agent-recovery)
-is a lighter single-workspace-at-a-time tool. crex is more mature (v1.14.0,
-34 releases).
 
 ## Push local commits to origin
 
@@ -208,6 +189,31 @@ focused on dotfiles + git tooling instead. Pull into a future Brewfile pass.
   `~/.local/bin/cmux` CLI symlink. After install, run `cmux hooks setup`
   manually once to wire Claude Code lifecycle hooks into
   `~/.claude/settings.json`.
+
+## Evaluate Jujutsu (jj) as git replacement
+
+Git worktrees work for parallel AI coding sessions on Rust CLI projects (no
+port conflicts, no shared state). But the underlying VCS primitives force
+manual worktree lifecycle: create, rebase against main, remove, delete branch.
+[Jujutsu](https://github.com/martinvonz/jj) replaces commits-and-branches
+with continuous snapshotting and automatic rebasing, making worktree management
+a non-issue. jj operates on a git backend so existing repos and remotes keep
+working.
+
+Evaluate:
+
+- Install `jj` via Homebrew, add to `manifests/Brewfile`.
+- Test the `jj git clone` + `jj new` + `jj squash` workflow on forge-cli.
+- Confirm GitHub PR creation still works (`jj git push --change`).
+- Check Claude Code compatibility (does it cope with `.jj/` instead of `.git/`?).
+- If viable, update `forge-core/rules/GitWorktrees.md` to document the jj path
+  alongside the worktree path.
+
+Context: Theo Browne (t3.gg, 2026-05-26) called worktrees "an abomination"
+while arguing that git itself is the wrong primitive. His T3 Code app still uses
+worktrees for parallel agents, but recommends jj as the end-state replacement.
+Trigger.dev separately dropped worktrees for full-stack web apps due to port and
+node_modules conflicts (not applicable to forge-cli's Rust CLI).
 
 ## How items leave this list
 

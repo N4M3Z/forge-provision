@@ -61,7 +61,30 @@ State locations:
 | `~/.cmuxterm/`                             | Claude-teams tmux shim, hook session tracking (`claude-hook-sessions.json`), event telemetry       |
 | `~/.config/cmux/cmux.json`                 | User config (chezmoi-managed)                                                                     |
 
-No explicit close/archive/resume-by-name command — [#2086][I2086] tracks the feature request. [crex](https://github.com/drolosoft/cmux-resurrect) fills the gap externally.
+No native close/archive/resume-by-name command — [#2086][I2086] tracks the feature request.
+
+### crex (cmux-resurrect)
+
+[crex](https://github.com/drolosoft/cmux-resurrect) fills the persistence gap externally. Installed via `brew install drolosoft/tap/crex`.
+
+| Command                | Effect                                                                     |
+| ---------------------- | -------------------------------------------------------------------------- |
+| `crex save`            | Snapshot all workspaces (tabs, panes, CWDs, pinned state, session IDs)     |
+| `crex restore`         | Recreate workspaces from last snapshot, resume AI agent sessions           |
+| `crex list`            | List saved layouts                                                         |
+| `crex save <name>`     | Save a named layout                                                        |
+| `crex restore <name>`  | Restore a named layout                                                     |
+| `crex template list`   | Browse built-in layout templates (ide, claude, dashboard, etc.)            |
+| `crex export-to-md`    | Export current state to a markdown Blueprint (Obsidian-compatible)          |
+| `crex import-from-md`  | Create workspaces from a Blueprint (idempotent, only missing tabs)         |
+| `crex watch`           | Auto-save periodically                                                     |
+| `crex tui`             | Interactive shell                                                          |
+
+Layouts saved at `~/.config/crex/layouts/`. Sunset when cmux ships [#2086][I2086] natively.
+
+### Vault
+
+Right sidebar panel (`cmux right-sidebar vault`). Indexes sessions from all supported agents (Claude Code, Codex, OpenCode, Pi, RovoDev, Grok) with full-text transcript search and drag-to-workspace resume. Click the sidebar icon or run the CLI command; cmux remembers the panel across restarts.
 
 ## Claude Code hook integration
 
