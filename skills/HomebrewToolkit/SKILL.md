@@ -185,3 +185,11 @@ brew bundle cleanup --file=manifests/Brewfile      # list installed but absent f
 ```
 
 `bundle install` is idempotent — re-running with no changes is a no-op. Use it freely.
+
+## Custom-Built Binaries
+
+Install custom-built binaries to `~/.local/bin/`, never to `/opt/homebrew/bin/`. Homebrew owns that directory: `brew upgrade` re-symlinks entries from the Cellar and any manually placed file is silently overwritten or orphaned.
+
+If the Homebrew formula provides an older version of the same binary, `brew unlink <formula>` removes the symlink so `~/.local/bin/` takes precedence in PATH.
+
+Verify which binary is running with `type -a <name>` — shell functions and aliases may shadow the expected path.
