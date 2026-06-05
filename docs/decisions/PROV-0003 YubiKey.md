@@ -11,7 +11,7 @@ tags:
     - naming
 status: accepted
 created: 2026-05-11
-updated: 2026-05-11
+updated: 2026-06-03
 author: "@N4M3Z"
 project: forge-provision
 related:
@@ -61,7 +61,7 @@ For PIN entry on signing:
 
 ## Decision Outcome
 
-Chosen options: **`yubikey_<model>_<year_or_context>`** for SSH key filenames; **brew's `openssh`** invoked explicitly via `gpg.ssh.program=/opt/homebrew/bin/ssh-keygen`; **`theseal/ssh-askpass`** LaunchAgent + `SSH_ASKPASS_REQUIRE=force` in `~/.zshenv`. PIV management key: AES-192 (the firmware-5.7+ default) with "Protect with PIN" enabled — PIV is otherwise unused, so the cascade risk of PIN/PUK lockout bricking PIV slots has zero blast radius. FIDO2 application string per credential: `ssh:<github-user>`. GitHub key titles follow GPG subkey-usage convention: `<hostname> (a)` for authentication, `<hostname> (s)` for signing — same `.pub`, different `--type` on `gh ssh-key add`. The same `(s)/(e)/(a)/(c)` suffix system extends to `gh gpg-key list` entries when OpenPGP signing is opted in. Multiple YubiKeys: each gets its own FIDO2 credential (hardware-bound, separate `ssh-keygen` per device); the same OpenPGP subkeys can land on multiple YubiKeys via offline encrypted backup of the master.
+Chosen options: **`yubikey_<model>_<year_or_context>`** for SSH key filenames; **brew's `openssh`** invoked explicitly via `gpg.ssh.program=/opt/homebrew/bin/ssh-keygen`; **`theseal/ssh-askpass`** LaunchAgent + `SSH_ASKPASS_REQUIRE=force` in `~/.zshenv`. PIV management key: AES-192 (the firmware-5.7+ default) with "Protect with PIN" enabled. PIV now backs macOS login (see below), so a PIN/PUK lockout would block login; a non-hardware fallback is therefore mandatory (FileVault recovery key plus account password, and a second enrolled YubiKey). FIDO2 application string per credential: `ssh:<github-user>`. GitHub key titles follow GPG subkey-usage convention: `<hostname> (a)` for authentication, `<hostname> (s)` for signing — same `.pub`, different `--type` on `gh ssh-key add`. The same `(s)/(e)/(a)/(c)` suffix system extends to `gh gpg-key list` entries when OpenPGP signing is opted in. Multiple YubiKeys: each gets its own FIDO2 credential (hardware-bound, separate `ssh-keygen` per device); the same OpenPGP subkeys can land on multiple YubiKeys via offline encrypted backup of the master.
 
 | YubiKey | Filename |
 | --- | --- |
@@ -72,6 +72,12 @@ Chosen options: **`yubikey_<model>_<year_or_context>`** for SSH key filenames; *
 
 Role (primary / backup / legacy) lives in `~/.ssh/config` `IdentityFile` ordering, not in the filename — survives demotion without rename.
 
+**macOS login and sudo.** The YubiKey also authenticates the Mac:
+
+- **Login** uses the PIV applet (smartcard pairing via `sc_auth`), unlocked by the PIV PIN.
+- **sudo** uses Touch ID or Apple Watch (`pam_tid`), not the YubiKey, keeping the frequent sudo path off the CCID reader and clear of contention with GPG signing on the OpenPGP applet.
+- **Fallback is mandatory.** Login now depends on the key, so the account password at the login window plus a FileVault recovery key must stay in place; a lost or locked-out YubiKey never bricks access.
+
 ### Consequences
 
 - [+] Filename identifies the physical YubiKey unambiguously
@@ -81,6 +87,8 @@ Role (primary / backup / legacy) lives in `~/.ssh/config` `IdentityFile` orderin
 - [-] Conflicts with the forge-core `NamingConventions` rule (kebab-case for non-code files); SSH key files are an upstream-OpenSSH exception — that rule needs a clarifying clause
 - [-] First-time tooling chain (brew openssh + libfido2 + ssh-askpass + LaunchAgent + `SSH_ASKPASS_REQUIRE=force`) has several moving parts that must land in the right order
 - [-] Remote SSH servers must run OpenSSH 8.2+ to accept FIDO2 keys (modern Linux fine)
+- [+] sudo via Touch ID keeps the frequent path off the YubiKey and the CCID reader, avoiding contention with GPG signing on the OpenPGP applet
+- [-] PIV now backs macOS login, so a lost or locked-out YubiKey blocks login until the account-password / FileVault-recovery fallback is used — lockout is no longer consequence-free
 
 ## More Information
 

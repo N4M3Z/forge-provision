@@ -12,11 +12,14 @@ tags:
     - pinentry-mac
 status: accepted
 created: 2026-05-11
-updated: 2026-05-21
+updated: 2026-06-05
 author: "@N4M3Z"
 project: forge-provision
 related:
     - "ARCH-0002 New machine provisioning order.md"
+    - "PROV-0003 YubiKey.md"
+    - "PROV-0010 Proton encryption and keys.md"
+    - "ARCH-0028 Session persistence Entire CLI.md"
 responsible: ["@N4M3Z"]
 accountable: ["@N4M3Z"]
 consulted: []
@@ -61,15 +64,19 @@ git config --global commit.gpgsign true
 git config --global tag.gpgsign true
 ```
 
-`pinentry-mac` (brew cask `pinentry-mac`) handles the PIN entry GUI, wired through `~/.gnupg/gpg-agent.conf`:
+`pinentry-mac` (brew formula `pinentry-mac`) handles the PIN entry GUI, wired through `~/.gnupg/gpg-agent.conf`:
 
 ```
 pinentry-program /opt/homebrew/bin/pinentry-mac
-default-cache-ttl 3600
-max-cache-ttl 86400
 ```
 
+Cache-TTL options are absent on purpose: they cache passphrases for on-disk keys and do nothing for card-held keys — the card holds PIN verification itself, from first use until unplugged. scdaemon needs `disable-ccid` on macOS (GnuPG 2.3+ stopped falling back to PC/SC on its own, and CryptoTokenKit owns the USB device). Both files are provisioned from `manifests/gnupg/` by `scripts/configure/gnupg.sh`.
+
 The YubiKey holds the OpenPGP signing subkey resident; `gpg-agent` discovers the smartcard on first signing operation and prompts for the PIN via pinentry-mac. Touch the YubiKey when the LED blinks.
+
+**Key material.** Signing keys are elliptic — Curve25519 (ed25519 to certify, sign, and authenticate; cv25519 to encrypt), not RSA. At a comparable or higher security level the keys and signatures are a fraction of RSA's size and on-card operations are faster, which matters most on a constrained device like the YubiKey; the curve's rigid parameters and deterministic signatures also avoid RSA's padding-oracle and weak-randomness footguns. Curve25519 is the recommended choice for new keys across the modern toolchain (GnuPG, OpenSSH, Sequoia/OpenPGP per RFC 9580), and GitHub verifies it identically to RSA; RSA is reserved for FIPS or legacy interop. The master is generated and kept offline; only the subkeys go on the YubiKey via `keytocard`, with `user.signingkey` and `gpg.format openpgp` pointing at the signing subkey.
+
+**Touch per signature, PIN per insertion.** The touch policy is `on` for all three key slots — physical presence per operation is what blocks silent signing by malware, and it stays. `forcesig` is off: the card holds PIN verification from first use until unplugged, so the PIN is entered once per insertion and guards a lost or stolen card rather than each signature. High signing volume from automated tooling is handled by not signing those commits ([ARCH-0028](ARCH-0028 Session persistence Entire CLI.md)), not by weakening the key. pinentry-mac's "Save in Keychain" checkbox is disabled at provisioning (`DisableKeychain`, `scripts/configure/gnupg.sh`): a Keychain-stored PIN would auto-unlock the card on every insertion, deleting the PIN factor with nothing visible changed.
 
 For repos or scenarios where SSH signing is preferred, opt in per-repo:
 
@@ -96,6 +103,8 @@ Both modes coexist — the SSH signing key and OpenPGP subkeys live on the same 
 
 - [Git: `gpg.format` configuration](https://git-scm.com/docs/git-config#Documentation/git-config.txt-gpgformat)
 - [GitHub: commit signature verification](https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification)
+- [Mozilla OpenSSH guidelines](https://infosec.mozilla.org/guidelines/openssh) — Ed25519 preferred over RSA for new keys
+- [RFC 9580: OpenPGP](https://www.rfc-editor.org/rfc/rfc9580) — standard codepoints for Ed25519 / X25519 keys
 - [PROV-0003 YubiKey](PROV-0003 YubiKey.md) — YubiKey provisioning details that back both signing paths
 - [forge-core CommitSigning skill](https://github.com/N4M3Z/forge-core/blob/main/skills/VersionControl/CommitSigning.md) — SSH-side details for the alternative path
 - [pinentry-mac](https://github.com/GPGTools/pinentry) — macOS-native Cocoa pinentry
