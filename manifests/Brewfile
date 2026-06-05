@@ -91,6 +91,25 @@ brew "openssh"
 tap "theseal/ssh-askpass"
 brew "theseal/ssh-askpass/ssh-askpass"
 
+# GPG toolchain (GPG-0005): Homebrew gnupg over GPG Suite — current 2.5.x, one gpg
+# on PATH, no paid GPGMail, no GPG Keychain, no MacGPG-vs-brew conflict over ~/.gnupg.
+# pinentry-mac renders the PIN dialog; ykman sets OpenPGP touch policies and PINs.
+# Installed by scripts/install/gpg-toolchain.sh. Decision: GPG-0001, GPG-0005.
+brew "gnupg"
+brew "pinentry-mac"
+brew "ykman"
+
+# Offline key-backup tooling (GPG-0006): paperkey strips an OpenPGP secret to the
+# bytes not derivable from the public key; qrencode renders them OCR-free for paper.
+# scripts/install/paperkey.sh.
+brew "paperkey"
+brew "qrencode"
+
+# sq (Sequoia-PGP) — v6 / post-quantum OpenPGP. The only tool that reads Proton's
+# post-quantum mail-key export; GnuPG cannot and structurally will not (GPG-0007).
+# Pinned into the offline key vault's tools/ as the break-glass decryptor.
+brew "sequoia-sq"
+
 # gitleaks — pattern-based secret scanner. Catches AWS keys, tokens, PEM blocks,
 # entropy-flagged strings in git history + working tree. Deterministic, fast, runs
 # locally (no LLM). Pairs with deeper LLM-based scans via the SecretScan skill.
