@@ -1,0 +1,70 @@
+{
+    // Deployed from forge-provision manifests/zed/settings.json by
+    // scripts/configure/zed.sh. Edit the manifest, not this file.
+    // Zed parses JSONC; keep jq away from this file or strip comments first.
+
+    "theme": {
+        "mode": "system",
+        "light": "Catppuccin Latte",
+        "dark": "Catppuccin Mocha"
+    },
+
+    "vim_mode": true,
+    "relative_line_numbers": "enabled",
+    "cursor_blink": false,
+
+    "inlay_hints": {
+        "enabled": true
+    },
+
+    "telemetry": {
+        "diagnostics": false,
+        "metrics": false
+    },
+
+    // Edit predictions ride the default provider (Zeta); inline
+    // completions activate after the one-time Zed sign-in.
+
+    // Claude Code in the agent panel over ACP, declared here so no
+    // per-machine registry step. Auth and model choice stay with
+    // Claude Code itself.
+    "agent_servers": {
+        "Claude Code": {
+            "type": "custom",
+            "command": "npx",
+            "args": ["-y", "@zed-industries/claude-code-acp"],
+            "env": {}
+        }
+    },
+
+    // Nerd font so prompt glyphs render in the built-in terminal.
+    // Mono variant to match Ghostty (p10k canonical, single-cell glyphs).
+    "terminal": {
+        "font_family": "MesloLGS Nerd Font Mono"
+    },
+
+    // Declarative extension install, applied on startup. Every id is
+    // verified against zed-industries/extensions.
+    "auto_install_extensions": {
+        "catppuccin": true,
+        "html": true,
+        "toml": true,
+        "make": true,
+        "dockerfile": true,
+        "docker-compose": true,
+        "sql": true,
+        "env": true,
+        "markdown-oxide": true,
+        "git-firefly": true,
+        "csv": true,
+        "lua": true,
+        "basher": true
+    },
+
+    "languages": {
+        // Markdown formatters mangle reference-style links and tables.
+        "Markdown": {
+            "format_on_save": "off"
+        }
+    }
+}
