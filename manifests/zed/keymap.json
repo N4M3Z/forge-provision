@@ -1,0 +1,12 @@
+[
+    {
+        // Space-leader bindings, vim-style. VimControl scopes them to
+        // normal/visual modes; !menu keeps space usable in completions.
+        "context": "VimControl && !menu",
+        "bindings": {
+            "space space": "file_finder::Toggle",
+            "space e": "project_panel::ToggleFocus",
+            "space g": "git_panel::ToggleFocus"
+        }
+    }
+]

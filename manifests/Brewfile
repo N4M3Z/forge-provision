@@ -151,6 +151,11 @@ cask "raycast"
 # the terminal-first stack (helix, neovim, gitui).
 cask "cursor"
 
+# Zed: GPU-native editor; Claude Code runs in its agent panel via ACP.
+# Cask links the bundled CLI as `zed` (no in-app "install cli" step needed).
+# Config deployed from manifests/zed/ by scripts/configure/zed.sh.
+cask "zed"
+
 # Ghostty — Zig+Swift terminal emulator, replaces Apple Terminal.app. Config
 # at ~/.config/ghostty/config (managed via chezmoi). Reference:
 # https://ghostty.org/docs/config
