@@ -51,7 +51,7 @@ The user explicitly rejected the [git-ai][GITAI] project and dislikes MCP-based 
 3. **git-prompt-story** — stalled (5 stars, "not for public yet"); not viable.
 4. **SpecStory** — alive, writes readable markdown to `.specstory/history/`, but anchoring to commits is manual and it commits files into the repo rather than a side branch.
 5. **Plain sync of `~/.claude/projects/`** (rsync/syncthing/dedicated repo) — preserves the full multi-file DAG but has no commit anchor, no provenance, and is path-coupled (the encoded-cwd dir differs per machine, so resume needs a rehash/restore step regardless).
-6. **Entire CLI** — [Entire][ENTIRE] (Nat Friedman, MIT, actively maintained). Checkpoints the full transcript onto an `entire/checkpoints/v1` branch keyed to the commit; resume restores Claude's native session log and prints `claude --resume <id>`. Branch-based storage sidesteps the 1MB note cap, the refspec footgun, and rebase-orphaning that plague the notes approach.
+6. **Entire CLI** — [Entire][ENTIRE] (Nat Friedman, MIT, actively maintained). Checkpoints the full transcript onto a per-session `entire/<hash>` branch; resume restores Claude's native session log and prints `claude --resume <id>`. Branch-based storage sidesteps the 1MB note cap, the refspec footgun, and rebase-orphaning that plague the notes approach.
 
 ## Decision Outcome
 
@@ -69,7 +69,7 @@ entire enable --agent claude-code --skip-push-sessions --local --telemetry=false
 
 - `--skip-push-sessions` sets `strategy_options.push_sessions: false` so the checkpoint branch (carrying the full transcript) is **never** pushed by a routine `git push`. This is mandatory on a public repo.
 - `--local` writes Entire settings to `.entire/settings.local.json` (gitignored), keeping config out of tracked repo content. The Claude hooks land in the repo's `.claude/settings.json`; where that path is gitignored they do not reach the remote.
-- Capture is commit-triggered. For a session that started before Entire was enabled, `entire session attach <session-id>` creates a checkpoint from the existing transcript and links it to the last commit — the documented fix for the mid-session-enable gap.
+- Capture is event-driven, finer than your own commits. Claude hooks fire on `Task` pre/post (every subagent boundary), `TodoWrite`, and session start/end; each fire commits a checkpoint onto the per-session `entire/<hash>` branch, labelled with the prompt context and carrying `Entire-Session` / `Entire-Strategy` trailers. Each checkpoint commit appends the new turns to `.entire/metadata/<session-id>/full.jsonl` (the diff between two checkpoints *is* the conversation that happened between them), alongside `prompt.txt` and per-task `tasks/<toolu>/checkpoint.json` records. The branch named `entire/checkpoints/v1` is a separate metadata-init branch (empty tree), not where transcripts live. So no work is lost between *your* git commits — the transcript accrues continuously on the Entire branch. For a session that began before Entire was enabled, `entire session attach <session-id>` backfills a checkpoint from the existing JSONL.
 - Resume restores the JSONL and hands off to native `claude --resume`, so fidelity equals Claude's own resume.
 
 **Cross-harness resume is out of scope** — transcript formats and tool-call schemas do not transplant across harnesses. The viable cross-harness path is context re-injection (a distilled handoff or a tool like cli-continues), not live resume; that is a separate decision if pursued.
@@ -86,7 +86,7 @@ entire enable --agent claude-code --skip-push-sessions --local --telemetry=false
 - [+] No MCP server; pure CLI + git hooks.
 - [-] **Privacy is opt-out, not opt-in**: Entire defaults to `push_sessions: true` with the checkpoint remote = origin. On a public repo with defaults a normal push would publish the transcript. The `push_sessions: false` discipline is load-bearing and must be set at enable time.
 - [-] Secret redaction is best-effort; PII redaction is a separate opt-in layer, disabled by default. Treat checkpoints as containing raw conversation.
-- [-] Capture is commit-triggered and requires the session to be registered (hook-fired or `session attach`); a mid-session enable does not retroactively capture without `attach`.
+- [-] Capture requires the session to be registered (hook-fired or `session attach`); a mid-session enable does not retroactively capture without `attach`.
 - [-] The checkpoint captures the main transcript only, not the `<id>/` subagent sidecar — subagent detail is lost on resume (acceptable: the readable thread is what matters).
 - [-] Cross-machine and cross-harness resume are not delivered by this decision.
 - [-] Checkpoint commits are signed by default like any commit; the fallback wrapper turns that off for Entire alone if it gets noisy.
