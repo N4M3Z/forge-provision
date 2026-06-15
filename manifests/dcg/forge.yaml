@@ -1,0 +1,33 @@
+# forge custom dcg pack — deployed by forge-provision (scripts/configure/dcg.sh).
+#
+# This is the partner-extensibility surface: add commands your team must never
+# run by accident under `destructive_patterns`. Packs auto-load from
+# ~/.config/dcg/packs/, so no enable step is needed once this file is in place.
+#
+# Validate after editing:  dcg pack validate ~/.config/dcg/packs/forge.yaml
+# Schema: https://github.com/Dicklesworthstone/destructive_command_guard/blob/main/docs/pack.schema.yaml
+
+schema_version: 1
+id: forge.guardrails
+name: Forge Guardrails
+version: 1.0.0
+description: |
+    forge-specific command guardrails layered on dcg's built-in packs.
+
+# A command is evaluated against this pack only if it contains one of these
+# keywords. Symbol-only hazards (fork bombs, etc.) have no keyword and are left
+# to the sandbox boundary (VIRT-0001/0002), not this net.
+keywords:
+    - forge
+
+destructive_patterns:
+    # Example rule, kept at log-only severity so it never nags. Bump to `high`
+    # or `critical` for commands that must hard-block, and add your own below.
+    - name: forge-install-force
+      pattern: \bforge\s+install\b(?:.*\s)?--force\b
+      severity: low
+      description: forge install --force overwrites user-modified deployed files
+      explanation: |
+          `forge install --force` re-deploys and overwrites files edited in place
+          under ~/.claude (rules, skills, agents). Re-run without --force, or
+          commit the changes to the owning module first.

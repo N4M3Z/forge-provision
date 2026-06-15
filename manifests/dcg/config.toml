@@ -1,0 +1,22 @@
+# dcg configuration — deployed by forge-provision (scripts/configure/dcg.sh).
+# https://github.com/Dicklesworthstone/destructive_command_guard
+
+[general]
+# dcg's version is pinned in scripts/install/dcg.sh; skip background update checks.
+check_updates = false
+# self_heal_hook stays on (its default): it idempotently re-asserts the PreToolUse
+# hook if a harness drops it mid-session. The same hook is sourced in the chezmoi
+# settings, so the two agree on a fixed point and the file stops changing.
+
+[packs]
+# core.* (filesystem, git) is always on and cannot be disabled. system.disk is on
+# by default; containers.docker is added for this machine's container workflow.
+enabled = [
+    "system.disk",
+    "containers.docker",
+]
+# Custom packs auto-load from these globs (per-user, then per-project).
+custom_paths = [
+    "~/.config/dcg/packs/*.yaml",
+    ".dcg/packs/*.yaml",
+]
