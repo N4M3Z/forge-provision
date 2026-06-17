@@ -1,16 +1,33 @@
 {
-    // Deployed from forge-provision manifests/zed/settings.json by
-    // scripts/configure/zed.sh. Edit the manifest, not this file.
+    // Baseline Zed config, seeded to ~/.config/zed/ by scripts/configure/zed.sh
+    // only when no config exists there. The live config is chezmoi-owned
+    // (dot_config/zed in the dotfiles repo); capture tweaks with chezmoi re-add.
     // Zed parses JSONC; keep jq away from this file or strip comments first.
+
+    "autosave": "on_focus_change",
+
+    "project_panel": {
+        "dock": "left"
+    },
+
+    // Predictions ride the default provider (Zeta); they activate after
+    // the one-time Zed sign-in. Data collection stays declined.
+    "edit_predictions": {
+        "allow_data_collection": "no"
+    },
+
+    "session": {
+        "trust_all_worktrees": true
+    },
 
     "theme": {
         "mode": "system",
         "light": "Catppuccin Latte",
-        "dark": "Catppuccin Mocha"
+        "dark": "Ayu Dark"
     },
 
     "vim_mode": true,
-    "relative_line_numbers": "enabled",
+    "relative_line_numbers": "wrapped",
     "cursor_blink": false,
 
     "inlay_hints": {
@@ -21,9 +38,6 @@
         "diagnostics": false,
         "metrics": false
     },
-
-    // Edit predictions ride the default provider (Zeta); inline
-    // completions activate after the one-time Zed sign-in.
 
     // Claude Code in the agent panel over ACP, declared here so no
     // per-machine registry step. Auth and model choice stay with
@@ -40,6 +54,10 @@
     // Nerd font so prompt glyphs render in the built-in terminal.
     // Mono variant to match Ghostty (p10k canonical, single-cell glyphs).
     "terminal": {
+        "copy_on_select": true,
+        "scrollbar": {
+            "show": "system"
+        },
         "font_family": "MesloLGS Nerd Font Mono"
     },
 
@@ -47,6 +65,7 @@
     // verified against zed-industries/extensions.
     "auto_install_extensions": {
         "catppuccin": true,
+        "nord": true,
         "html": true,
         "toml": true,
         "make": true,

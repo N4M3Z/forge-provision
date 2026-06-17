@@ -1,9 +1,12 @@
 #!/bin/bash
-# Configure Zed from manifests/zed/: settings.json and keymap.json copied
-# into ~/.config/zed/. Copy, never symlink: in-app settings changes replace
-# the file atomically, which severs symlinks (zed-industries/zed#4469).
-# Idempotent: skips files already matching the manifest; divergent files are
-# backed up as <name>.json.YYYY-MM-DD.bak before overwriting.
+# Seed Zed config from manifests/zed/ on first provision: settings.jsonc and
+# keymap.jsonc deployed as settings.json and keymap.json in ~/.config/zed/ only
+# when absent (sources carry comments, so they live as .jsonc; Zed reads the
+# deployed .json which is JSONC-tolerant). The live config is chezmoi-owned
+# (dot_config/zed in the dotfiles repo), so existing files are never
+# overwritten; capture tweaks with `chezmoi re-add`.
+# Copy, never symlink: in-app settings changes replace the file atomically,
+# which severs symlinks (zed-industries/zed#4469).
 # Extensions install declaratively on next launch via auto_install_extensions.
 # Reference: https://zed.dev/docs/configuring-zed
 # Source: https://github.com/N4M3Z/forge-provision
@@ -21,27 +24,21 @@ fi
 
 mkdir -p "${ZED_CONFIG}"
 
-for filename in settings.json keymap.json; do
-    manifest_file="${MANIFEST_DIR}/${filename}"
-    deployed_file="${ZED_CONFIG}/${filename}"
+for name in settings keymap; do
+    manifest_file="${MANIFEST_DIR}/${name}.jsonc"
+    deployed_file="${ZED_CONFIG}/${name}.json"
 
     if [[ ! -f "${manifest_file}" ]]; then
         echo "fail:zed (manifest missing at ${manifest_file})"
         exit 1
     fi
 
-    if [[ -f "${deployed_file}" ]] && cmp -s "${manifest_file}" "${deployed_file}"; then
-        echo "skip:zed (${filename} already matches manifest)"
+    if [[ -f "${deployed_file}" ]]; then
+        echo "skip:zed (${name}.json exists; chezmoi owns the live config)"
         continue
     fi
 
-    if [[ -f "${deployed_file}" ]]; then
-        backup_file="${deployed_file}.$( date -u +%Y-%m-%d ).bak"
-        echo "backup:zed (${filename} -> $( basename "${backup_file}" ))"
-        cp "${deployed_file}" "${backup_file}"
-    fi
-
-    echo "copy:zed (${filename})"
+    echo "seed:zed (${name}.json)"
     cp "${manifest_file}" "${deployed_file}"
 done
 
