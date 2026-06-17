@@ -1,6 +1,6 @@
 # entire
 
-AI-session checkpoint + resume for Claude Code (entireio/cli, Nat Friedman, MIT). Captures the full transcript onto a per-session git branch via Claude hooks, anchored to the commits it produced. **Two layers: local checkpoint/session (works offline) and a cloud layer — recap, activity, search, dispatch — gated behind `entire login`.** See [ARCH-0028](../decisions/ARCH-0028%20Session%20persistence%20Entire%20CLI.md).
+AI-session checkpoint + resume for Claude Code and other agents (entireio/cli, Nat Friedman, MIT). Session hooks capture the full transcript onto a per-session git branch; a git-hook layer links each checkpoint to the commit it produced. **Two layers: local checkpoint/session (works offline) and a cloud layer (recap team view, activity, search, dispatch) behind `entire login`.** `checkpoint search` queries the hosted index, so it stays empty under `--skip-push-sessions`. Verified against 0.7.8. See [ARCH-0028](../decisions/ARCH-0028%20Session%20persistence%20Entire%20CLI.md).
 
 ## Local commands (no login)
 
@@ -17,9 +17,14 @@ AI-session checkpoint + resume for Claude Code (entireio/cli, Nat Friedman, MIT)
 | `entire session attach <id>` | Capture a pre-existing/unhooked session into a checkpoint |
 | `entire checkpoint list` (`cp`) | Timeline of checkpoints on the current branch, labelled by prompt/agent action |
 | `entire checkpoint explain <id\|sha>` | What a checkpoint, commit, or session did |
-| `entire checkpoint rewind --to <id>` | Browse and restore working tree + session to a checkpoint |
-| `entire doctor` | Diagnose why a session isn't being captured |
+| `entire checkpoint tokens <id>` | Token usage + optimization for a checkpoint |
+| `ENTIRE_LABS=1 entire import claude-code [--path <dir>]` | Backfill the past month of Claude transcripts as read-only checkpoints (labs); `--path` for sessions started in a subdirectory |
+| `ENTIRE_LABS=1 entire why <file>:<line>` | The commit, prompt, and session behind a line (labs) |
+| `entire session adopt <id> --from <worktree>` | Move a live session from another worktree into this repo |
+| `entire doctor` | Diagnose and fix: sessions not capturing, stuck ACTIVE sessions, uncondensed ENDED sessions, and commit↔checkpoint tracking orphaned by history rewrites (rebase, amend, squash) |
 | `entire clean` | Clean up Entire session data |
+
+`checkpoint rewind` was removed in 0.7.8; roll a working tree back with `jj op restore` or git, then `entire session resume`.
 
 ## Cloud commands (need `entire login`)
 
@@ -33,7 +38,7 @@ AI-session checkpoint + resume for Claude Code (entireio/cli, Nat Friedman, MIT)
 | `entire plugin {install\|list\|remove}` | Manage Entire plugins |
 | `entire labs` | Experimental workflows |
 
-`entire checkpoint search --json` is what the `entire-search` agent shells out to.
+`checkpoint search` hits the hosted index (login required) and returns empty under `--skip-push-sessions`, since nothing is uploaded. For local recall use `checkpoint list` / `explain`, or labs `why` / `blame`.
 
 ## Resume beats native `claude --resume`
 
@@ -63,6 +68,8 @@ Claude hooks fire on `Task` pre/post (every subagent boundary), `TodoWrite`, and
 | Transcript would leak on a public repo | `push_sessions` defaults to `true`. Always enable with `--skip-push-sessions`; verify `.entire/settings.local.json` shows `"push_sessions": false`. |
 | Every agent prompt asks for a YubiKey touch | Checkpoint commits inherit `commit.gpgsign`. Optional `entire` wrapper that sets `GIT_CONFIG_*` to disable signing for Entire's process only. |
 | Session started before enabling isn't captured | `entire session attach <id>` backfills it. |
+| `entire status` warns "tracking diverged from current HEAD after git history movement" or "attribution base diverged" | Expected after rebase, amend, or squash — the anchor commits moved. Run `entire doctor` to reconcile; the per-session branches and their transcripts are not lost. |
+| `checkpoint explain <sha>` finds nothing on a main-branch commit | Two causes: agent-made commits get no `Entire-Checkpoint` trailer, and squash-merge commits are GitHub-authored (the branch commits' trailers never reach main). Structural — look up by checkpoint id from `checkpoint list` instead. |
 
 ## Config + provisioning
 
