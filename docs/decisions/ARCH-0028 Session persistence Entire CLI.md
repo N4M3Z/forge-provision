@@ -88,6 +88,7 @@ entire enable --agent claude-code --skip-push-sessions --local --telemetry=false
 - [-] Secret redaction is best-effort; PII redaction is a separate opt-in layer, disabled by default. Treat checkpoints as containing raw conversation.
 - [-] Capture requires the session to be registered (hook-fired or `session attach`); a mid-session enable does not retroactively capture without `attach`.
 - [-] The checkpoint captures the main transcript only, not the `<id>/` subagent sidecar — subagent detail is lost on resume (acceptable: the readable thread is what matters).
+- [-] History rewrites (rebase, amend, squash-merge) orphan the commit↔checkpoint tracking — `entire status` flags "tracking diverged from current HEAD"; `entire doctor` reconciles the session branches without losing transcripts. Squash-merged mainline commits are GitHub-authored and carry no `Entire-Checkpoint` trailer, so commit-anchored explain is structurally unavailable on main in PR+squash repos; the tool's value concentrates in the active branch window (rewind, resume, handoff), not mainline archaeology.
 - [-] Cross-machine and cross-harness resume are not delivered by this decision.
 - [-] Checkpoint commits are signed by default like any commit; the fallback wrapper turns that off for Entire alone if it gets noisy.
 
