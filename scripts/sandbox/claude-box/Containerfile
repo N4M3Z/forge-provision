@@ -1,0 +1,34 @@
+# claude-box: the Claude Code harness behind a VM boundary (VIRT-0002).
+#
+# Runs the entire harness inside an Apple container VM as a security layer:
+# interactive sessions, settings and history (persisted in a named volume),
+# and autonomous --dangerously-skip-permissions runs. The host sees only the
+# mounted project directory.
+#
+# Templated via native OCI build args; override without editing this file:
+#   container build -t claude-box -f Containerfile .
+#   container build -t claude-box-py --build-arg APT_PACKAGES="git ca-certificates python3" -f Containerfile .
+#
+# Bump the builder VM once before the first build so npm does not OOM:
+#   container builder start -m 4g
+#
+# Invocations (supervised, persistent, autonomous) live in the SandboxToolkit
+# skill. USER node is load-bearing: the CLI rejects
+# --dangerously-skip-permissions when run as root. Run with -m 4g: Apple
+# container VMs default to 1 GiB, which starves Claude Code.
+
+ARG BASE_IMAGE=docker.io/library/node:22-slim
+
+FROM ${BASE_IMAGE}
+
+ARG APT_PACKAGES="git ca-certificates"
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ${APT_PACKAGES} \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g @anthropic-ai/claude-code
+
+USER node
+
+WORKDIR /work
