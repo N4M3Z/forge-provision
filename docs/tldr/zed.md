@@ -6,7 +6,7 @@ GPU-native, AI-first editor with git, terminal, vim mode, and collaboration buil
 
 ```sh
 brew install --cask zed          # or scripts/install/brew-bundle.sh
-./scripts/configure/zed.sh       # deploy settings.json + keymap.json
+./scripts/configure/zed.sh       # seed settings.json + keymap.json if absent
 ```
 
 The cask links the bundled CLI (`Zed.app/Contents/MacOS/cli`) as `zed`; no in-app "install cli" step ([cask source][CASK]).
@@ -29,7 +29,7 @@ Copy configs, never symlink: in-app settings edits replace the file atomically a
 - `theme`: Catppuccin Mocha / Latte in system mode, the most-downloaded community theme ([extension][CAT]); installed declaratively with everything else.
 - `vim_mode` + `relative_line_numbers` + `cursor_blink: false`: the vim-docs recommended trio ([vim][VIM]). Surround, sneak, and exchange are built in.
 - `telemetry` diagnostics + metrics off ([telemetry][TEL]).
-- `auto_install_extensions`: theme plus language coverage matched to the machine's stack (toml, make, dockerfile, docker-compose, sql, env, csv, lua, basher, git-firefly, markdown-oxide, html). Declarative, applied at startup; no extension CLI exists ([#10943][I10943]). Every id verified against the [extension registry][REG].
+- `auto_install_extensions`: themes (catppuccin, nord) plus language coverage matched to the machine's stack (toml, make, dockerfile, docker-compose, sql, env, csv, lua, basher, git-firefly, markdown-oxide, html). Declarative, applied at startup; no extension CLI exists ([#10943][I10943]). Every id verified against the [extension registry][REG].
 - Space-leader keymap (`space space` file finder, `space e` project panel, `space g` git panel) under `VimControl && !menu`, the context Zed's own vim keymap uses ([keymap source][VIMKEYS]).
 - `terminal.font_family`: MesloLGS Nerd Font Mono, same family string Ghostty uses, so prompt glyphs render single-cell in both terminals.
 - Markdown `format_on_save: off`: formatters mangle reference-style links.
@@ -38,13 +38,29 @@ Copy configs, never symlink: in-app settings edits replace the file atomically a
 
 The manifest's `agent_servers` entry is the wiring; nothing to install in-app. Alternatives: the ACP registry (`zed: acp registry` command) installs Zed-managed agents, and `context_servers` configures MCP servers (`{command, args, env}` local or `{url, headers}` remote) ([mcp][MCP]). Native agent-panel models need API keys (`ANTHROPIC_API_KEY` from the environment beats keychain, [api access][API]); the Claude Code lane needs none of that.
 
+## Markdown / PKM
+
+markdown-oxide (the `markdown-oxide` extension, [oxide][OXIDE]) is the Obsidian-style intelligence layer; how it runs and how to trigger each feature in Zed is in its own page ([markdown-oxide](markdown-oxide.md)). Its config lives in `~/.config/moxide/settings.toml` (oxide reads its own file, not Zed settings), chezmoi-owned and seeded by `scripts/configure/markdown-oxide.sh`; it imports the daily-note folder and date format from the Atlas vault's Obsidian config. Why the boundary sits where it does: [PROV-0018][ADR].
+
+| State | Capabilities |
+| --- | --- |
+| Works in Zed | source editing (vim + LSP), wikilink and heading completion, backlinks (find-all-references), broken-link diagnostics, `![[embed]]` as inlay hints, daily-note commands, image files open as tabs |
+| Read-only preview | `markdown: Open Preview` side pane; renders remote images, live-updates |
+| Use Obsidian (same vault) | rendered-edit (Live Preview), inline image embeds, PDF embeds, math, canvas, graph |
+| Blocked in Zed | inline images in the buffer, native PDF, in-buffer WYSIWYG: GPUI core limits, and the extension API exposes no custom view, decoration, or webview ([capabilities][EXTCAP]) |
+
+Papercuts: a local image referenced in a note opens in the external browser from the preview pane, not inline. Renaming a note does not rewrite its `[[links]]` in Zed (oxide marks rename "not zed"); a forge CLI command is the planned fix.
+
 ## Notes
 
 - Settings are JSONC; `jq` chokes on the comments. Strip first or keep tooling away.
-- No native settings sync ([#6569][I6569]); this repo's manifest copy is the sync.
+- No native settings sync ([#6569][I6569]). The live config is chezmoi-owned (`dot_config/zed` in the dotfiles repo; capture tweaks with `chezmoi re-add`); `manifests/zed/` is the first-provision baseline that `zed.sh` seeds only when `~/.config/zed/` is empty.
 - ThePrimeagen never switched (still Neovim); Theo sampled it twice without publishing a config. The substantive creator material is Syntax.fm [episode 948][SYNTAX] and Zed dev dotfiles ([Thorsten Ball][MRNUGGET]).
 
 [ACP]: https://zed.dev/docs/ai/external-agents "Zed docs, External Agents"
+[ADR]: ../decisions/PROV-0018%20Zed%20markdown%20and%20PKM%20capability%20boundary.md "PROV-0018 Zed markdown and PKM capability boundary"
+[EXTCAP]: https://zed.dev/docs/extensions/capabilities "Zed docs, Extension Capabilities"
+[OXIDE]: https://oxide.md "markdown-oxide PKM language server"
 [ACPNPM]: https://www.npmjs.com/package/@zed-industries/claude-code-acp "claude-code-acp adapter"
 [API]: https://zed.dev/docs/ai/use-api-access "Zed docs, API access"
 [CASK]: https://github.com/Homebrew/homebrew-cask/blob/master/Casks/z/zed.rb "Homebrew cask: zed"
