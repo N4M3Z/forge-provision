@@ -89,12 +89,14 @@ gpg --edit-key "$KEYID"
 #   key 2 → keytocard → (2) Encryption → key 2
 #   key 3 → keytocard → (3) Authentication → save
 gpgconf --kill gpg-agent scdaemon   # release scdaemon's card lock, or ykman hangs after the PIN prompt
-ykman openpgp keys set-touch sig on && ykman openpgp keys set-touch enc on && ykman openpgp keys set-touch aut on
+ykman openpgp keys set-touch sig cached && ykman openpgp keys set-touch enc on && ykman openpgp keys set-touch aut on
 ```
 
-If `ykman`'s PIN prompt accepts typing but nothing happens, the terminal's Secure Keyboard Entry is swallowing the prompt (observed with cmux) — run the command from Terminal.app or turn Secure Keyboard Entry off. The other known hang is scdaemon's card lock after gpg use: `gpgconf --kill gpg-agent scdaemon`, replug the key, retry; close Yubico Authenticator if it is running. In `gpg --card-status`, `PIN retry counter: 3 0 3` is the healthy factory state — the middle counter is the optional Reset Code, unset by default; a failed prompt never reaching the card leaves the counters untouched.
+If `ykman`'s PIN prompt accepts typing but Enter does nothing (or echoes `^M`): the terminal is sending an untranslated CR to a raw-mode prompt — observed in cmux, where Shift+Enter (LF) submits; Terminal.app needs no workaround. The other known hang is scdaemon's card lock after gpg use: `gpgconf --kill gpg-agent scdaemon`, replug the key, retry; close Yubico Authenticator if it is running. In `gpg --card-status`, `PIN retry counter: 3 0 3` is the healthy factory state — the middle counter is the optional Reset Code, unset by default; a failed prompt never reaching the card leaves the counters untouched.
 
 PIN policy: `forcesig` is toggled off, so the card holds PIN verification from first use until unplugged — one PIN per insertion, while the touch still gates every signature ([ARCH-0006](../decisions/ARCH-0006%20Commit%20signing.md)). Card settings (`forcesig`, `name`, `lang`, touch policy) are per-card: repeat them on every YubiKey.
+
+Touch policy: `cached` on the signature slot, `on` for encryption and authentication. `cached` still requires physical touch — a cold card cannot sign — but one touch opens a 15-second window, so a burst of small commits costs one touch instead of one per commit. Strict touch-per-signature observably drove batching work into few large commits, degrading history granularity; and under a squash-merge workflow the per-commit signatures on a PR branch are discarded at merge anyway (GitHub's web-flow key signs the squash commit), so those touches bought nothing durable. Rationale in [ARCH-0006](../decisions/ARCH-0006 Commit signing.md).
 
 ## Daily machine
 

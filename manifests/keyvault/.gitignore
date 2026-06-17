@@ -1,0 +1,12 @@
+# Large, SHA-manifested artifacts: tracked by hash in tools/README.md, not by
+# git history, which would bloat this encrypted container.
+tools/bin/
+tools/src/
+
+# The password store is self-contained (carries its own .git).
+pass/
+
+# macOS volume cruft.
+.DS_Store
+.Trashes/
+.fseventsd/

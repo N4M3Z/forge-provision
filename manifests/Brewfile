@@ -207,6 +207,24 @@ cask "claude"
 # chosen on first launch (typically ~/Developer or iCloud Drive).
 cask "obsidian"
 
+# Discord (official desktop app), contained by Little Snitch rather than
+# replaced by a third-party client. The official app carries a more-hardened
+# supply chain than a single-maintainer wrapper; its real cost (client
+# telemetry, native modules, process scanning) is constrained at the network
+# layer instead. See PROV-0011 and ARCH-0030. Reference: https://discord.com/
+cask "discord"
+
+# Little Snitch (outbound application firewall). Per-app, per-domain rules
+# with wildcard matching, used to block Discord's telemetry endpoints while
+# keeping the app functional. Needs the perpetual license, not Mini, and the
+# system extension must be approved in System Settings after install.
+# Reference: https://www.obdev.at/products/littlesnitch/
+cask "little-snitch"
+
+# NOT in Brewfile (official DMG, own auto-updater, same pattern as cmux +
+# Claude Code): Parallels Desktop. See scripts/install/parallels.sh.
+# Fallback if the official installer is unavailable: `brew install --cask parallels`
+
 # Mac App Store apps. `mas install <id>` requires being signed into the same
 # Apple ID that owns / purchased the app. Bundled iWork (Pages/Numbers/Keynote)
 # is auto-entitled after first Apple ID sign-in; the entries below let `brew

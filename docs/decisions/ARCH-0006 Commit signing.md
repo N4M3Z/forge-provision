@@ -12,7 +12,7 @@ tags:
     - pinentry-mac
 status: accepted
 created: 2026-05-11
-updated: 2026-06-05
+updated: 2026-06-12
 author: "@N4M3Z"
 project: forge-provision
 related:
@@ -76,7 +76,7 @@ The YubiKey holds the OpenPGP signing subkey resident; `gpg-agent` discovers the
 
 **Key material.** Signing keys are elliptic — Curve25519 (ed25519 to certify, sign, and authenticate; cv25519 to encrypt), not RSA. At a comparable or higher security level the keys and signatures are a fraction of RSA's size and on-card operations are faster, which matters most on a constrained device like the YubiKey; the curve's rigid parameters and deterministic signatures also avoid RSA's padding-oracle and weak-randomness footguns. Curve25519 is the recommended choice for new keys across the modern toolchain (GnuPG, OpenSSH, Sequoia/OpenPGP per RFC 9580), and GitHub verifies it identically to RSA; RSA is reserved for FIPS or legacy interop. The master is generated and kept offline; only the subkeys go on the YubiKey via `keytocard`, with `user.signingkey` and `gpg.format openpgp` pointing at the signing subkey.
 
-**Touch per signature, PIN per insertion.** The touch policy is `on` for all three key slots — physical presence per operation is what blocks silent signing by malware, and it stays. `forcesig` is off: the card holds PIN verification from first use until unplugged, so the PIN is entered once per insertion and guards a lost or stolen card rather than each signature. High signing volume from automated tooling is handled by not signing those commits ([ARCH-0028](ARCH-0028 Session persistence Entire CLI.md)), not by weakening the key. pinentry-mac's "Save in Keychain" checkbox is disabled at provisioning (`DisableKeychain`, `scripts/configure/gnupg.sh`): a Keychain-stored PIN would auto-unlock the card on every insertion, deleting the PIN factor with nothing visible changed.
+**Touch cached for signing, PIN per insertion.** The signature slot's touch policy is `cached` — physical presence is still required (a cold card cannot sign), but one touch opens a 15-second window so a burst of small commits costs one touch. Encryption and authentication slots stay `on` (per-operation touch; those operations are rare). Strict touch-per-signature was the original policy, and it observably backfired: the per-commit friction drove batching work into few large commits, degrading history granularity and review quality — while under the squash-merge workflow the per-commit signatures on a PR branch are discarded at merge anyway (GitHub's web-flow key signs the squash commit). The 15-second cache is the measured trade: malware still cannot sign without a deliberate touch first, and granular commits become cheap again. `forcesig` is off: the card holds PIN verification from first use until unplugged, so the PIN is entered once per insertion and guards a lost or stolen card rather than each signature. High signing volume from automated tooling is handled by not signing those commits ([ARCH-0028](ARCH-0028 Session persistence Entire CLI.md)), not by weakening the key. pinentry-mac's "Save in Keychain" checkbox is disabled at provisioning (`DisableKeychain`, `scripts/configure/gnupg.sh`): a Keychain-stored PIN would auto-unlock the card on every insertion, deleting the PIN factor with nothing visible changed.
 
 For repos or scenarios where SSH signing is preferred, opt in per-repo:
 

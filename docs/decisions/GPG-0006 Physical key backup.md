@@ -1,6 +1,6 @@
 ---
 title: Physical key backup
-description: The offline OpenPGP master is backed up with paperkey rendered as QR codes paired with OCR-able text, on paper as the archival anchor, with encrypted USB as an annually refreshed working copy. The export keeps its passphrase, stored separately (split knowledge). Shamir sharding and the newer paper-backup tools are rejected; a restore drill gates trust in every copy.
+description: The offline OpenPGP master is backed up with paperkey rendered as QR codes paired with OCR-able text, on paper as the archival anchor, with encrypted USB as an annually refreshed working copy. The export keeps its passphrase, stored separately (split knowledge). Shamir sharding and the newer paper-backup tools are rejected; a restore drill gates trust in every copy. Immutable secrets live together in one encrypted container; living secrets and reproducible state are backed up elsewhere or not at all.
 type: adr
 category: security
 tags:
@@ -11,7 +11,7 @@ tags:
     - qr
 status: accepted
 created: 2026-06-05
-updated: 2026-06-05
+updated: 2026-06-17
 author: "@N4M3Z"
 project: forge-provision
 related:
@@ -53,8 +53,10 @@ The challenge fails to displace it. paperback's v0 format is explicitly experime
 Chosen option: **paperkey as QR paired with OCR-able text**, on tiered media with split knowledge and a restore drill.
 
 - `gpg --export-secret-keys "$KEYID" | paperkey --output-type raw | base64 | qrencode -o paperkey-qr.png`, printed alongside `paperkey`'s default text output so the bytes survive even with no QR decoder at hand. The base64 wrap is load-bearing: qrencode rejects raw binary's NUL bytes, and a Curve25519 key still fits one QR base64-encoded. Restore decodes with `base64 -d` before `paperkey --pubring`.
-- Volume layout: one directory per key, named by key ID, holding `key.asc` (transferable secret key), `subkeys.key.asc` (secret subkeys only), `cert.asc` (public certificate), and the paperkey pair. The revocation certificate never lands on the volume — co-located key and revocation means one theft can both use and kill the identity.
-- **Paper is the archival anchor.** Consumer flash holds data for roughly one to three years unpowered, so the encrypted USB copy is a working copy, re-verified and rewritten about annually — never the long-term anchor. An M-DISC copy is an optional secondary (its reader availability in 2040 is the bet).
+- **Container layout.** One AES-256 container holds everything immutable and cold. Per key, `gpg/<keyid>/` carries `key.asc` (full secret), `subkeys.key.asc` (subkeys only), `cert.asc` (public certificate), and the paperkey pair; siblings are `proton/` (account recovery plus the v6 PQC export GnuPG cannot read, [GPG-0007](GPG-0007 OpenPGP v6 and post-quantum schism.md)), `yubikey/` (non-secret card inventory), `ssh/` (public keys and config; FIDO2 privates stay on the card), `tools/` (the restore toolchain: source tarballs as the durable layer, best-effort binaries, and a SHA-256 manifest, pinning `sq` for the PQC export and `gpg`/`paperkey`/`qrencode` for the rest), and `pass/` (a dated copy of the whole password store). Every directory carries a `README.md`. A `TLP:RED` marker and `CLAUDE.md`/`AGENTS.md`/`.aiexclude`/`.cursorignore`/`.aiderignore`/`.codeiumignore` advise cooperating tools not to read it — advisory only; the real control is staying encrypted and unmounted. The revocation certificate never lands on the volume: co-located, one loss takes both the key and the ability to revoke it. Scaffolded by `scripts/configure/keyvault-scaffold.sh` from `manifests/keyvault/`.
+- **Cold vs living vs reproducible.** Immutable secrets (master key, Proton recovery, PQC export) live in the container. The living `pass` vault is kept off networked remotes: its entries are encrypted to the cv25519 subkey, and ECC falls to a quantum computer, so harvested ciphertext on a host like GitHub is a decrypt-later target for the passwords themselves. Its backup is a dated copy of the whole store (working tree plus `.git` history) in the container's `pass/`, where the AES-256 outer layer is quantum-resistant — the same ciphertext, wrapped so harvesting it is useless. The trade is no continuous off-machine sync; the snapshot is refreshed when the container is. The daily `~/.gnupg` is reproducible (public keys and card stubs only) and is not backed up at all: it rebuilds from `cert.asc` + `gpg --card-status`.
+- **Media tiers and lifecycle.** Paper is the archival anchor. The live copy is a read-write encrypted image in `dotfiles-private` (a private rsync tree, not a git repo, so there is no remote or gitignore to leak past), kept read-write on purpose so the vault can be refreshed: pass snapshots, tool re-pins. For the durable copies the image is frozen to a read-only, compressed, encrypted form (`hdiutil convert -format UDZO`) and replicated to two USB sticks at separate locations and, as the offsite leg, to Proton Drive. Never Proton Drive alone: the container holds the Proton recovery you would need exactly when Proton access is gone. Consumer flash lasts one to three years unpowered, so USB copies are re-verified and rewritten about annually; M-DISC is an optional secondary. Where a copy is removed, plain `rm` suffices: the contents are ciphertext, so freed SSD blocks are useless. The pinned binaries in `tools/bin` are put on PATH while the shell is inside the mounted vault by a committed `.envrc` (`PATH_add tools/bin`) loaded by direnv (`brew "direnv"`, `eval "$(direnv hook zsh)"` in the rc, `direnv allow` once per machine). direnv's allow-gate also stops a mounted volume's `.envrc` from auto-running until approved, which suits a vault.
+- **Versioned, never pushed.** The vault is a local git repo so obsolete keys can be archived in history and removed from the working tree while staying recoverable (`git rm` then retrieve later from history). It has no remote, ever, and commits are unsigned bookkeeping. The whole `.git` lives inside the AES-256 container, so the history is as protected as the working tree. `pass/` (self-contained, its own `.git`) and the bulky `tools/bin` + `tools/src` (SHA-manifested) are gitignored. Caveat: a secret once committed is permanent in history; retiring an actively compromised key would need a history rewrite, but for obsolete keys that permanence is the point.
 - **The export keeps its passphrase** — a stolen printout alone is not game-over. The passphrase is stored separately from the key material (memorized plus a sealed copy at a second location): split knowledge without Shamir's quorum fragility.
 - The **public key** is stored with the backup (paperkey reconstruction requires it); the **revocation certificate** lives in a third location, separate from the key.
 - **A restore drill gates trust**: on an air-gapped boot, restore from the paper copy and from each USB, confirm the fingerprint and a test sign/decrypt, before relying on the backup. Re-verify USB annually, paper every few years.
@@ -66,6 +68,9 @@ Chosen option: **paperkey as QR paired with OCR-able text**, on tiered media wit
 - [+] No quorum of shares to keep alive for decades.
 - [-] Paper and printer handling must stay offline (direct-attached printer, no spooling network device).
 - [-] The annual USB refresh and periodic restore drills are recurring chores; skipping them silently erodes the guarantee.
+- [+] Removing the laptop working copy needs no secure-erase — the container is ciphertext, so freed SSD blocks are useless.
+- [-] The cloud (Proton Drive) copy is safe only as the offsite third leg, never the sole copy of the Proton recovery it contains.
+- [-] The AI-exclusion markers are advisory; a non-cooperating tool ignores them, so the container must stay unmounted when idle.
 
 ## More Information
 
