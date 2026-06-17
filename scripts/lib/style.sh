@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2034  # constants are sourced and consumed by other scripts
 # Style definitions: colors and status strings
 
 # Colors

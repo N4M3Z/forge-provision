@@ -10,3 +10,10 @@
 .gemini/
 .opencode/
 config.yaml
+
+# Entire session data (runtime, not source)
+.entire/metadata/
+.entire/logs/
+.entire/tmp/
+.entire/settings.local.json
+.entire/redactors/local/

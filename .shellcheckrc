@@ -1,0 +1,4 @@
+# Scripts source sibling libraries via dynamic ${SCRIPT_DIR}/../lib paths that
+# shellcheck cannot resolve statically, so SC1091 (source not followed) is a
+# false positive across the tree. Real source errors still surface at runtime.
+disable=SC1091
