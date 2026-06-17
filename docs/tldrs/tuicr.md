@@ -109,6 +109,27 @@ Canonical source: `dotfiles/dot_config/tuicr/config.toml`, deploys to `~/.config
 
 `appearance` was removed — dead when `theme` is explicitly set; emitted a startup warning.
 
+The live config also sets `wrap = true` + `wrap_style = "gutter"` — gutter-aligned
+continuation rows (↪ marker + origin prefix). The `wrap_style` key only exists in
+the fork build (see below); the brew binary warns about it and ignores it.
+
+## Fork build shadows brew
+
+Contributor work happens at `~/Developer/agavra/tuicr` (origin = N4M3Z fork,
+upstream = agavra). The daily binary is the fork build, NOT brew:
+
+```sh
+cd ~/Developer/agavra/tuicr
+cargo install --path . --root ~/.local --force    # → ~/.local/bin/tuicr
+```
+
+`~/.local/bin` leads PATH via the `path=(...)` block in `dot_zprofile` — the
+stock Prezto block put `/opt/homebrew/bin` first, which silently shadowed the
+fork build (both report the same `--version`!). If `tuicr` ever behaves like
+a feature is missing, check `which tuicr` first; if it says
+`/opt/homebrew/bin/tuicr`, the PATH order regressed. The `tuicr()` wrapper in
+`.zshrc` routes through `command tuicr`, so it follows the same resolution.
+
 ## Sources
 
 - [docs/CONFIG.md](https://github.com/agavra/tuicr/blob/main/docs/CONFIG.md) — full config schema
