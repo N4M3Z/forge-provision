@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+# redact: build and run the claude-box-redact sandbox (forge-redact + Microsoft
+# Presidio in the VM). The agent's egress and credential boundary is Claude Code's
+# native sandbox, baked into the image.
+#
+#   redact build [<gpg-recipient>]   build the image (recipient defaults to your key)
+#   redact run   [claude args...]    run Claude in the box (interactive by default)
+#
+# Source: https://github.com/N4M3Z/forge-provision
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source "${SCRIPT_DIR}/../../lib/env.sh"
+
+IMAGE="claude-box-redact"
+FORGE_REDACT_REPO="${FORGE_REDACT_REPO:-$( dirname "${FORGE_PROVISION_ROOT}" )/forge-redact}"
+STATE_DIR="${XDG_STATE_HOME:-${HOME}/.local/state}/forge/presidio"
+TOKEN_PASS_PATH="${FORGE_REDACT_TOKEN_PASS:-anthropic/claude-oauth-token}"
+
+build() {
+    # The two inputs that are not tracked files in this directory -- the forge-redact
+    # wheel and the operator GPG public key -- are assembled here, used as build
+    # context, and removed.
+    local recipient="${1:-$(gpg --list-secret-keys --with-colons 2>/dev/null | awk -F: '/^fpr:/{print $10; exit}')}"
+    command -v container >/dev/null 2>&1 || { echo "fail:redact (container CLI not found)"; exit 1; }
+    command -v uv >/dev/null 2>&1 || { echo "fail:redact (uv not found)"; exit 1; }
+    [[ -d "${FORGE_REDACT_REPO}" ]] || { echo "fail:redact (forge-redact clone not at ${FORGE_REDACT_REPO})"; exit 1; }
+    [[ -n "${recipient}" ]] || { echo "fail:redact (no GPG recipient; pass one or set a default secret key)"; exit 1; }
+
+    trap 'command rm -f "${SCRIPT_DIR}/forge_redact.whl" "${SCRIPT_DIR}/pubkey.asc"' RETURN
+
+    echo "build:redact (wheel from ${FORGE_REDACT_REPO})"
+    ( cd "${FORGE_REDACT_REPO}" && uv build --wheel ) || { echo "fail:redact (uv build)"; return 1; }
+    command cp "$(ls -t "${FORGE_REDACT_REPO}"/dist/forge_redact-*.whl | head -1)" "${SCRIPT_DIR}/forge_redact.whl"
+    gpg --export --armor "${recipient}" > "${SCRIPT_DIR}/pubkey.asc" || { echo "fail:redact (gpg export)"; return 1; }
+
+    container builder start -m 4g >/dev/null 2>&1 || true
+    if container build -t "${IMAGE}" --build-arg GPG_RECIPIENT="${recipient}" \
+            -f "${SCRIPT_DIR}/redact.Containerfile" "${SCRIPT_DIR}"; then
+        echo "ok:redact (${IMAGE} built)"
+    else
+        echo "fail:redact (container build — is the base claude-box image built?)"
+        return 1
+    fi
+}
+
+run() {
+    command -v container >/dev/null 2>&1 || { echo "fail:redact (container CLI not found)"; exit 1; }
+    local token="${CLAUDE_CODE_OAUTH_TOKEN:-}"
+    if [[ -z "${token}" ]] && command -v pass >/dev/null 2>&1; then
+        token="$(pass show "${TOKEN_PASS_PATH}" 2>/dev/null)"   # one YubiKey touch
+    fi
+    [[ -n "${token}" ]] || { echo "fail:redact (no token; set CLAUDE_CODE_OAUTH_TOKEN or 'pass insert ${TOKEN_PASS_PATH}')"; exit 1; }
+
+    local project="${PWD}"
+    local master="${STATE_DIR}/vault.gpg"
+    local seed_dir capture_dir
+    seed_dir="$(mktemp -d)"
+    capture_dir="$(mktemp -d)"
+    chmod 700 "${seed_dir}" "${capture_dir}"
+    trap 'command rm -rf "${seed_dir}" "${capture_dir}"' RETURN
+
+    # Decrypt the master into the plaintext seed (one YubiKey touch). With no master
+    # yet, start from an empty mapping.
+    if [[ -f "${master}" ]]; then
+        if ! gpg --quiet --decrypt "${master}" > "${seed_dir}/vault.json"; then
+            echo "fail:redact (cannot decrypt master vault ${master})"
+            return 1
+        fi
+        echo "config:redact (seed from ${master})"
+    else
+        echo "{}" > "${seed_dir}/vault.json"
+        echo "config:redact (no master vault yet; starting fresh)"
+    fi
+
+    echo "start:redact (${IMAGE} on ${project})"
+    CLAUDE_CODE_OAUTH_TOKEN="${token}" container run --rm -it -m 4g \
+        -e CLAUDE_CODE_OAUTH_TOKEN \
+        -e CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 \
+        -e DO_NOT_TRACK=1 \
+        -v "${seed_dir}:/seed:ro" \
+        -v "${capture_dir}:/capture" \
+        -v "${project}:/work" -w /work \
+        "${IMAGE}" claude "$@"
+    local status=$?
+
+    # Promote the captured vault (the prior mapping plus this run's new entries,
+    # already encrypted to your key) to the master: a move, not a re-encrypt.
+    if [[ -f "${capture_dir}/vault.gpg" ]]; then
+        mkdir -p "${STATE_DIR}"
+        command mv "${capture_dir}/vault.gpg" "${master}"
+        echo "ok:redact (vault promoted -> ${master})"
+    else
+        echo "warn:redact (no vault captured; mapping unchanged)"
+    fi
+    if [[ -f "${capture_dir}/redactions.jsonl" ]]; then
+        mkdir -p "${STATE_DIR}"
+        cat "${capture_dir}/redactions.jsonl" >> "${STATE_DIR}/redactions.jsonl"
+    fi
+    return "${status}"
+}
+
+case "${1:-}" in
+    build) shift; build "$@" ;;
+    run) shift; run "$@" ;;
+    *) echo "usage: redact {build [<gpg-recipient>] | run [claude args...]}"; exit 2 ;;
+esac
