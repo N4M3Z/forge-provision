@@ -1,0 +1,5 @@
+name: forge-provision
+version: 0.1.0
+description: Best-practice cross-platform machine provisioning (macOS, Linux, Windows) plus the agentic scaffold of skills, ADRs, rules, and journals that lets an agent read, compose, and run the scripts.
+repository: https://github.com/N4M3Z/forge-provision
+events: []
