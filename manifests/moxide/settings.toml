@@ -1,0 +1,35 @@
+# markdown-oxide (Obsidian-style PKM language server) global config.
+# Read by the oxide LSP binary that the Zed "Markdown Oxide" extension bundles;
+# Zed does not pass these through settings.json, oxide reads this file directly.
+# Lives at ~/.config/moxide/settings.toml (global) or .moxide.toml (per vault).
+#
+# Deliberately minimal. Inside an Obsidian vault (Atlas), oxide imports the
+# daily-notes folder, new-file location, and date format from .obsidian, so
+# those are left unset here. Its useful defaults are already on: `![[embed]]`
+# transclusion as inlay hints, unresolved-wikilink diagnostics, semantic
+# tokens, and backlinks-on-hover. This global file extends the same wikilink
+# completion and backlinks to non-vault markdown (forge ADRs, journals, skills).
+#
+# Reference: https://oxide.md  ·  Source: https://github.com/N4M3Z/forge-provision
+
+# Daily-note filename format for the Today / Tomorrow / Daily LSP commands.
+# Pinned to the house date convention so the commands stay deterministic in
+# repos that have no Obsidian config to import from. Inside Atlas, the vault's
+# own YYYY-MM-DD setting is imported and matches this anyway.
+dailynote = "%Y-%m-%d"
+
+# Skip archive, attachment, and template directories when indexing, so they
+# stay out of completions, backlinks, and workspace symbols. Matched by
+# directory name at any depth; the capitalized names target the Atlas vault and
+# do not collide with forge's lowercase template/ dirs. Requires a recent oxide.
+excluded_folders = ["Archives", "Assets", "Templater", "Templates", ".trash"]
+
+# Tunables left at their defaults, surfaced here as the menu for later edits:
+#   hover = true                    # backlinks/preview on mouse hover (Zed: set false if noisy)
+#   block_transclusion = true       # render ![[embed]] as inlay hints
+#   unresolved_diagnostics = true   # flag broken [[wikilinks]] (high value across renamed ADRs)
+#   case_matching = "Smart"         # fuzzy-match case handling
+#   link_filenames_only = false     # complete by heading but insert a filename-only link (Zettelkasten)
+#   heading_slug = false            # GitHub-style dashed heading anchors in completions
+#   daily_notes_folder = ""         # blank imports from Obsidian (Atlas: Journal/Daily)
+#   new_file_folder_path = ""       # blank imports from Obsidian "new note location"
