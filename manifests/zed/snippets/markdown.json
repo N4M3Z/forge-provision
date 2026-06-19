@@ -1,0 +1,42 @@
+{
+    "ADR scaffold": {
+        "prefix": "adr",
+        "body": [
+            "---",
+            "title: ${1:Title}",
+            "status: ${2:proposed}",
+            "date: ${3:YYYY-MM-DD}",
+            "---",
+            "",
+            "# $1",
+            "",
+            "## Context and Problem Statement",
+            "",
+            "$0",
+            "",
+            "## Decision Outcome",
+            ""
+        ],
+        "description": "ADR skeleton"
+    },
+    "Frontmatter": {
+        "prefix": "fm",
+        "body": [
+            "---",
+            "title: ${1:Title}",
+            "tags: [${2:tag}]",
+            "---",
+            "",
+            "$0"
+        ],
+        "description": "YAML frontmatter block"
+    },
+    "Callout": {
+        "prefix": "callout",
+        "body": [
+            "> [!${1:note}] ${2:Title}",
+            "> $0"
+        ],
+        "description": "Obsidian callout"
+    }
+}

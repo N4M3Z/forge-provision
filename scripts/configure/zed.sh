@@ -1,8 +1,9 @@
 #!/bin/bash
-# Seed Zed config from manifests/zed/ on first provision: settings.jsonc and
-# keymap.jsonc deployed as settings.json and keymap.json in ~/.config/zed/ only
-# when absent (sources carry comments, so they live as .jsonc; Zed reads the
-# deployed .json which is JSONC-tolerant). The live config is chezmoi-owned
+# Seed Zed config from manifests/zed/ on first provision: settings.jsonc,
+# keymap.jsonc, and tasks.jsonc deployed as the matching .json files in
+# ~/.config/zed/, plus snippets/markdown.json, only when absent (sources carry
+# comments, so they live as .jsonc; Zed reads the deployed .json which is
+# JSONC-tolerant). The live config is chezmoi-owned
 # (dot_config/zed in the dotfiles repo), so existing files are never
 # overwritten; capture tweaks with `chezmoi re-add`.
 # Copy, never symlink: in-app settings changes replace the file atomically,
@@ -24,7 +25,7 @@ fi
 
 mkdir -p "${ZED_CONFIG}"
 
-for name in settings keymap; do
+for name in settings keymap tasks; do
     manifest_file="${MANIFEST_DIR}/${name}.jsonc"
     deployed_file="${ZED_CONFIG}/${name}.json"
 
@@ -41,6 +42,17 @@ for name in settings keymap; do
     echo "seed:zed (${name}.json)"
     cp "${manifest_file}" "${deployed_file}"
 done
+
+SNIPPET_SRC="${MANIFEST_DIR}/snippets/markdown.json"
+SNIPPET_DST="${ZED_CONFIG}/snippets/markdown.json"
+
+if [[ -f "${SNIPPET_DST}" ]]; then
+    echo "skip:zed (snippets/markdown.json exists; chezmoi owns the live config)"
+elif [[ -f "${SNIPPET_SRC}" ]]; then
+    mkdir -p "${ZED_CONFIG}/snippets"
+    echo "seed:zed (snippets/markdown.json)"
+    cp "${SNIPPET_SRC}" "${SNIPPET_DST}"
+fi
 
 echo "ok:zed"
 echo "      extensions listed in auto_install_extensions install on next launch"

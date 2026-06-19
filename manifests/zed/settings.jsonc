@@ -2,7 +2,8 @@
     // Baseline Zed config, seeded to ~/.config/zed/ by scripts/configure/zed.sh
     // only when no config exists there. The live config is chezmoi-owned
     // (dot_config/zed in the dotfiles repo); capture tweaks with chezmoi re-add.
-    // Zed parses JSONC; keep jq away from this file or strip comments first.
+    // Personal infra (e.g. a gbrain context_server) lives in the dotfiles lane,
+    // not in this generic seed. Zed parses JSONC; keep jq away from this file.
 
     "autosave": "on_focus_change",
 
@@ -61,6 +62,19 @@
         "font_family": "MesloLGS Nerd Font Mono"
     },
 
+    // Centered text column for long-form writing; toggle via the command
+    // palette ("toggle centered layout").
+    "centered_layout": {
+        "left_padding": 0.15,
+        "right_padding": 0.15
+    },
+
+    // Give odd-named files real syntax highlighting.
+    "file_types": {
+        "Ruby": ["Brewfile", "Brewfile.optional"],
+        "env": [".env", ".env.*"]
+    },
+
     // Declarative extension install, applied on startup. Every id is
     // verified against zed-industries/extensions.
     "auto_install_extensions": {
@@ -77,13 +91,18 @@
         "git-firefly": true,
         "csv": true,
         "lua": true,
-        "basher": true
+        "basher": true,
+        "harper": true
     },
 
     "languages": {
-        // Markdown formatters mangle reference-style links and tables.
+        // Markdown formatters mangle reference-style links and tables; wrap to
+        // the editor width and keep trailing spaces (two = a hard line break).
         "Markdown": {
-            "format_on_save": "off"
+            "format_on_save": "off",
+            "soft_wrap": "editor_width",
+            "preferred_line_length": 100,
+            "remove_trailing_whitespace_on_save": false
         }
     }
 }
