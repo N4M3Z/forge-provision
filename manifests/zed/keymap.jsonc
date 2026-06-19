@@ -6,7 +6,14 @@
         "bindings": {
             "space space": "file_finder::Toggle",
             "space e": "project_panel::ToggleFocus",
-            "space g": "git_panel::ToggleFocus"
+            "space g": "git_panel::ToggleFocus",
+            "space o": "outline::Toggle",
+            "space b": "editor::FindAllReferences",
+            "space p s": "project_symbols::Toggle",
+            "space m p": "markdown::OpenPreviewToTheSide",
+            "space m r": "repl::Run",
+            "space a a": "agent::ToggleFocus",
+            "space a s": "agent::AddSelectionToThread"
         }
     }
 ]

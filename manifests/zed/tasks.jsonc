@@ -1,0 +1,18 @@
+[
+    {
+        // Open the current note in Obsidian.
+        "label": "Open note in Obsidian",
+        "command": "open",
+        "args": ["-a", "Obsidian", "$ZED_FILE"],
+        "reveal": "never",
+        "hide": "always"
+    },
+    {
+        // Render the current note to a sibling PDF via pandoc + typst (PROV-0016).
+        "label": "Export note to PDF",
+        "command": "pandoc",
+        "args": ["$ZED_FILE", "-o", "$ZED_STEM.pdf", "--pdf-engine=typst"],
+        "cwd": "$ZED_DIRNAME",
+        "reveal": "no_focus"
+    }
+]
