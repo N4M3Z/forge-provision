@@ -40,7 +40,7 @@ The manifest's `agent_servers` entry is the wiring; nothing to install in-app. A
 
 ## Markdown / PKM
 
-markdown-oxide (the `markdown-oxide` extension, [oxide][OXIDE]) is the Obsidian-style intelligence layer; how it runs and how to trigger each feature in Zed is in its own page ([markdown-oxide](markdown-oxide.md)). Its config lives in `~/.config/moxide/settings.toml` (oxide reads its own file, not Zed settings), chezmoi-owned and seeded by `scripts/configure/markdown-oxide.sh`; it imports the daily-note folder and date format from the Atlas vault's Obsidian config. Why the boundary sits where it does: [PROV-0018][ADR].
+markdown-oxide (the `markdown-oxide` extension, [oxide][OXIDE]) is the Obsidian-style intelligence layer; how it runs and how to trigger each feature in Zed is in its own page ([markdown-oxide](markdown-oxide.md)). Its config lives in `~/.config/moxide/settings.toml` (oxide reads its own file, not Zed settings), chezmoi-owned and seeded by `scripts/configure/markdown-oxide.sh`; it imports the daily-note folder and date format from the vault's Obsidian config. Why the boundary sits where it does: [PROV-0018][ADR].
 
 | State | Capabilities |
 | --- | --- |
