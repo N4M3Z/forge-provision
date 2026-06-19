@@ -2,8 +2,8 @@
     // Baseline Zed config, seeded to ~/.config/zed/ by scripts/configure/zed.sh
     // only when no config exists there. The live config is chezmoi-owned
     // (dot_config/zed in the dotfiles repo); capture tweaks with chezmoi re-add.
-    // Personal infra (e.g. a gbrain context_server) lives in the dotfiles lane,
-    // not in this generic seed. Zed parses JSONC; keep jq away from this file.
+    // Personal infra (the gbrain context_server, brain DB URL) lives in the
+    // dotfiles lane, not in this generic seed. Zed parses JSONC; keep jq away.
 
     "autosave": "on_focus_change",
 
@@ -24,11 +24,11 @@
     "theme": {
         "mode": "system",
         "light": "Catppuccin Latte",
-        "dark": "Ayu Dark"
+        "dark": "Catppuccin Mocha"
     },
 
     "vim_mode": true,
-    "relative_line_numbers": "wrapped",
+    "relative_line_numbers": "disabled",
     "cursor_blink": false,
 
     "inlay_hints": {

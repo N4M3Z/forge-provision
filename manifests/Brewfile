@@ -31,7 +31,12 @@ brew "gh"
 # gitui (Rust-based terminal UI for git). Replaces SourceTree for the day-to-day
 # stage/commit/rebase/stash flow without leaving the terminal. Faster startup
 # than lazygit, leaner feature surface. Vim-style keys; `?` shows the keymap.
+# Preferred git TUI (bound to `space t g` in Zed); lazygit installed alongside.
 brew "gitui"
+
+# lazygit (Go terminal UI for git). Kept as the menu-driven alternative to gitui;
+# also the closest analogue to lazyjj for muscle-memory parity across git and jj.
+brew "lazygit"
 
 # revdiff (Go-based terminal UI for AI-session diff review). Reads uncommitted
 # changes / commit ranges / staged / single files. Inline annotations exported
@@ -155,6 +160,22 @@ cask "cursor"
 # Cask links the bundled CLI as `zed` (no in-app "install cli" step needed).
 # Config deployed from manifests/zed/ by scripts/configure/zed.sh.
 cask "zed"
+
+# jj terminal UIs — Zed has no view of jj state, so a TUI fills the gap.
+#   jjui    — Rust TUI (idursun), the gitui-style analogue; preferred, bound to
+#             `space t j` in Zed.
+#   lazyjj  — lazygit-style alternative, kept for parity with lazygit.
+brew "jjui"
+brew "lazyjj"
+
+# Dependencies for Zed's REPL kernels (scripts/configure/zed-repl-kernel.sh):
+#   bash    — modern bash for the bash_kernel (macOS ships only 3.2; the kernel
+#             spawns `bash` from PATH and needs >= 4 with readline).
+#   zeromq  — libzmq, the native transport iruby (Ruby kernel) links against.
+#   ruby    — Homebrew Ruby for iruby; system ruby 2.6 is too old to gem-install into.
+brew "bash"
+brew "zeromq"
+brew "ruby"
 
 # Ghostty — Zig+Swift terminal emulator, replaces Apple Terminal.app. Config
 # at ~/.config/ghostty/config (managed via chezmoi). Reference:
