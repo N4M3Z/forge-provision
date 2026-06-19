@@ -7,7 +7,7 @@ End-to-end setup of a hardware-backed GPG identity: a Curve25519 key generated o
 ```sh
 ./scripts/install/gpg-toolchain.sh    # gnupg, pinentry-mac, ykman (GPG-0005)
 ./scripts/install/paperkey.sh         # paperkey, qrencode (GPG-0006)
-./scripts/configure/gnupg.sh          # ~/.gnupg, gpg-agent.conf, scdaemon.conf
+chezmoi apply ~/.gnupg                # gpg-agent.conf, scdaemon.conf, pinentry (chezmoi)
 gpg --version | head -1               # expect 2.5.x from Homebrew
 ```
 
