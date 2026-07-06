@@ -15,7 +15,7 @@ How the AI coding harnesses on this machine (Claude Code, Codex) are confined, a
 
 Four layers, outermost first. Configure each harness at every layer it supports; never rely on one alone.
 
-1. **OS sandbox (enforced).** macOS Seatbelt via `sandbox-exec` confines the commands a harness runs: writes scoped to the workspace, reads broad, network off by default. Both Claude Code (the `sandbox` block) and Codex (`sandbox_mode = "workspace-write"`) use the same primitive.
+1. **OS sandbox (enforced).** macOS Seatbelt via `sandbox-exec` confines the commands a harness runs: writes scoped to the workspace, reads broad, network off by default. Both Claude Code (the `sandbox` block) and Codex (`default_permissions = "workspace-local"` plus `[permissions.workspace-local.*]`) use the same primitive.
 2. **Hard structural deny (enforced, unoverridable).** Claude `permissions.deny` runs before anything else; the destructive-command guard `dcg` runs as a `PreToolUse` hook on both harnesses (denials via stdout JSON on Claude, stderr + exit 2 on Codex). Regex and path rules, not model judgment. This skill covers wiring the guard; recovering from a live dcg or safety-plugin block is GuardRails' job.
 3. **Soft AI-judged policy (prose).** Claude's auto-mode classifier reads the `autoMode` block (`environment`, `soft_deny`, `hard_deny`, `allow`) plus CLAUDE.md; Codex routes escalations through `approvals_reviewer` and reads AGENTS.md. Natural-language rules a classifier applies, where explicit user intent can clear a soft deny.
 4. **Credential protection.** Claude `sandbox.filesystem.denyRead` read-blocks credential directories; Codex has no read-deny (Seatbelt reads stay broad), so credential isolation there rests on the OS account, not config.
@@ -38,9 +38,9 @@ Configure the second harness to match the first where the tool allows, and make 
 
 | Capability | Claude Code | Codex | Translates? |
 | --- | --- | --- | --- |
-| OS sandbox | `sandbox` (Seatbelt) | `sandbox_mode` (Seatbelt) | yes, same primitive |
-| Network allowlist | `network.allowedDomains` | `[features.network_proxy.domains]` | yes |
-| Writable roots | `filesystem.allowWrite` | `sandbox_workspace_write.writable_roots` | yes |
+| OS sandbox | `sandbox` (Seatbelt) | `default_permissions = "workspace-local"` | yes, same primitive |
+| Network allowlist | `network.allowedDomains` | `[permissions.workspace-local.network.domains]` | yes |
+| Writable roots | `filesystem.allowWrite` | `[permissions.workspace-local.workspace_roots]` | yes |
 | Destructive guard | dcg `PreToolUse` hook | dcg `PreToolUse` hook | yes, same tool |
 | Knowledge MCP | gbrain MCP | `[mcp_servers.gbrain]` | yes |
 | Read-only reviewer | no native profile | `[profiles.review]` | Codex only |

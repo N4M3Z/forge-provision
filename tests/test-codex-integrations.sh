@@ -30,6 +30,7 @@ test_codex_removes_only_imported_claude_hooks() {
     local home="$1"
     local bin="$2"
     local hooks="${home}/.codex/hooks.json"
+    local session_sync="${home}/session-sync"
 
     mkdir -p "${home}/.codex" "$bin"
     printf '%s\n' '#!/bin/bash' 'exit 0' > "${bin}/codex"
@@ -55,7 +56,7 @@ test_codex_removes_only_imported_claude_hooks() {
         'type = "command"' \
         'command = "dcg"' > "${home}/.codex/config.toml"
 
-    HOME="$home" PATH="${bin}:${PATH}" \
+    HOME="$home" PATH="${bin}:${PATH}" SESSION_SYNC="${session_sync}" \
         bash "${ROOT}/scripts/configure/codex.sh" >/dev/null
 
     assert_jq "$hooks" \
@@ -68,8 +69,14 @@ test_codex_removes_only_imported_claude_hooks() {
         '[.hooks.PreToolUse[].hooks[].command] | index("keep-me") != null' \
         'Codex preserves unrelated PreToolUse hooks'
     assert_jq "$hooks" \
-        '[.hooks.PreCompact[].hooks[].command] | index("capture-session") != null' \
-        'Codex preserves unrelated hook events'
+        '[.hooks.PreCompact[].hooks[].command] | index("capture-session") == null' \
+        'Codex removes retired capture-session hook'
+    assert_jq "$hooks" \
+        "[.hooks.PreCompact[].hooks[].command] | index(\"${session_sync}\") != null" \
+        'Codex rewrites capture-session to session-sync'
+    assert_jq "$hooks" \
+        "[.hooks.Stop[].hooks[].command] | index(\"${session_sync}\") != null" \
+        'Codex ensures Stop session capture'
 }
 
 test_codex_preserves_dcg_without_native_replacement() {
@@ -87,7 +94,7 @@ test_codex_preserves_dcg_without_native_replacement() {
         ']}}' > "$hooks"
     printf '%s\n' '# existing config without native dcg' > "${home}/.codex/config.toml"
 
-    HOME="$home" PATH="${bin}:${PATH}" \
+    HOME="$home" PATH="${bin}:${PATH}" SESSION_SYNC="${home}/session-sync" \
         bash "${ROOT}/scripts/configure/codex.sh" >/dev/null
 
     assert_jq "$hooks" \
@@ -152,6 +159,12 @@ test_codex_seed_matches_current_permission_model() {
         pass 'Codex seed does not set a global OPENAI_API_KEY'
     fi
 
+    if grep -q '^OPENAI_BASE_URL' "$config"; then
+        fail 'Codex seed does not set a global OPENAI_BASE_URL'
+    else
+        pass 'Codex seed does not set a global OPENAI_BASE_URL'
+    fi
+
     if grep -q '@/Users/N4M3Z/.codex/RTK.md' "$agents"; then
         pass 'Codex AGENTS policy keeps RTK instructions'
     else
@@ -167,6 +180,38 @@ test_codex_seed_matches_current_permission_model() {
     fi
 }
 
+test_root_agents_policy_is_codex_specific() {
+    local agents="${ROOT}/AGENTS.md"
+
+    if grep -q 'Codex, Codex, Gemini' "$agents" \
+        || grep -q 'migrate/Codex-history.sh' "$agents"; then
+        fail 'Root AGENTS avoids mechanical Claude substitutions'
+    else
+        pass 'Root AGENTS avoids mechanical Claude substitutions'
+    fi
+
+    if grep -q '@/Users/N4M3Z/.codex/RTK.md' "$agents" \
+        && grep -q 'These scripts MUTATE the host' "$agents" \
+        && grep -q 'Never read credential stores' "$agents" \
+        && grep -q 'Do not commit, tag, release, or push' "$agents" \
+        && grep -q 'Computer Use drives GUI apps outside the shell sandbox' "$agents"; then
+        pass 'Root AGENTS carries Codex daily-driver policy'
+    else
+        fail 'Root AGENTS carries Codex daily-driver policy'
+    fi
+}
+
+test_codex_docs_do_not_claim_chezmoi_owns_live_config() {
+    if grep -R "chezmoi owns the live config" \
+        "${ROOT}/scripts/configure/codex.sh" \
+        "${ROOT}/manifests/codex/config.toml" \
+        "${ROOT}/docs/tldr/codex.md" >/dev/null 2>&1; then
+        fail 'Codex docs avoid chezmoi live-config ownership claim'
+    else
+        pass 'Codex docs avoid chezmoi live-config ownership claim'
+    fi
+}
+
 tmp="$(mktemp -d "${TMPDIR:-/tmp}/forge-provision-codex.XXXXXX")"
 trap 'rm -rf "$tmp"' EXIT
 
@@ -177,6 +222,8 @@ test_codex_preserves_dcg_without_native_replacement \
 test_rtk_configures_codex_when_claude_is_current \
     "${tmp}/rtk-home" "${tmp}/rtk-bin"
 test_codex_seed_matches_current_permission_model
+test_root_agents_policy_is_codex_specific
+test_codex_docs_do_not_claim_chezmoi_owns_live_config
 
 if (( failures > 0 )); then
     echo "${failures} test(s) failed"

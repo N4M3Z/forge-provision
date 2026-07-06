@@ -1,8 +1,9 @@
 # Baseline Codex config, seeded to ~/.codex/config.toml by
-# scripts/configure/codex.sh only when absent. The live config is chezmoi-owned
-# (dot_codex/config.toml); personal bits (gbrain MCP, the Postgres unix socket,
-# writable_roots with real paths) live there, not in this generic seed. Auth is
-# interactive: run `codex login`. forge artifacts deploy via `forge install`.
+# scripts/configure/codex.sh only when absent. After Codex Desktop runs, the
+# live file is app-managed (plugins, trusted hook hashes, project trust,
+# node_repl, UI state). Keep personal bits such as gbrain MCP env and real
+# writable roots in the personal layer. Auth is interactive: run `codex login`.
+# forge artifacts deploy via `forge install`.
 # Reference: https://developers.openai.com/codex/config-reference
 
 # --- Model & reasoning ---
