@@ -161,6 +161,17 @@ cask "cursor"
 # Config deployed from manifests/zed/ by scripts/configure/zed.sh.
 cask "zed"
 
+# Zed Preview channel: separate app (CLI `zed-preview`), self-updating, about a
+# week ahead of stable. Channels share ~/.config/zed AND most application data
+# (extensions included); only the workspace databases are channel-keyed.
+cask "zed@preview"
+
+# Building Zed from source (the fork at ~/Developer/N4M3Z/zed):
+#   cmake — wasmtime-c-api's build script hard-requires it.
+# Metal shader compilation additionally needs full Xcode plus its Metal
+# Toolchain component; scripts/configure/zed-dev.sh checks and downloads those.
+brew "cmake"
+
 # jj terminal UIs — Zed has no view of jj state, so a TUI fills the gap.
 #   jjui    — Rust TUI (idursun), the gitui-style analogue; preferred, bound to
 #             `space t j` in Zed.
@@ -200,6 +211,12 @@ brew "drolosoft/tap/crex"
 # Meslo LG Nerd Font — Powerline-glyph-patched Meslo. MesloLGS Nerd Font Mono
 # variant is the p10k canonical face and what ghostty's font-family points at.
 cask "font-meslo-lg-nerd-font"
+
+# Atkinson Hyperlegible: high-legibility faces for Markdown. The Next
+# proportional face renders Markdown preview body text; the Mono face backs the
+# Markdown Focus editor profile. Code stays on MesloLGS Nerd Font Mono.
+cask "font-atkinson-hyperlegible-next"
+cask "font-atkinson-hyperlegible-mono"
 
 # Google Chrome (Chromium browser). Safari is the default; Chrome stays for
 # cross-browser dev/testing and sites that need Chromium quirks.

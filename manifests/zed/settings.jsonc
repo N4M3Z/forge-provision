@@ -7,6 +7,10 @@
 
     "autosave": "on_focus_change",
 
+    // Markdown preview typography.
+    "markdown_preview_font_family": "Atkinson Hyperlegible Next",
+    "markdown_preview_code_font_family": "MesloLGS Nerd Font Mono",
+
     "project_panel": {
         "dock": "left"
     },
@@ -15,6 +19,26 @@
     // the one-time Zed sign-in. Data collection stays declined.
     "edit_predictions": {
         "allow_data_collection": "no"
+    },
+
+    // Local model providers for Inline Assist and the agent — Ollama (GGUF, :11434)
+    // and oMLX (MLX, :8000). Both are localhost, no personal data. Fill each
+    // provider's models from the server (`GET /v1/models`; Ollama `/api/tags`);
+    // a model `name` must match its server id exactly. Keys go in the Agent Panel
+    // provider UI, never here. Gotcha: if a model carries `capabilities`, it must
+    // be COMPLETE (`tools`, `images`, `parallel_tool_calls`, `prompt_cache_key`) —
+    // a partial object makes Zed reject the entire settings file.
+    "language_models": {
+        "ollama": {
+            "api_url": "http://localhost:11434",
+            "context_window": 32768
+        },
+        "openai_compatible": {
+            "oMLX": {
+                "api_url": "http://localhost:8000/v1",
+                "available_models": []
+            }
+        }
     },
 
     "session": {
@@ -40,15 +64,48 @@
         "metrics": false
     },
 
-    // Claude Code in the agent panel over ACP, declared here so no
-    // per-machine registry step. Auth and model choice stay with
-    // Claude Code itself.
+    // Claude Code in the agent panel over ACP.
     "agent_servers": {
-        "Claude Code": {
-            "type": "custom",
-            "command": "npx",
-            "args": ["-y", "@zed-industries/claude-code-acp"],
-            "env": {}
+        "claude-acp": { "type": "registry" }
+    },
+
+    // Temporary Markdown Focus profile, selected via the settings profile
+    // selector (`space m w`); deselecting restores the base user settings.
+    "profiles": {
+        "Markdown Focus": {
+            "base": "user",
+            "settings": {
+                "buffer_font_family": "Atkinson Hyperlegible Mono",
+                "buffer_font_fallbacks": ["MesloLGS Nerd Font Mono"],
+                "buffer_font_size": 17.0,
+                "buffer_line_height": "comfortable",
+                "current_line_highlight": "gutter",
+                "tab_bar": {
+                    "show": false
+                },
+                "toolbar": {
+                    "breadcrumbs": false
+                },
+                "minimap": {
+                    "show": "never"
+                },
+                "gutter": {
+                    "line_numbers": false,
+                    "runnables": false,
+                    "bookmarks": false,
+                    "breakpoints": false,
+                    "folds": false,
+                    "min_line_number_digits": 2
+                },
+                "diagnostics": {
+                    "inline": {
+                        "enabled": false
+                    }
+                },
+                "inlay_hints": {
+                    "enabled": false
+                }
+            }
         }
     },
 
@@ -96,12 +153,17 @@
     },
 
     "languages": {
-        // Markdown formatters mangle reference-style links and tables; wrap to
-        // the editor width and keep trailing spaces (two = a hard line break).
+        // Markdown wraps at the lesser of editor width and 80 columns, keeps
+        // trailing spaces (two spaces = a hard line break), and is not formatted
+        // on save.
         "Markdown": {
             "format_on_save": "off",
-            "soft_wrap": "editor_width",
-            "preferred_line_length": 100,
+            "soft_wrap": "bounded",
+            "preferred_line_length": 80,
+            "show_wrap_guides": false,
+            "indent_guides": {
+                "enabled": false
+            },
             "remove_trailing_whitespace_on_save": false
         }
     }
