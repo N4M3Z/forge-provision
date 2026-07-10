@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Codex Daily Driver Plan</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0f1115;
+  --panel: #171a21;
+  --panel-2: #1f2430;
+  --text: #e7ecf3;
+  --muted: #97a1b3;
+  --line: #313846;
+  --accent: #7cc7a2;
+  --accent-2: #78a8ff;
+  --warn: #f1c56b;
+  --bad: #ff7a90;
+  --good: #7bd88f;
+  --note: #95b8ff;
+  --radius: 8px;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); }
+body { line-height: 1.5; }
+a { color: var(--accent-2); }
+code, pre { font-family: var(--mono); }
+pre {
+  margin: 12px 0 0;
+  padding: 14px;
+  overflow: auto;
+  background: #10141b;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  white-space: pre;
+}
+.wrap { width: min(1180px, calc(100vw - 32px)); margin: 0 auto; }
+header {
+  border-bottom: 1px solid var(--line);
+  background: #11141a;
+}
+.hero { padding: 32px 0 24px; }
+.brand { color: var(--accent); font-size: 13px; text-transform: uppercase; letter-spacing: 0; font-weight: 700; }
+h1 { margin: 8px 0 8px; font-size: clamp(32px, 5vw, 52px); line-height: 1.05; letter-spacing: 0; }
+.dek { max-width: 850px; color: var(--muted); font-size: 17px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.pill {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 12px;
+}
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(15, 17, 21, 0.96);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(8px);
+}
+.bar-inner {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+}
+.tabbar { display: flex; gap: 6px; overflow-x: auto; }
+button {
+  font: inherit;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 7px 10px;
+  cursor: pointer;
+}
+button:hover, button:focus { border-color: var(--accent-2); outline: none; }
+.tab.active { background: #233047; border-color: var(--accent-2); }
+.tools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.count { color: var(--muted); font-size: 12px; border: 1px solid var(--line); border-radius: 999px; padding: 4px 8px; }
+main { padding: 24px 0 44px; }
+.pane { display: none; }
+.pane.active { display: block; }
+.grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.c {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+.c h2, .c h3 { margin: 0 0 8px; letter-spacing: 0; }
+.c h2 { font-size: 22px; }
+.c h3 { font-size: 18px; }
+.c p { margin: 8px 0; color: var(--text); }
+.c ul, .c ol { margin: 10px 0 0; padding-left: 22px; }
+.c li { margin: 5px 0; }
+.muted { color: var(--muted); }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 3px 8px;
+  margin-left: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  border: 1px solid var(--line);
+}
+.chip.done { color: var(--good); border-color: rgba(123, 216, 143, 0.45); background: rgba(123, 216, 143, 0.08); }
+.chip.revised { color: var(--note); border-color: rgba(149, 184, 255, 0.45); background: rgba(149, 184, 255, 0.08); }
+.chip.open { color: var(--warn); border-color: rgba(241, 197, 107, 0.45); background: rgba(241, 197, 107, 0.08); }
+.tablewrap { width: 100%; overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); margin-top: 12px; }
+table { border-collapse: collapse; min-width: 760px; width: 100%; }
+th, td { padding: 10px; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left; }
+th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0; }
+td { word-break: break-word; }
+tr:last-child td { border-bottom: 0; }
+.note-list { margin-top: 12px; display: grid; gap: 8px; }
+.note-item { border: 1px solid var(--line); background: #12161d; border-radius: 6px; padding: 10px; }
+.note-type { font-size: 11px; font-weight: 800; color: var(--accent); margin-right: 6px; }
+.note-actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+.composer {
+  margin-top: 12px;
+  display: none;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  border-radius: var(--radius);
+  padding: 10px;
+}
+.composer.active { display: block; }
+.type-badge { display: inline-flex; min-width: 94px; justify-content: center; color: #10141b; background: var(--accent); border-radius: 999px; padding: 4px 8px; font-size: 12px; font-weight: 800; cursor: pointer; }
+textarea {
+  display: block;
+  width: 100%;
+  min-height: 90px;
+  margin-top: 10px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  background: #0d1016;
+  color: var(--text);
+  border-radius: 6px;
+  padding: 10px;
+  font: 14px var(--sans);
+}
+.footer {
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  padding: 18px 0 28px;
+  font-size: 13px;
+}
+@media (max-width: 760px) {
+  .wrap { width: min(100vw - 20px, 1180px); }
+  .bar-inner { align-items: stretch; flex-direction: column; }
+  .tools { justify-content: flex-start; }
+  h1 { font-size: 34px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap hero">
+    <div class="brand">forge-provision / Codex setup</div>
+    <h1>Codex Daily Driver Plan</h1>
+    <p class="dek">A reviewable plan for making Codex behave like a second daily driver beside Claude Code: AGENTS.md template design, skill-root cleanup, hook repair, MCP ownership, and safe rollout.</p>
+    <div class="meta">
+      <span class="pill">as of 2026-07-06T10:13:28Z</span>
+      <span class="pill">repo: forge-provision</span>
+      <span class="pill">jj change: stnpyomq</span>
+      <span class="pill">artifact: docs/plans/codex-daily-driver-plan.html</span>
+    </div>
+  </div>
+</header>
+
+<div class="bar">
+  <div class="wrap bar-inner">
+    <div class="tabbar" role="tablist" aria-label="Plan sections">
+      <button class="tab active" data-pane="policy" type="button">Policy</button>
+      <button class="tab" data-pane="runtime" type="button">Runtime</button>
+      <button class="tab" data-pane="capture" type="button">Capture</button>
+      <button class="tab" data-pane="rollout" type="button">Rollout</button>
+    </div>
+    <div class="tools">
+      <span class="count" id="count-issue">ISSUE 0</span>
+      <span class="count" id="count-suggestion">SUGGESTION 0</span>
+      <span class="count" id="count-note">NOTE 0</span>
+      <span class="count" id="count-praise">PRAISE 0</span>
+      <button id="export-notes" type="button">Export notes</button>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+  <section class="pane active" id="policy">
+    <div class="grid">
+      <div class="c" data-c="current-story" data-title="Current Story">
+        <h2>Current story <span class="chip done">done</span></h2>
+        <p><code>jj status</code> says the active forge-provision change is already about bringing Codex up to speed: it adds root <code>AGENTS.md</code>, Codex manifests, Codex TLDR/ADR/journal entries, Zed/dev-tooling work, and related install scripts.</p>
+        <p>The existing root <code>AGENTS.md</code> is useful as a first draft, but it was produced too mechanically from <code>CLAUDE.md</code>. Examples: "Codex, Codex, Gemini" and <code>migrate/Codex-history.sh</code>. The template should be designed, not search-replaced.</p>
+        <div class="note-actions"><button class="add-note" type="button">Add note</button></div>
+      </div>
+
+      <div class="c" data-c="agents-template" data-title="AGENTS.md Template">
+        <h2>AGENTS.md template <span class="chip open">open</span></h2>
+        <p>Recommendation: maintain a shared project-instructions template plus provider overlays. Generate root <code>CLAUDE.md</code> and <code>AGENTS.md</code> from the same base, but let each overlay carry real harness differences.</p>
+        <pre><code># &lt;project&gt; - &lt;provider&gt; context
+
+## What this is
+&lt;one paragraph from repo metadata / README&gt;
+
+## Critical caveat
+&lt;host mutation, data-loss, network, or privacy warnings&gt;
+
+## Working rules
+- Read the repo-local instructions before acting.
+- Prefer dry-run or read-only commands until the user approves mutation.
+- Keep changes scoped to the requested module.
+- Do not commit, tag, release, push, or rewrite history without explicit approval.
+
+## Repo conventions
+&lt;script layout, tests, ADR paths, journal paths, style rules&gt;
+
+## Harness policy
+&lt;provider overlay: sandbox, approvals, credentials, hooks, GUI/computer-use&gt;
+
+## Verification
+&lt;commands that prove the expected behavior&gt;</code></pre>
+        <p>The AGENTS overlay should name Codex-specific controls: <code>approval_policy</code>, <code>default_permissions</code>, <code>approvals_reviewer</code>, <code>AGENTS.md</code>, <code>dcg</code>, Computer Use, and the lack of Claude-style <code>denyRead</code>.</p>
+        <div class="note-actions"><button class="add-note" type="button">Add note</button></div>
+      </div>
+
+      <div class="c" data-c="claude-counterpart" data-title="CLAUDE.md Counterpart">
+        <h2>CLAUDE.md counterpart <span class="chip open">open</span></h2>
+        <p>The workspace Claude session can keep working on the Claude-specific counterpart. The integration point should be a shared source, not one agent editing the other's generated file by hand.</p>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Layer</th><th>Owner</th><th>Purpose</th></tr></thead>
+            <tbody>
+              <tr><td><code>manifests/agent-instructions/base.md</code></td><td>forge-provision</td><td>Shared repo behavior, mutation warnings, script conventions, ADR/journal rules.</td></tr>
+              <tr><td><code>manifests/agent-instructions/claude.md</code></td><td>Claude overlay</td><td>Claude auto-mode, <code>permissions.deny</code>, Claude hooks, MCP/GUI notes.</td></tr>
+              <tr><td><code>manifests/agent-instructions/codex.md</code></td><td>Codex overlay</td><td>Codex sandbox, approval reviewer, Computer Use warning, config/app ownership.</td></tr>
+              <tr><td><code>CLAUDE.md</code> and <code>AGENTS.md</code></td><td>generated</td><td>Checked-in root files for harness discovery and human review.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>This avoids drift while preserving the important differences. Claude and Codex should not pretend to have identical enforcement models.</p>
+        <div class="note-actions"><button class="add-note" type="button">Add note</button></div>
+      </div>
+
+      <div class="c" data-c="agent-roots" data-title=".agents vs .codex">
+        <h2><code>.agents</code> or <code>.codex</code>? <span class="chip open">open</span></h2>
+        <p>Recommended split:</p>
+        <ul>
+          <li><code>~/.agents/skills</code> and repo <code>.agents/skills</code>: canonical Codex skill roots per current Codex docs.</li>
+          <li><code>~/.codex/agents</code> and repo <code>.codex/agents</code>: Codex subagents as TOML.</li>
+          <li><code>~/.codex/config.toml</code>, <code>~/.codex/hooks.json</code>, <code>~/.codex/auth.json</code>: Codex app/CLI state and settings.</li>
+          <li><code>~/.claude</code>: Claude settings, agents, hooks, and credentials.</li>
+        </ul>
+        <p>The live machine currently exposes both <code>~/.codex/skills</code> and <code>~/.agents/skills</code>, with many same-name divergent skills. The plan is merge first, then archive or disable the duplicate legacy Codex skill copies after backup.</p>
+        <div class="note-actions"><button class="add-note" type="button">Add note</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pane" id="runtime">
+    <div class="grid">
+      <div class="c" data-c="node-repl" data-title="node_repl">
+        <h2><code>node_repl</code> <span class="chip revised">revised</span></h2>
+        <p><code>node_repl</code> is not something you appear to have installed manually. It is a Codex-provided MCP/tool server: a persistent Node-backed JavaScript runtime used by Codex/plugin tooling. The live Codex config contains it because the app/runtime injected it.</p>
+        <p>Recommendation: preserve it as app-managed state, but do not put it in forge-provision's baseline seed. The configure script should not delete unknown MCP servers when it upserts stable settings.</p>
+        <div class="note-actions"><button class="add-note" type="button">Add note</button></div>
+      </div>
+
+      <div class="c" data-c="config-ownership" data-title="Codex Config Ownership">
+        <h2>Config ownership <span class="chip open">open</span></h2>
+        <p>The live <code>~/.codex/config.toml</code> is app-managed after Codex Desktop runs. It carries plugin enablement, trusted hook hashes, project trust, <code>node_repl</code>, model/status preferences, and desktop state. A full chezmoi apply would wipe useful state.</p>
+        <p>Recommended change: forge-provision should treat <code>manifests/codex/config.toml</code> as a seed or desired fragment. <code>scripts/configure/codex.sh</code> should upsert only stable keys and preserve everything else.</p>
+        <ul>
+          <li>Upsert: approval mode, workspace-local permissions, review profile, shell env policy, dcg hook, gbrain MCP env.</li>
+          <li>Remove from global subprocess env: <code>OPENAI_API_KEY=ollama</code> and <code>OPENAI_BASE_URL=http://localhost:11434/v1</code>.</li>
+          <li>Preserve: unknown MCP servers, plugin state, hook trust hashes, project trust, model UI preferences, desktop state.</li>
+        </ul>
+        <div class="note-actions"><button class="add-note" type="button">Add note</button></div>
+      </div>
+
+      <div class="c" data-c="mcp-gbrain" data-title="MCP and gbrain">
+        <h2>MCP and gbrain <span class="chip revised">revised</span></h2>
+        <p>The current "MCP complaints" are not a hard MCP failure. <code>codex doctor</code> sees <code>gbrain</code>, <code>node_repl</code>, and <code>computer-use</code>. The recurring warning is mostly plugin metadata noise plus a mixed-auth note caused by global OpenAI-compatible local-model env vars.</p>
+        <p>Recommendation: keep gbrain local-model values scoped inside <code>[mcp_servers.gbrain.env]</code>. Do not leak them through <code>[shell_environment_policy.set]</code>, where every subprocess inherits them.</p>
+        <div class="note-actions"><button class="add-note" type="button">Add note</button></div>
+      </div>
+
+      <div class="c" data-c="skill-cleanup" data-title="Skill Cleanup">
+        <h2>Skill cleanup <span class="chip open">open</span></h2>
+        <p>The duplicated skill roots are a real daily-driver problem. Codex currently sees duplicate names from <code>~/.codex/skills</code> and <code>~/.agents/skills</code>; important skills differ by hash.</p>
+        <p>Recommended sequence:</p>
+        <ol>
+          <li>Inventory same-name skills and hash differences.</li>
+          <li>Promote the newer/correct content into canonical <code>~/.agents/skills</code>.</li>
+          <li>Keep agent-only or Codex-only skills intentionally, with provenance.</li>
+          <li>Archive or disable duplicate non-system <code>~/.codex/skills</code> copies after backup.</li>
+          <li>Add a doctor/test that fails on same-name divergent skill roots.</li>
+        </ol>
+        <p>Specific content fix: update stale <code>SessionResume</code>/<code>SessionCapture</code> wording so automatic capture means SpecStory plus memsearch via <code>session-sync</code>, while curated manual capture means gbrain.</p>
+        <div class="note-actions"><button class="add-note" type="button">Add note</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pane" id="capture">
+    <div class="grid">
+      <div class="c" data-c="capture-hooks" data-title="Capture Hooks">
+        <h2>Capture hooks <span class="chip open">open</span></h2>
+        <p>Codex currently has a broken global hook: <code>~/.codex/hooks.json</code> calls a missing <code>capture-session</code>. The working script is <code>forge-data/scripts/session-sync</code>, which Claude already uses.</p>
+        <p>Recommended repair:</p>
+        <ul>
+          <li>Replace <code>capture-session</code> with <code>session-sync</code>.</li>
+          <li>Use <code>PreCompact</code> and likely <code>Stop</code> for Codex lifecycle capture.</li>
+          <li>Keep hook stdout quiet and exit 0 so capture cannot break normal sessions.</li>
+          <li>Ask before running it manually because it writes to <code>~/Data</code> and invokes local indexing.</li>
+        </ul>
+        <div class="note-actions"><button class="add-note" type="button">Add note</button></div>
+      </div>
+
+      <div class="c" data-c="indexing" data-title="Indexing">
+        <h2>Indexing after capture <span class="chip open">open</span></h2>
+        <p><code>session-sync</code> preserves raw transcripts, but the memsearch indexing phase is noisy: logs show Milvus Lite <code>too_many_pings</code>. That should not run on every lifecycle hook until it is throttled.</p>
+        <p>Recommendation: split capture from indexing. Hooks should preserve raw/session data quickly; launchd, a cooldown file, or a manual command should run heavier indexing afterward.</p>
+        <div class="note-actions"><button class="add-note" type="button">Add note</button></div>
+      </div>
+
+      <div class="c" data-c="htmlplan-packaging" data-title="HtmlPlan Packaging">
+        <h2>HtmlPlan packaging <span class="chip open">open</span></h2>
+        <p>The installed <code>HtmlPlan</code> skill references <code>template.html</code>, but both local skill roots only contain <code>SKILL.md</code>. This artifact therefore embeds a minimal compatible renderer directly.</p>
+        <p>Recommended fix: add the missing template to the skill source, deploy it with the skill, and add a verification check that every skill-referenced relative asset exists.</p>
+        <div class="note-actions"><button class="add-note" type="button">Add note</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pane" id="rollout">
+    <div class="grid">
+      <div class="c" data-c="sequence" data-title="Recommended Sequence">
+        <h2>Recommended sequence <span class="chip open">open</span></h2>
+        <ol>
+          <li>Patch source docs and manifests first: AGENTS template source, stale Codex TLDR text, HarnessSecurity config keys, and configure-script comments.</li>
+          <li>Make <code>scripts/configure/codex.sh</code> dry-run aware for Codex upserts and hook repair.</li>
+          <li>Add tests for broken hook paths, stale config keys, global OpenAI env leakage, and duplicate skill roots.</li>
+          <li>Only after review, apply live <code>~/.codex/AGENTS.md</code> and hook repairs.</li>
+          <li>Run <code>codex doctor</code>, <code>codex mcp list</code>, TOML parse checks, and a controlled <code>session-sync</code> validation with approval.</li>
+        </ol>
+        <div class="note-actions"><button class="add-note" type="button">Add note</button></div>
+      </div>
+
+      <div class="c" data-c="source-changes" data-title="Source Changes">
+        <h2>Concrete source changes <span class="chip open">open</span></h2>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Path</th><th>Change</th></tr></thead>
+            <tbody>
+              <tr><td><code>AGENTS.md</code></td><td>Regenerate from designed template, fix mechanical Claude substitutions.</td></tr>
+              <tr><td><code>manifests/codex/AGENTS.md</code></td><td>Global Codex policy source: RTK import plus Claude-like soft policy.</td></tr>
+              <tr><td><code>scripts/configure/codex.sh</code></td><td>Seed/upsert config, repair hooks, do not claim chezmoi owns live config.</td></tr>
+              <tr><td><code>docs/tldr/codex.md</code></td><td>Correct canonical skill root to <code>~/.agents/skills</code>; document app-managed state.</td></tr>
+              <tr><td><code>skills/HarnessSecurity/SKILL.md</code></td><td>Replace stale <code>sandbox_mode</code> wording with current permission model.</td></tr>
+              <tr><td><code>tests/test-codex-integrations.sh</code></td><td>Add regression checks for hooks, env leakage, stale keys, and duplicate roots.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note-actions"><button class="add-note" type="button">Add note</button></div>
+      </div>
+
+      <div class="c" data-c="open-decisions" data-title="Open Decisions">
+        <h2>Open decisions <span class="chip open">open</span></h2>
+        <ul>
+          <li>Should root <code>AGENTS.md</code>/<code>CLAUDE.md</code> be generated from manifests, or kept hand-edited with tests that compare structure?</li>
+          <li>Should global Codex hooks live in <code>~/.codex/hooks.json</code>, inline <code>config.toml</code>, or a single consolidated global hook file?</li>
+          <li>Should duplicate legacy <code>~/.codex/skills</code> be disabled through Codex <code>skills.config</code> or physically archived after backup?</li>
+          <li>Should <code>node_repl</code> be explicitly documented as app-managed, or left as an implementation detail unless it fails?</li>
+          <li>Should memsearch indexing move to launchd, a manual command, or a cooldown inside <code>session-sync</code>?</li>
+        </ul>
+        <div class="note-actions"><button class="add-note" type="button">Add note</button></div>
+      </div>
+
+      <div class="c" data-c="general" data-title="General Comments">
+        <h2>General comments <span class="chip open">open</span></h2>
+        <p>Use this block for comments that do not fit a specific section. The next refresh should keep all <code>data-c</code> ids stable so saved notes continue to attach to the right units.</p>
+        <div class="note-actions"><button class="add-note" type="button">Add note</button></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div>Bookmark: <code>docs/plans/codex-daily-driver-plan.html</code></div>
+    <div>Notes are stored in this browser's localStorage and exported as a tuicr-style digest.</div>
+  </div>
+</footer>
+
+<script type="application/json" id="plan-state">{
+  "as_of": "2026-07-06T10:13:28Z",
+  "url": "docs/plans/codex-daily-driver-plan.html",
+  "blocks": [
+    {"id": "current-story", "status": "done"},
+    {"id": "agents-template", "status": "open"},
+    {"id": "claude-counterpart", "status": "open"},
+    {"id": "agent-roots", "status": "open"},
+    {"id": "node-repl", "status": "revised"},
+    {"id": "config-ownership", "status": "open"},
+    {"id": "mcp-gbrain", "status": "revised"},
+    {"id": "skill-cleanup", "status": "open"},
+    {"id": "capture-hooks", "status": "open"},
+    {"id": "indexing", "status": "open"},
+    {"id": "htmlplan-packaging", "status": "open"},
+    {"id": "sequence", "status": "open"},
+    {"id": "source-changes", "status": "open"},
+    {"id": "open-decisions", "status": "open"},
+    {"id": "general", "status": "open"}
+  ]
+}</script>
+
+<script>
+(function () {
+  var key = 'HtmlPlan:' + document.title;
+  var types = ['ISSUE', 'SUGGESTION', 'NOTE', 'PRAISE'];
+  var notes = load();
+
+  function load() {
+    try {
+      return JSON.parse(localStorage.getItem(key) || '{}');
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function save() {
+    localStorage.setItem(key, JSON.stringify(notes));
+    renderAllNotes();
+  }
+
+  function escapeText(value) {
+    return String(value).replace(/[&<>"']/g, function (ch) {
+      return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[ch];
+    });
+  }
+
+  function blockTitle(block) {
+    return block.getAttribute('data-title') || block.getAttribute('data-c');
+  }
+
+  function ensureComposer(block) {
+    var existing = block.querySelector('.composer');
+    if (existing) return existing;
+    var composer = document.createElement('div');
+    composer.className = 'composer';
+    composer.innerHTML = '<span class="type-badge">ISSUE</span><textarea placeholder="Write a review note. Tab cycles type, Enter saves, Esc cancels."></textarea><div class="note-actions"><button class="save-note" type="button">Save</button><button class="cancel-note" type="button">Cancel</button></div>';
+    block.appendChild(composer);
+    var badge = composer.querySelector('.type-badge');
+    var text = composer.querySelector('textarea');
+    function cycle(reverse) {
+      var idx = types.indexOf(badge.textContent);
+      idx = reverse ? (idx + types.length - 1) % types.length : (idx + 1) % types.length;
+      badge.textContent = types[idx];
+    }
+    badge.addEventListener('click', function () { cycle(false); });
+    text.addEventListener('keydown', function (event) {
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        cycle(event.shiftKey);
+      } else if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        addNote(block, badge.textContent, text.value);
+        text.value = '';
+        composer.classList.remove('active');
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        text.value = '';
+        composer.classList.remove('active');
+      }
+    });
+    composer.querySelector('.save-note').addEventListener('click', function () {
+      addNote(block, badge.textContent, text.value);
+      text.value = '';
+      composer.classList.remove('active');
+    });
+    composer.querySelector('.cancel-note').addEventListener('click', function () {
+      text.value = '';
+      composer.classList.remove('active');
+    });
+    return composer;
+  }
+
+  function addNote(block, type, text) {
+    var trimmed = String(text || '').replace(/^\s+|\s+$/g, '');
+    if (!trimmed) return;
+    var id = block.getAttribute('data-c');
+    if (!notes[id]) notes[id] = [];
+    notes[id].push({type: type, text: trimmed, at: new Date().toISOString()});
+    save();
+  }
+
+  function renderBlockNotes(block) {
+    var id = block.getAttribute('data-c');
+    var list = block.querySelector('.note-list');
+    if (!list) {
+      list = document.createElement('div');
+      list.className = 'note-list';
+      block.appendChild(list);
+    }
+    var blockNotes = notes[id] || [];
+    if (!blockNotes.length) {
+      list.innerHTML = '';
+      return;
+    }
+    var html = '';
+    for (var i = 0; i < blockNotes.length; i += 1) {
+      html += '<div class="note-item"><span class="note-type">' + escapeText(blockNotes[i].type) + '</span>' + escapeText(blockNotes[i].text) + '</div>';
+    }
+    list.innerHTML = html;
+  }
+
+  function renderCounts() {
+    var counts = {ISSUE: 0, SUGGESTION: 0, NOTE: 0, PRAISE: 0};
+    Object.keys(notes).forEach(function (id) {
+      (notes[id] || []).forEach(function (note) {
+        if (counts[note.type] !== undefined) counts[note.type] += 1;
+      });
+    });
+    document.getElementById('count-issue').textContent = 'ISSUE ' + counts.ISSUE;
+    document.getElementById('count-suggestion').textContent = 'SUGGESTION ' + counts.SUGGESTION;
+    document.getElementById('count-note').textContent = 'NOTE ' + counts.NOTE;
+    document.getElementById('count-praise').textContent = 'PRAISE ' + counts.PRAISE;
+  }
+
+  function renderAllNotes() {
+    var blocks = document.querySelectorAll('.c[data-c]');
+    for (var i = 0; i < blocks.length; i += 1) renderBlockNotes(blocks[i]);
+    renderCounts();
+  }
+
+  function exportNotes() {
+    var lines = [];
+    var index = 1;
+    lines.push('I reviewed your plan and have the following comments. Please address them.');
+    lines.push('');
+    lines.push('Comment types: ISSUE (problems to fix), SUGGESTION (improvements), NOTE (context), PRAISE (works well)');
+    lines.push('');
+    lines.push('## Plan Review Comments');
+    lines.push('');
+    var blocks = document.querySelectorAll('.c[data-c]');
+    for (var i = 0; i < blocks.length; i += 1) {
+      var id = blocks[i].getAttribute('data-c');
+      var blockNotes = notes[id] || [];
+      for (var j = 0; j < blockNotes.length; j += 1) {
+        lines.push(index + '. **[' + blockNotes[j].type + ']** `#' + id + '` (' + blockTitle(blocks[i]) + ') - ' + blockNotes[j].text);
+        index += 1;
+      }
+    }
+    if (index === 1) lines.push('No comments yet.');
+    var text = lines.join('\n');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).catch(function () { window.prompt('Copy notes:', text); });
+    } else {
+      window.prompt('Copy notes:', text);
+    }
+  }
+
+  function activatePane(id) {
+    var panes = document.querySelectorAll('.pane');
+    var tabs = document.querySelectorAll('.tab');
+    for (var i = 0; i < panes.length; i += 1) panes[i].classList.toggle('active', panes[i].id === id);
+    for (var j = 0; j < tabs.length; j += 1) tabs[j].classList.toggle('active', tabs[j].getAttribute('data-pane') === id);
+  }
+
+  var tabs = document.querySelectorAll('.tab');
+  for (var t = 0; t < tabs.length; t += 1) {
+    tabs[t].addEventListener('click', function () { activatePane(this.getAttribute('data-pane')); });
+  }
+  var addButtons = document.querySelectorAll('.add-note');
+  for (var b = 0; b < addButtons.length; b += 1) {
+    addButtons[b].addEventListener('click', function () {
+      var block = this;
+      while (block && !block.getAttribute('data-c')) block = block.parentNode;
+      var composer = ensureComposer(block);
+      composer.classList.add('active');
+      composer.querySelector('textarea').focus();
+    });
+  }
+  document.getElementById('export-notes').addEventListener('click', exportNotes);
+  renderAllNotes();
+}());
+</script>
+</body>
+</html>

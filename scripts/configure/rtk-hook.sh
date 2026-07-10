@@ -1,7 +1,8 @@
 #!/bin/bash
-# Register the rtk PreToolUse hook in ~/.claude/settings.json globally.
-# Wraps `rtk init -g --auto-patch` — rtk owns the install (settings.json + RTK.md + CLAUDE.md @-include).
-# Idempotent — re-running with hook already configured is a no-op.
+# Configure RTK globally for Claude Code and Codex using each supported path.
+# Claude gets the PreToolUse rewriter; Codex gets AGENTS.md + RTK.md instructions
+# because RTK does not support transparent PreToolUse rewriting there.
+# Idempotent — RTK owns both convergent installs.
 # Reference: https://github.com/rtk-ai/rtk
 # Source: https://github.com/N4M3Z/forge-provision
 
@@ -13,17 +14,22 @@ if ! command -v rtk >/dev/null 2>&1; then
     exit 1
 fi
 
-# Skip if hook already configured (rtk's own state check)
-if rtk init -g --show 2>&1 | grep -q '^\[ok\] Hook:'; then
+rtk_status=$(rtk init -g --show 2>&1)
+if [[ "${rtk_status}" == *"[ok] Hook:"* ]]; then
     echo "skip:rtk-hook (hook already registered)"
-    exit 0
+else
+    echo "register:rtk-hook"
+    rtk init -g --auto-patch || {
+        echo "fail:rtk init (Claude Code)"
+        exit 1
+    }
 fi
 
-echo "register:rtk-hook"
-rtk init -g --auto-patch || {
-    echo "fail:rtk init"
+echo "configure:rtk-codex"
+rtk init -g --codex || {
+    echo "fail:rtk init (Codex)"
     exit 1
 }
 
 echo "ok:rtk-hook"
-echo "      restart Claude Code for the hook to take effect in this session"
+echo "      restart Claude Code and Codex to load the updated integration"

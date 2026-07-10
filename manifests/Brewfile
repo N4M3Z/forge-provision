@@ -17,6 +17,18 @@ cask "lm-studio"
 # Config TBD — capture as scripts/configure/opencode.sh once provider files settle.
 brew "opencode"
 
+# Codex (OpenAI's coding-agent CLI). Independent cross-reviewer of Claude Code's
+# work via `codex exec review` in a read-only sandbox. Config deployed from
+# manifests/codex/ by scripts/configure/codex.sh; auth is interactive (codex login).
+cask "codex"
+
+# Codex desktop app (official OpenAI, separate from the CLI). Adds Computer Use,
+# which drives arbitrary macOS apps by seeing and clicking, gated behind macOS
+# Screen Recording + Accessibility grants (TCC, granted manually in System
+# Settings, not scriptable). Auto-updates itself, so Homebrew does not pin its
+# version. Shares ~/.codex/config.toml with the CLI.
+cask "codex-app"
+
 # Modern rsync 3+ (Apple ships openrsync 2.6.9-compatible which lacks --info=progress2 etc).
 # scripts/migrate/claude-history.sh requires this.
 brew "rsync"
