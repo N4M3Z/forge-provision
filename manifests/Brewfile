@@ -10,6 +10,20 @@ cask "proton-meet"
 cask "proton-pass"
 cask "protonvpn"
 
+# Proton Pass CLI (official, in homebrew-core). Binary is `pass-cli`, the
+# scriptable client for Proton Pass vaults, distinct from the proton-pass GUI
+# cask above. Auth via browser handoff or a scoped personal access token for
+# CI. See skills/PasswordToolkit/ProtonPass.md.
+brew "proton-pass-cli"
+
+# Proton Drive CLI (official `proton-drive`, notarized binary from Proton AG,
+# Team ID 2SB5Z68H26). Not in homebrew-core and ships no source tarball, only a
+# per-platform binary, so it is pinned by SHA-256 in a personal tap,
+# github.com/N4M3Z/homebrew-tap. The `proton-drive` cask above is the GUI app;
+# this installs the `proton-drive` CLI binary. Auth: `proton-drive auth login`.
+tap "N4M3Z/tap"
+brew "N4M3Z/tap/proton-drive-cli"
+
 # Local LLM runner.
 cask "lm-studio"
 
