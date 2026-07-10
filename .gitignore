@@ -17,3 +17,6 @@ config.yaml
 .entire/tmp/
 .entire/settings.local.json
 .entire/redactors/local/
+
+# Forge assemble output (transient: wiped on every `forge assemble`). dist/ is the preserved sibling.
+build/
