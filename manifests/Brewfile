@@ -127,6 +127,7 @@ brew "sesh"
 
 # JavaScript runtime and global package installer, primary (PROV-0004).
 # Used for `bun install -g @cometix/ccline` plus future global npm tools.
+# pxpipe (bun global, version-pinned) -> scripts/install/pxpipe.sh (PROV-0022)
 tap "oven-sh/bun"
 brew "oven-sh/bun/bun"
 
