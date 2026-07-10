@@ -164,6 +164,13 @@ cask "ghostty"
 # a known-good version. The brew cask was uninstalled on 2026-05-21
 # (see docs/journal/) after a brief detour.
 
+# oMLX — intentionally NOT installed via Homebrew. Reproduced on fresh Mac by
+# `scripts/install/omlx.sh`, which resolves the OS-matched .dmg from the GitHub
+# releases API (https://github.com/jundot/omlx/releases) and drops oMLX.app into
+# /Applications, symlinking the bundled omlx-cli to ~/.local/bin/omlx. The app is
+# the daily-driver lane (PROV-0021); the formula `jundot/omlx/omlx` is the
+# headless alternative, but both bind :8000 and share ~/.omlx/ — one at a time.
+
 # crex (cmux-resurrect) — workspace snapshot save/restore for cmux. Saves
 # tabs, pane layouts, CWDs, pinned state, startup commands, and auto-resumes
 # Claude Code sessions via session IDs. Fills the gap tracked by cmux #2086
