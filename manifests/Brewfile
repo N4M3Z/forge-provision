@@ -179,6 +179,11 @@ cask "font-meslo-lg-nerd-font"
 # cross-browser dev/testing and sites that need Chromium quirks.
 cask "google-chrome"
 
+# Firefox (Gecko browser). Signs into Firefox Sync for the daily-driver profile;
+# scripts/configure/firefox.sh hardens that profile from manifests/firefox/user.js
+# once sync has populated it.
+cask "firefox"
+
 # Claude desktop app (Anthropic's native client). Already installed on this
 # Mac; declaration closes the Brewfile gap so a fresh machine matches.
 cask "claude"
