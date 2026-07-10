@@ -1,0 +1,96 @@
+# Baseline Codex config, seeded to ~/.codex/config.toml by
+# scripts/configure/codex.sh only when absent. The live config is chezmoi-owned
+# (dot_codex/config.toml); personal bits (gbrain MCP, the Postgres unix socket,
+# writable_roots with real paths) live there, not in this generic seed. Auth is
+# interactive: run `codex login`. forge artifacts deploy via `forge install`.
+# Reference: https://developers.openai.com/codex/config-reference
+
+# --- Model & reasoning ---
+# model left unset to track the Codex default (version-volatile). Pin to avoid
+# silent drift, e.g.: model = "gpt-5.5-codex"
+model_reasoning_effort = "high"
+
+# --- Approvals & sandbox (macOS Seatbelt, same primitive as Claude Code) ---
+approval_policy = "on-request"
+default_permissions = "workspace-local"
+approvals_reviewer = "auto_review"
+
+# --- Privacy / telemetry ---
+check_for_update_on_startup = false
+analytics.enabled = false
+file_opener = "none"
+cli_auth_credentials_store = "keyring"
+
+# Workspace editing plus filtered network access. No denyRead analog exists:
+# Seatbelt reads stay broad, so credential isolation relies on explicit user
+# discipline and the OS account rather than a Codex config key. Add local roots
+# where this machine edits regularly:
+[permissions.workspace-local.workspace_roots]
+# "/Users/you/Developer" = true
+
+[permissions.workspace-local.filesystem]
+":root" = "read"
+":tmpdir" = "write"
+":slash_tmp" = "write"
+
+[permissions.workspace-local.filesystem.":workspace_roots"]
+"." = "write"
+".git" = "read"
+".agents" = "read"
+".codex" = "read"
+
+[permissions.workspace-local.network]
+enabled = true
+mode = "limited"
+allow_local_binding = false
+
+[permissions.workspace-local.network.domains]
+"localhost" = "allow"
+"127.0.0.1" = "allow"
+"github.com" = "allow"
+"*.github.com" = "allow"
+"raw.githubusercontent.com" = "allow"
+"objects.githubusercontent.com" = "allow"
+"pkg-containers.githubusercontent.com" = "allow"
+"registry.npmjs.org" = "allow"
+"crates.io" = "allow"
+"static.crates.io" = "allow"
+"index.crates.io" = "allow"
+"formulae.brew.sh" = "allow"
+"ghcr.io" = "allow"
+"pypi.org" = "allow"
+"*.pypi.org" = "allow"
+"files.pythonhosted.org" = "allow"
+
+# Harden the env handed to spawned commands (default secret filter stays on).
+# Do not set OPENAI_API_KEY / OPENAI_BASE_URL here: a global local-model value
+# creates mixed auth signals for Codex itself. Scope those to MCP servers.
+[shell_environment_policy]
+inherit = "all"
+exclude = ["*PASSWORD*"]
+
+[tui]
+notifications = true
+
+# Read-only cross-reviewer: cannot edit, cannot prompt.
+# Invoke: codex --profile review "review the staged diff"
+[profiles.review]
+approval_policy = "never"
+sandbox_mode = "read-only"
+model_reasoning_effort = "high"
+
+# --- Command policy (Claude's sandbox.excludedCommands has no static analog) ---
+# Codex has no command-exclusion list: commands needing denied network/system
+# access escalate via approval_policy = "on-request" rather than running
+# unsandboxed. An execpolicy rule, not a config.toml key, is the auto-handle path.
+
+# --- Destructive-command guard (dcg) ---
+# dcg runs as a Codex PreToolUse hook (denials via stderr + exit 2). No matcher
+# means it inspects every tool call, so a wrong tool-name string can't silently
+# bypass it; dcg passes non-destructive commands. Codex may prompt to trust the
+# hook on first run (hook-trust) — approve once. dcg ships no codex auto-installer,
+# so this block is the wiring.
+[[hooks.PreToolUse]]
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "dcg"
