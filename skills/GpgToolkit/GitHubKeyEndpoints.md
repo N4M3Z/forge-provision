@@ -1,4 +1,6 @@
-GitHub publishes every key registered on an account at unauthenticated public endpoints: GPG keys at `github.com/<user>.gpg`, SSH public keys at `github.com/<user>.keys`. Anything embedded in those keys is public — GPG UID names and email addresses included. Committing with a `noreply` address hides nothing while the key UID carries the real email.
+# GitHub Key Endpoints
+
+GitHub publishes every key registered on an account at unauthenticated public endpoints: GPG keys at `github.com/<user>.gpg`, SSH public keys at `github.com/<user>.keys`. Anything embedded in those keys is public, GPG UID names and email addresses included. Committing with a `noreply` address hides nothing while the key UID carries the real email.
 
 Consequences for key hygiene:
 
