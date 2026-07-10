@@ -35,6 +35,8 @@ cd forge-provision
 ./provision.sh --strict        # exit non-zero on any non-OK (CI gate)
 ```
 
+Manual settings that cannot be scripted are tracked as a checklist in [INSTALL.md](INSTALL.md#manual-steps).
+
 ## Coverage
 
 Filled in as scripts land. See `scripts/<topic>/` for the current set.

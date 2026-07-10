@@ -169,6 +169,45 @@ focused on dotfiles + git tooling instead. Pull into a future Brewfile pass.
   `scripts/configure/revdiff.sh`). Source for adoption:
   `https://github.com/umputun/revdiff/blob/master/.claude-plugin/skills/revdiff/SKILL.md`.
 
+## macOS coverage gaps (2026-06-17 gap analysis)
+
+Full findings and sources: [docs/journal/2026-06-17-provisioning-gaps.md](docs/journal/2026-06-17-provisioning-gaps.md).
+Confirm the load-bearing claims first-hand before scripting (the journal lists
+exactly which claims to verify).
+
+- **Backup (highest leverage).** No backup story exists. Decide
+  [Restic](https://github.com/restic/restic) (scripted; needs an APFS-snapshot
+  wrapper plus launchd and Full Disk Access) versus Arq 7 (native APFS, zero
+  scripting), then `scripts/configure/backup.sh`. Add
+  [asimov](https://github.com/stevegrunwell/asimov) to the Brewfile to exclude
+  dependency directories from Time Machine. Script the restore-drill
+  verification (weekly `restic check`, monthly `--read-data-subset=10%`,
+  quarterly restore plus diff).
+- **CLI tools.** Add `ripgrep` — but first confirm it is actually absent; the
+  Deferred installs note above claims the rust toolchain provides it, which is
+  doubtful (ripgrep is a separate crate). Then `just`, `direnv`, `hyperfine`,
+  `watchexec`, `yazi`, `tealdeer`; second tier `jless`, `xh`, `dust`, `duf`,
+  `bottom`, `lazydocker`. Fold in with the bat/eza/git-delta/mise picks under
+  Deferred installs (`mise` can subsume `direnv`).
+- **Hardening baseline.** Adopt NIST
+  [macos_security](https://github.com/usnistgov/macos_security) (mSCP) into
+  `scripts/audit/` for CIS L1/L2 audit and remediation (confirm current macOS 26
+  / Tahoe support). Script the CLI-reachable checks now (`sfltool dumpbtm`,
+  `systemextensionsctl list`, `bputil -d`, disable sharing daemons); stage and
+  verify only for the GUI-gated items (DoH profiles, Gatekeeper, Lockdown Mode).
+- **Agent hygiene.** An [mcp-scan](https://github.com/invariantlabs-ai/mcp-scan)
+  pass over configured MCP servers (note: it uploads tool descriptions to
+  Invariant's API). Set `CLAUDE_CODE_ENABLE_TELEMETRY=1` for cost and session
+  OTel. Default fresh untrusted-repo clones to plan or read-only mode, treating
+  their `CLAUDE.md` / `README` as an injection surface.
+- **Provisioning CI.** A `macos-latest` GitHub workflow running
+  `./provision.sh --dry-run --strict` per push (TCC and privileged steps skip).
+- **Defaults capture.** [prefsniff](https://github.com/zcutlip/prefsniff) to
+  emit the exact `defaults write` command from a watched plist, for future
+  `scripts/configure/macos-defaults.sh` additions.
+
+Not adopting: nix-darwin (niche; stay on Brewfile plus chezmoi).
+
 ## Carry-over from prior journals
 
 - **GitHub repo rename**: `gh repo rename --repo N4M3Z/dotfiles dotfiles-legacy`,
