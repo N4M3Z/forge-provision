@@ -1,6 +1,6 @@
 {
   "skillListingBudgetFraction": 0.03,
-  "skillListingMaxDescChars": 2048,
+  "maxSkillDescriptionChars": 2048,
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
