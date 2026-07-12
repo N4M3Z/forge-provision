@@ -11,6 +11,12 @@ if [[ -z "${GIT_NAME:-}" || -z "${GIT_EMAIL:-}" ]]; then
     exit 1
 fi
 
+if [[ -n "${FORGE_ENV_DEFAULTS:-}" ]]; then
+    echo "fail:git-identity (.env missing; refusing to write .env.example placeholder identity)"
+    echo "      cp .env.example .env and set GIT_NAME + GIT_EMAIL"
+    exit 1
+fi
+
 CURRENT_NAME="$(git config --global user.name 2>/dev/null || true)"
 CURRENT_EMAIL="$(git config --global user.email 2>/dev/null || true)"
 
