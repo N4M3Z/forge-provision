@@ -6,7 +6,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "/Users/N4M3Z/.bun/bin/ccline",
+    "command": "~/.bun/bin/ccline",
     "padding": 0
   }
 }
