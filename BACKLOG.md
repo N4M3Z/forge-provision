@@ -169,6 +169,45 @@ focused on dotfiles + git tooling instead. Pull into a future Brewfile pass.
   `scripts/configure/revdiff.sh`). Source for adoption:
   `https://github.com/umputun/revdiff/blob/master/.claude-plugin/skills/revdiff/SKILL.md`.
 
+## macOS coverage gaps (2026-06-17 gap analysis)
+
+Full findings and sources: [docs/journal/2026-06-17-provisioning-gaps.md](docs/journal/2026-06-17-provisioning-gaps.md).
+Confirm the load-bearing claims first-hand before scripting (the journal lists
+exactly which claims to verify).
+
+- **Backup (highest leverage).** No backup story exists. Decide
+  [Restic](https://github.com/restic/restic) (scripted; needs an APFS-snapshot
+  wrapper plus launchd and Full Disk Access) versus Arq 7 (native APFS, zero
+  scripting), then `scripts/configure/backup.sh`. Add
+  [asimov](https://github.com/stevegrunwell/asimov) to the Brewfile to exclude
+  dependency directories from Time Machine. Script the restore-drill
+  verification (weekly `restic check`, monthly `--read-data-subset=10%`,
+  quarterly restore plus diff).
+- **CLI tools.** Add `ripgrep` — but first confirm it is actually absent; the
+  Deferred installs note above claims the rust toolchain provides it, which is
+  doubtful (ripgrep is a separate crate). Then `just`, `direnv`, `hyperfine`,
+  `watchexec`, `yazi`, `tealdeer`; second tier `jless`, `xh`, `dust`, `duf`,
+  `bottom`, `lazydocker`. Fold in with the bat/eza/git-delta/mise picks under
+  Deferred installs (`mise` can subsume `direnv`).
+- **Hardening baseline.** Adopt NIST
+  [macos_security](https://github.com/usnistgov/macos_security) (mSCP) into
+  `scripts/audit/` for CIS L1/L2 audit and remediation (confirm current macOS 26
+  / Tahoe support). Script the CLI-reachable checks now (`sfltool dumpbtm`,
+  `systemextensionsctl list`, `bputil -d`, disable sharing daemons); stage and
+  verify only for the GUI-gated items (DoH profiles, Gatekeeper, Lockdown Mode).
+- **Agent hygiene.** An [mcp-scan](https://github.com/invariantlabs-ai/mcp-scan)
+  pass over configured MCP servers (note: it uploads tool descriptions to
+  Invariant's API). Set `CLAUDE_CODE_ENABLE_TELEMETRY=1` for cost and session
+  OTel. Default fresh untrusted-repo clones to plan or read-only mode, treating
+  their `CLAUDE.md` / `README` as an injection surface.
+- **Provisioning CI.** A `macos-latest` GitHub workflow running
+  `./provision.sh --dry-run --strict` per push (TCC and privileged steps skip).
+- **Defaults capture.** [prefsniff](https://github.com/zcutlip/prefsniff) to
+  emit the exact `defaults write` command from a watched plist, for future
+  `scripts/configure/macos-defaults.sh` additions.
+
+Not adopting: nix-darwin (niche; stay on Brewfile plus chezmoi).
+
 ## Carry-over from prior journals
 
 - **GitHub repo rename**: `gh repo rename --repo N4M3Z/dotfiles dotfiles-legacy`,
@@ -189,31 +228,6 @@ focused on dotfiles + git tooling instead. Pull into a future Brewfile pass.
   `~/.local/bin/cmux` CLI symlink. After install, run `cmux hooks setup`
   manually once to wire Claude Code lifecycle hooks into
   `~/.claude/settings.json`.
-
-## Evaluate Jujutsu (jj) as git replacement
-
-Git worktrees work for parallel AI coding sessions on Rust CLI projects (no
-port conflicts, no shared state). But the underlying VCS primitives force
-manual worktree lifecycle: create, rebase against main, remove, delete branch.
-[Jujutsu](https://github.com/martinvonz/jj) replaces commits-and-branches
-with continuous snapshotting and automatic rebasing, making worktree management
-a non-issue. jj operates on a git backend so existing repos and remotes keep
-working.
-
-Evaluate:
-
-- Install `jj` via Homebrew, add to `manifests/Brewfile`.
-- Test the `jj git clone` + `jj new` + `jj squash` workflow on forge-cli.
-- Confirm GitHub PR creation still works (`jj git push --change`).
-- Check Claude Code compatibility (does it cope with `.jj/` instead of `.git/`?).
-- If viable, update `forge-core/rules/GitWorktrees.md` to document the jj path
-  alongside the worktree path.
-
-Context: Theo Browne (t3.gg, 2026-05-26) called worktrees "an abomination"
-while arguing that git itself is the wrong primitive. His T3 Code app still uses
-worktrees for parallel agents, but recommends jj as the end-state replacement.
-Trigger.dev separately dropped worktrees for full-stack web apps due to port and
-node_modules conflicts (not applicable to forge-cli's Rust CLI).
 
 ## How items leave this list
 
