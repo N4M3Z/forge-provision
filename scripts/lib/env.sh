@@ -26,4 +26,8 @@ elif [[ -f "${FORGE_PROVISION_ROOT}/.env.example" ]]; then
     set -a
     source "${FORGE_PROVISION_ROOT}/.env.example"
     set +a
+    # Placeholder values are fine for path lookups but wrong for anything
+    # identity-bearing; consumers check this flag before writing identity.
+    export FORGE_ENV_DEFAULTS=1
+    echo "warn:env (.env missing; using .env.example placeholders — cp .env.example .env and edit)" >&2
 fi
