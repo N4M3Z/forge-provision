@@ -13,4 +13,13 @@ if command -v claude >/dev/null 2>&1; then
 fi
 
 echo "install:claude"
-curl -fsSL https://claude.ai/install.sh | bash
+# Download to a file first: a failed download aborts here instead of being
+# masked by the pipe's shell exit status. The vendor installer is rolling
+# (no stable upstream hash to pin against).
+installer="$(command mktemp -t claude-install-XXXXXX)"
+trap 'command rm -f "${installer}"' EXIT
+command curl -fsSL https://claude.ai/install.sh -o "${installer}" || {
+    echo "fail:claude (installer download failed)"
+    exit 1
+}
+bash "${installer}"

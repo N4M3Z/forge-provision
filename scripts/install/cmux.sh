@@ -37,10 +37,17 @@ command curl -fL --progress-bar -o "${CMUX_DMG_TMP}" "${CMUX_DMG_URL}" || {
 }
 
 echo "mount:cmux-recovery"
+# -mountrandom /tmp mounts at /tmp/dmg.XXXXXX; the mount point is the last
+# field of the attach line that carries one.
 MOUNT_POINT=$(command hdiutil attach "${CMUX_DMG_TMP}" -nobrowse -quiet -mountrandom /tmp 2>/dev/null | \
-    command awk '/\/Volumes/ {print $NF; exit}' | command tr -d '[:space:]')
-if [[ -z "${MOUNT_POINT}" || ! -d "${MOUNT_POINT}/cmux.app" ]]; then
-    echo "fail:cmux (DMG mount failed or no cmux.app inside)"
+    command awk '$NF ~ /^\/tmp\// {print $NF; exit}' | command tr -d '[:space:]')
+if [[ -z "${MOUNT_POINT}" ]]; then
+    echo "fail:cmux (DMG mount failed)"
+    exit 1
+fi
+if [[ ! -d "${MOUNT_POINT}/cmux.app" ]]; then
+    command hdiutil detach "${MOUNT_POINT}" -quiet
+    echo "fail:cmux (no cmux.app inside DMG)"
     exit 1
 fi
 
