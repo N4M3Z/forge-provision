@@ -79,7 +79,7 @@ forge-provision/
 - License: **EUPL-1.2** (matches forge-core / check-mac).
 - Default branch: `main`.
 - Conventional Commits, lowercase, no scope, no trailing period. Types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`.
-- ADRs in `docs/decisions/<PREFIX>-NNNN <Title>.md` (madr-structured). Prefixes: `ARCH`, `PROV`, `CORE`.
+- ADRs in `docs/decisions/<PREFIX>-NNNN <Title>.md` (madr-structured). Prefixes: `ARCH`, `PROV`, `CORE`, plus domain namespaces (`GPG`, `VIRT`) anchored by a PROV umbrella record.
 
 ## Working principle
 

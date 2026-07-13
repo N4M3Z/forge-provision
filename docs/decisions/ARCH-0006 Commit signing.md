@@ -12,11 +12,14 @@ tags:
     - pinentry-mac
 status: accepted
 created: 2026-05-11
-updated: 2026-05-21
+updated: 2026-06-20
 author: "@N4M3Z"
 project: forge-provision
 related:
     - "ARCH-0002 New machine provisioning order.md"
+    - "PROV-0003 YubiKey.md"
+    - "PROV-0010 Proton encryption and keys.md"
+    - "ARCH-0028 Session persistence Entire CLI.md"
 responsible: ["@N4M3Z"]
 accountable: ["@N4M3Z"]
 consulted: []
@@ -61,15 +64,19 @@ git config --global commit.gpgsign true
 git config --global tag.gpgsign true
 ```
 
-`pinentry-mac` (brew cask `pinentry-mac`) handles the PIN entry GUI, wired through `~/.gnupg/gpg-agent.conf`:
+`pinentry-mac` (brew formula `pinentry-mac`) handles the PIN entry GUI, wired through `~/.gnupg/gpg-agent.conf`:
 
 ```
 pinentry-program /opt/homebrew/bin/pinentry-mac
-default-cache-ttl 3600
-max-cache-ttl 86400
 ```
 
+`gpg-agent` caches the verified card PIN, and its cache TTL governs how often the pinentry dialog reappears — not only for on-disk keys. Left at the 600 s default the dialog rarely shows, so the 15 s `cached` touches fall between PIN prompts and surface only as a silent LED blink (a push once timed out on an unnoticed touch). `default-cache-ttl 12` / `max-cache-ttl 15` cap the PIN cache under the touch window, so the pinentry dialog reappears together with each needed touch and becomes the cue to touch. scdaemon needs `disable-ccid` on macOS (GnuPG 2.3+ stopped falling back to PC/SC on its own, and CryptoTokenKit owns the USB device). Both `gpg-agent.conf` and `scdaemon.conf` are managed by chezmoi (`private_dot_gnupg/`; the pinentry path is templated via `lookPath`), and a chezmoi `run_onchange` script disables pinentry-mac's Keychain PIN storage and reloads the agents whenever either conf changes.
+
 The YubiKey holds the OpenPGP signing subkey resident; `gpg-agent` discovers the smartcard on first signing operation and prompts for the PIN via pinentry-mac. Touch the YubiKey when the LED blinks.
+
+**Key material.** Signing keys are elliptic — Curve25519 (ed25519 to certify, sign, and authenticate; cv25519 to encrypt), not RSA. At a comparable or higher security level the keys and signatures are a fraction of RSA's size and on-card operations are faster, which matters most on a constrained device like the YubiKey; the curve's rigid parameters and deterministic signatures also avoid RSA's padding-oracle and weak-randomness footguns. Curve25519 is the recommended choice for new keys across the modern toolchain (GnuPG, OpenSSH, Sequoia/OpenPGP per RFC 9580), and GitHub verifies it identically to RSA; RSA is reserved for FIPS or legacy interop. The master is generated and kept offline; only the subkeys go on the YubiKey via `keytocard`, with `user.signingkey` and `gpg.format openpgp` pointing at the signing subkey.
+
+**Touch cached for signing, PIN per insertion.** The signature slot's touch policy is `cached` — physical presence is still required (a cold card cannot sign), but one touch opens a 15-second window so a burst of small commits costs one touch. Encryption and authentication slots stay `on` (per-operation touch; those operations are rare). Strict touch-per-signature was the original policy, and it observably backfired: the per-commit friction drove batching work into few large commits, degrading history granularity and review quality — while under the squash-merge workflow the per-commit signatures on a PR branch are discarded at merge anyway (GitHub's web-flow key signs the squash commit). The 15-second cache is the measured trade: malware still cannot sign without a deliberate touch first, and granular commits become cheap again. `forcesig` is off, so the card does not demand a PIN per signature; instead `gpg-agent` caches the verified PIN and re-prompts on its cache schedule — capped to the 15 s touch window (above) so a needed touch always arrives with a visible PIN dialog rather than a silent blink. The PIN guards a lost or stolen card rather than each signature. High signing volume from automated tooling is handled by not signing those commits ([ARCH-0028](ARCH-0028 Session persistence Entire CLI.md)), not by weakening the key. pinentry-mac's "Save in Keychain" checkbox is disabled (`DisableKeychain`, via the chezmoi `run_onchange` gnupg script): a Keychain-stored PIN would auto-unlock the card on every insertion, deleting the PIN factor with nothing visible changed.
 
 For repos or scenarios where SSH signing is preferred, opt in per-repo:
 
@@ -96,6 +103,8 @@ Both modes coexist — the SSH signing key and OpenPGP subkeys live on the same 
 
 - [Git: `gpg.format` configuration](https://git-scm.com/docs/git-config#Documentation/git-config.txt-gpgformat)
 - [GitHub: commit signature verification](https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification)
+- [Mozilla OpenSSH guidelines](https://infosec.mozilla.org/guidelines/openssh) — Ed25519 preferred over RSA for new keys
+- [RFC 9580: OpenPGP](https://www.rfc-editor.org/rfc/rfc9580) — standard codepoints for Ed25519 / X25519 keys
 - [PROV-0003 YubiKey](PROV-0003 YubiKey.md) — YubiKey provisioning details that back both signing paths
 - [forge-core CommitSigning skill](https://github.com/N4M3Z/forge-core/blob/main/skills/VersionControl/CommitSigning.md) — SSH-side details for the alternative path
 - [pinentry-mac](https://github.com/GPGTools/pinentry) — macOS-native Cocoa pinentry

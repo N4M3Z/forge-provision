@@ -1,0 +1,36 @@
+{
+    "name": "Dev Allow (stable-path tools)",
+    "description": "Hand-authored narrow allow rules for stable-path system dev tools reaching known source and package hosts. Homebrew CLI tools (node, bun, cargo, python3, gh) and GUI apps are intentionally absent: their executable paths version-churn under Cellar or are better identified by Little Snitch at approval time, so approve those via Alert Mode. Deny lists live in Little Snitch's built-in blocklist subscriptions, not here. See PROV-0013.",
+    "rules": [
+        {
+            "action": "allow",
+            "process": "/usr/bin/git",
+            "remote-domains": [
+                "github.com",
+                "githubusercontent.com"
+            ]
+        },
+        {
+            "action": "allow",
+            "process": "/usr/bin/ssh",
+            "remote-domains": [
+                "github.com"
+            ]
+        },
+        {
+            "action": "allow",
+            "process": "/usr/bin/curl",
+            "remote-domains": [
+                "github.com",
+                "githubusercontent.com",
+                "formulae.brew.sh",
+                "ghcr.io",
+                "registry.npmjs.org",
+                "pypi.org",
+                "files.pythonhosted.org",
+                "crates.io",
+                "static.crates.io"
+            ]
+        }
+    ]
+}

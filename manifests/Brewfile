@@ -10,6 +10,20 @@ cask "proton-meet"
 cask "proton-pass"
 cask "protonvpn"
 
+# Proton Pass CLI (official, in homebrew-core). Binary is `pass-cli`, the
+# scriptable client for Proton Pass vaults, distinct from the proton-pass GUI
+# cask above. Auth via browser handoff or a scoped personal access token for
+# CI. See skills/PasswordToolkit/ProtonPass.md.
+brew "proton-pass-cli"
+
+# Proton Drive CLI (official `proton-drive`, notarized binary from Proton AG,
+# Team ID 2SB5Z68H26). Not in homebrew-core and ships no source tarball, only a
+# per-platform binary, so it is pinned by SHA-256 in a personal tap,
+# github.com/N4M3Z/homebrew-tap. The `proton-drive` cask above is the GUI app;
+# this installs the `proton-drive` CLI binary. Auth: `proton-drive auth login`.
+tap "N4M3Z/tap"
+brew "N4M3Z/tap/proton-drive-cli"
+
 # Local LLM runner.
 cask "lm-studio"
 
@@ -158,6 +172,25 @@ brew "openssh"
 tap "theseal/ssh-askpass"
 brew "theseal/ssh-askpass/ssh-askpass"
 
+# GPG toolchain (GPG-0005): Homebrew gnupg over GPG Suite — current 2.5.x, one gpg
+# on PATH, no paid GPGMail, no GPG Keychain, no MacGPG-vs-brew conflict over ~/.gnupg.
+# pinentry-mac renders the PIN dialog; ykman sets OpenPGP touch policies and PINs.
+# Installed by scripts/install/gpg-toolchain.sh. Decision: GPG-0001, GPG-0005.
+brew "gnupg"
+brew "pinentry-mac"
+brew "ykman"
+
+# Offline key-backup tooling (GPG-0006): paperkey strips an OpenPGP secret to the
+# bytes not derivable from the public key; qrencode renders them OCR-free for paper.
+# scripts/install/paperkey.sh.
+brew "paperkey"
+brew "qrencode"
+
+# sq (Sequoia-PGP) — v6 / post-quantum OpenPGP. The only tool that reads Proton's
+# post-quantum mail-key export; GnuPG cannot and structurally will not (GPG-0007).
+# Pinned into the offline key vault's tools/ as the break-glass decryptor.
+brew "sequoia-sq"
+
 # gitleaks — pattern-based secret scanner. Catches AWS keys, tokens, PEM blocks,
 # entropy-flagged strings in git history + working tree. Deterministic, fast, runs
 # locally (no LLM). Pairs with deeper LLM-based scans via the SecretScan skill.
@@ -282,6 +315,24 @@ cask "claude"
 # Clipper" MAS entry, which captures pages into the vault. Vault location is
 # chosen on first launch (typically ~/Developer or iCloud Drive).
 cask "obsidian"
+
+# Discord (official desktop app), contained by Little Snitch rather than
+# replaced by a third-party client. The official app carries a more-hardened
+# supply chain than a single-maintainer wrapper; its real cost (client
+# telemetry, native modules, process scanning) is constrained at the network
+# layer instead. See PROV-0011 and ARCH-0030. Reference: https://discord.com/
+cask "discord"
+
+# Little Snitch (outbound application firewall). Per-app, per-domain rules
+# with wildcard matching, used to block Discord's telemetry endpoints while
+# keeping the app functional. Needs the perpetual license, not Mini, and the
+# system extension must be approved in System Settings after install.
+# Reference: https://www.obdev.at/products/littlesnitch/
+cask "little-snitch"
+
+# NOT in Brewfile (official DMG, own auto-updater, same pattern as cmux +
+# Claude Code): Parallels Desktop. See scripts/install/parallels.sh.
+# Fallback if the official installer is unavailable: `brew install --cask parallels`
 
 # Mac App Store apps. `mas install <id>` requires being signed into the same
 # Apple ID that owns / purchased the app. Bundled iWork (Pages/Numbers/Keynote)

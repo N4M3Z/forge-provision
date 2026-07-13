@@ -1,6 +1,7 @@
 ---
 name: HomebrewToolkit
 version: 0.1.0
+allowed-tools: Bash(brew *)
 description: "Homebrew best practices: bottle vs cask vs mas (when to use each), Brewfile authorship (grouping, tombstones for intentionally-excluded apps, Brewfile.optional split for evaluation installs), destruction semantics (brew uninstall removes the .app), tap management, pinning. USE WHEN authoring or editing a Brewfile, debugging brew install/upgrade behavior, choosing between brew and mas and manual install, adding a third-party tap, or detaching Homebrew from a cask without losing the app."
 sources:
     - https://docs.brew.sh
@@ -14,6 +15,12 @@ sources:
 # HomebrewToolkit
 
 Homebrew is the macOS package manager: bottle / cask / mas under one Brewfile. This skill is the best-practice playbook for using brew without surprises — especially the destruction semantics of `brew uninstall --cask` that catch people the first time.
+
+## Active taps
+
+Injected on load (Claude Code only; renders as inert text in other harnesses):
+
+!`brew tap 2>/dev/null | paste -sd' ' - || echo "(brew not installed)"`
 
 ## Bottle vs cask vs mas
 
@@ -81,6 +88,19 @@ brew untap <owner>/<repo>               # remove (formulae from this tap become 
 **When to host your own tap**: if you ship 2+ formulae and want a single place to publish them, a tap is cheaper than maintaining a homebrew-core PR. A tap is just a git repo with `Formula/*.rb` or `Casks/*.rb`. Naming convention: `<owner>/homebrew-<name>`; users add it as `brew tap <owner>/<name>` (the `homebrew-` prefix is implicit).
 
 **Tap stability concerns**: third-party taps disappear, lag upstream, or go dormant. Pin the tap to a specific commit only if you've hit recurring breakage — most taps work fine on HEAD.
+
+### Authoring a tap for a binary-only upstream
+
+When an upstream ships only a per-platform signed binary (no source, no GitHub release asset, not in core), a personal tap makes it brew-managed and reproducible, better than a manual-DMG tombstone (that pattern is for GUI apps with their own updater, ARCH-0014):
+
+1. `brew tap-new <owner>/<name>` scaffolds the tap repo (it auto-commits).
+2. The formula pins each platform's binary by `sha256` with `using: :nounzip` (`on_macos`/`on_linux` × `on_arm`/`on_intel`), then `bin.install "<tool>"`.
+3. Download each binary first to compute its real `sha256` and verify authenticity: `shasum -a 256 <file>`, and on macOS `spctl -a -vv -t install <file>` (expect `Notarized Developer ID`). The notarization signature is the integrity anchor.
+4. `brew style <owner>/<name>/<tool>`, then `brew install <owner>/<name>/<tool>`. Push the tap public so `tap "<owner>/<name>"` + `brew "<owner>/<name>/<tool>"` resolve on a fresh machine. Modern brew rejects `brew install <path-to-formula.rb>` outside a tap.
+
+### Verify a name before scripting it
+
+Run `brew info <name>` before committing a formula or cask name to a script. Names drift and are not guessable: the Proton Pass CLI is `proton-pass-cli` in core (not a `protonpass/tap`), and `proton-drive` is the GUI cask, not the CLI.
 
 ## Lifecycle commands
 
