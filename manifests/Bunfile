@@ -1,0 +1,14 @@
+# Bunfile - global Bun packages (the Brewfile's counterpart for `bun install -g`).
+# Applied by scripts/install/tools.sh. One package spec per line; # lines are comments.
+# Homebrew covers brew/cask/mas; this covers Bun globals Homebrew has no formula for.
+
+# gbrain - local-first knowledge-brain CLI (Postgres + pgvector + bge-m3). BRAIN-0002.
+github:garrytan/gbrain
+
+# Defuddle (kepano) - the Obsidian Web Clipper extraction engine as a CLI; turns HTML
+# into clean markdown (binary: defuddle). Used by proton-harness fetch-redact.
+defuddle-cli
+
+# ccline (@cometix/ccline) - Claude Code status-line renderer; manifests/
+# claude-settings.json points statusLine.command at ~/.bun/bin/ccline.
+@cometix/ccline

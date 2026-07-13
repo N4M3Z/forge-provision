@@ -278,12 +278,36 @@ brew "oven-sh/bun/bun"
 # JavaScript runtime, fallback (PROV-0004). Some npm packages still assume Node.
 brew "node"
 
-# Defuddle (kepano) — the Obsidian Web Clipper extraction engine, as a CLI. Turns
-# any HTML page into clean markdown, preserving the structured sections (Education,
-# Experience, Publications) that profile and CV extraction depend on. A global npm
-# tool, not a brew formula: `bun install -g defuddle-cli` (binary: `defuddle`).
-# Used by proton-harness (plugins/proton-ai-presidio/bin/fetch-redact) as the local
-# fetch-and-extract step that keeps candidate PII off server-side tools.
+# Defuddle (kepano), gbrain, memsearch and other non-brew CLIs are declared in
+# manifests/Bunfile (Bun globals) + manifests/Uvfile (uv tools), applied by
+# scripts/install/tools.sh -- Homebrew has no formula for them.
+
+# ── Second-brain (gbrain) stack ──────────────────────────────────────────────
+# Non-brew brain tools have their own manifests, applied by scripts/install/tools.sh:
+#   gbrain (Bun global) -> manifests/Bunfile ;  memsearch (uv tool) -> manifests/Uvfile.
+# Services with start logic stay as scripts: Ollama -> scripts/install/ollama.sh,
+# Postgres + pgvector -> scripts/install/postgres.sh. Brain bring-up follows the gbrain
+# local-setup runbook in forge-data. The brew-native brain tools:
+
+# sabiql — fast, driver-less TUI to browse, query, and edit the brain's PostgreSQL
+# database (connects postgresql://localhost:5432/brain; press `,` for themes).
+tap "riii111/sabiql"
+brew "riii111/sabiql/sabiql"
+
+# graphviz — `dot` graph renderer; used to visualize the brain's link graph
+# (export a graph query to DOT, render to SVG/PNG).
+brew "graphviz"
+
+# SpecStory — cross-harness AI session capture (Claude/Codex/Gemini/Cursor native
+# stores -> markdown). Drives the second brain's transcript layer via
+# forge-data scripts/session-sync; config at ~/.specstory/cli/config.toml.
+tap "specstoryai/tap"
+brew "specstory"
+
+# otel-tui — live OTLP viewer (single Go binary) for the full Claude Code + SpecStory
+# telemetry (dot_config/zsh/otel.zsh exports). otel-lgtm + Grafana is the durable option.
+tap "ymtdzzz/tap"
+brew "ymtdzzz/tap/otel-tui"
 
 # Mac App Store CLI for inventory and reinstalls.
 brew "mas"

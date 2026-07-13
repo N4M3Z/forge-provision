@@ -1,0 +1,6 @@
+# Uvfile - uv tools (the Brewfile's counterpart for `uv tool install`).
+# Applied by scripts/install/tools.sh. One tool per line; # lines are comments.
+
+# memsearch - local section + coding-session recall (Milvus Lite, no MCP). BRAIN-0004.
+# See forge-data MemsearchToolkit; configure the Ollama embedder after install.
+memsearch
