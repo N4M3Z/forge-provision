@@ -66,6 +66,18 @@ brew "neovim"
 # for reading READMEs without leaving the terminal. `glow -p file.md` for pager mode.
 brew "glow"
 
+# yt-dlp — media downloader (youtube-dl successor, actively maintained). Pulls
+# video/audio from YouTube and ~1800 other sites, with format selection,
+# subtitle/chapter extraction, and SponsorBlock integration. Binary is `yt-dlp`.
+brew "yt-dlp"
+
+# ffmpeg — yt-dlp's required companion. YouTube serves video and audio as
+# separate DASH streams above 720p; ffmpeg muxes them back together, and it
+# also handles audio extraction (--extract-audio) and re-encoding. Without it,
+# yt-dlp is capped at pre-merged formats. Also the general-purpose media
+# swiss-army-knife (transcode, trim, concat) in its own right.
+brew "ffmpeg"
+
 # JSON munging — used by scripts/configure/claude-settings.sh to merge settings into ~/.claude/settings.json.
 brew "jq"
 
