@@ -116,10 +116,14 @@ No manual step is needed for Thaw (it is in `manifests/Brewfile`) or screenshot 
 ### Verify
 
 ```sh
-brew bundle check --file=manifests/Brewfile
-./provision.sh --topic verify
+./provision.sh --topic verify   # scope-aware: checks the SCOPE-selected Brewfile,
+                                 # the subset invariant, and the git identity
 git config --global user.email
 test -f ~/.macos && echo "macos defaults applied"
 ```
+
+Do not `brew bundle check --file=manifests/Brewfile` on a work machine: under
+`SCOPE=work` that full-manifest check can never pass, and chasing it would
+install the personal manifest. The verify topic already checks the right one.
 
 EXECUTE NOW: Complete the TODO list — inventory first, ask the operator for scope, then bring this Mac to the approved baseline and confirm the operator has finished the Manual steps.

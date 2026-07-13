@@ -13,8 +13,10 @@ FORGE_BIN="${HOME}/.local/bin/forge"
 [[ -x "${FORGE_BIN}" ]] || FORGE_BIN="$(command -v forge 2>/dev/null)"
 
 if [[ ! -d "${FORGE_CORE_DIR}" ]]; then
-    echo "fail:forge-deploy (forge-core not cloned at ${FORGE_CORE_DIR})"
-    exit 1
+    # forge-core lands via the opt-in clone topic; skip rather than fail so a
+    # default configure pass completes.
+    echo "skip:forge-deploy (forge-core not cloned; run './provision.sh --topic clone' first)"
+    exit 0
 fi
 
 if [[ -z "${FORGE_BIN}" || ! -x "${FORGE_BIN}" ]]; then

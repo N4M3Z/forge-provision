@@ -17,6 +17,14 @@ FORGE_PROVISION_ROOT="$( cd "$( dirname "${_self}" )/../.." && pwd )"
 export FORGE_PROVISION_ROOT
 unset _self
 
+# Tools installed to ~/.local/bin (dcg, forge, chezmoi externals) are callable
+# later in the SAME provision run, before the shell rc that adds this to PATH
+# has been deployed. Same fix-class as brew shellenv.
+case ":${PATH}:" in
+    *":${HOME}/.local/bin:"*) : ;;
+    *) PATH="${HOME}/.local/bin:${PATH}"; export PATH ;;
+esac
+
 # Load .env (user overrides) or .env.example (committed defaults). Auto-export.
 if [[ -f "${FORGE_PROVISION_ROOT}/.env" ]]; then
     set -a

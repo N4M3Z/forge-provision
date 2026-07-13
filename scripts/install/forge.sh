@@ -15,8 +15,11 @@ FORGE_CLI_DIR="${DEV_DIR}/forge-cli"
 FORGE_BIN="${HOME}/.local/bin/forge"
 
 if [[ ! -d "${FORGE_CLI_DIR}" ]]; then
-    echo "fail:forge (forge-cli not cloned at ${FORGE_CLI_DIR} — run scripts/clone/references.sh first)"
-    exit 1
+    # forge-cli lands via the opt-in clone topic, which does not run before
+    # install by default. Skip rather than fail so the install pass completes;
+    # `./provision.sh --topic clone` then this script builds forge.
+    echo "skip:forge (forge-cli not cloned; run './provision.sh --topic clone' first)"
+    exit 0
 fi
 
 if ! command -v cargo >/dev/null 2>&1; then

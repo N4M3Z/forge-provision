@@ -115,14 +115,10 @@ cask "obsidian"
 # ── Containers (corporate OrbStack license; activate manually after install) ─
 cask "orbstack"
 
-# ── Mac App Store (work Apple ID; free or work-entitled apps only) ──────────
-mas "Keynote",        id: 361285480
-mas "Numbers",        id: 361304891
-mas "Pages",          id: 361309726
-mas "Developer",      id: 640199958
-mas "TestFlight",     id: 899247664
-mas "Xcode",          id: 497799835
-mas "Slack",          id: 803453959
-mas "Proton Pass for Safari", id: 6502835663
-mas "uBlock Origin Lite",     id: 6745342698
-mas "WireGuard",              id: 1451685025
+# Mac App Store apps are intentionally NOT in this manifest: `mas` cannot sign
+# into the App Store from the CLI on current macOS, so an unsigned-in machine
+# makes `brew bundle` exit nonzero and fail the whole install step. On a work
+# machine, sign in with the WORK Apple ID and install the approved apps by hand
+# (Xcode, TestFlight, Slack, Keynote/Numbers/Pages, Proton Pass for Safari,
+# uBlock Origin Lite). WireGuard and other personal-Apple-ID apps stay off the
+# work machine unless policy allows.

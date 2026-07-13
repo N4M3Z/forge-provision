@@ -16,8 +16,10 @@ WRAPPER_SOURCE="${DEV_DIR}/forge-core/skills/VersionControl/scripts/git-ssh-sign
 WRAPPER_TARGET="${HOME}/.local/bin/git-ssh-sign-macos"
 
 if [[ ! -f "${WRAPPER_SOURCE}" ]]; then
-    echo "fail:git-ssh-sign (wrapper source not found at ${WRAPPER_SOURCE} — clone forge-core into \${DEV_DIR} first)"
-    exit 1
+    # forge-core supplies the wrapper and lands via the opt-in clone topic.
+    # Skip rather than fail so a default configure pass completes.
+    echo "skip:git-ssh-sign (forge-core not cloned; run './provision.sh --topic clone' first)"
+    exit 0
 fi
 
 command mkdir -p "$(command dirname "${WRAPPER_TARGET}")"

@@ -101,7 +101,9 @@ command cp -R "${mount_point}/oMLX.app" /Applications/ || {
 command hdiutil detach "${mount_point}" -quiet
 
 command codesign --verify --quiet "${OMLX_APP}" 2>&1 || {
-    echo "warn:omlx (code signature verification failed -- proceed with caution)"
+    echo "fail:omlx (code signature verification failed -- refusing to symlink an unverified app)"
+    command rm -rf "${OMLX_APP}"
+    exit 1
 }
 
 command mkdir -p "$(command dirname "${OMLX_SYMLINK}")"

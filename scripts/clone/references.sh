@@ -22,8 +22,11 @@ clone_if_missing() {
     fi
 }
 
-# User's own public repos
+# User's own public repos. forge-cli builds the `forge` binary (install/forge.sh);
+# forge-core supplies the skills and signing wrapper that configure/forge-deploy.sh
+# and configure/git-ssh-sign.sh consume.
 clone_if_missing "https://github.com/${GITHUB_USER}/forge-cli.git"  forge-cli
+clone_if_missing "https://github.com/${GITHUB_USER}/forge-core.git" forge-core
 clone_if_missing "https://github.com/${GITHUB_USER}/check-mac.git"  check-mac
 clone_if_missing "https://github.com/${GITHUB_USER}/mac-setup.git"  mac-setup
 clone_if_missing "https://github.com/${GITHUB_USER}/dotfiles.git"   dotfiles

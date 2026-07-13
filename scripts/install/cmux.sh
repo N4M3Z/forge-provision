@@ -73,7 +73,9 @@ fi
 
 echo "verify:code-signature"
 command codesign --verify --quiet "${CMUX_APP}" 2>&1 || {
-    echo "warn:cmux (code signature verification failed — proceed with caution)"
+    echo "fail:cmux (code signature verification failed — refusing to symlink an unverified app)"
+    command rm -rf "${CMUX_APP}"
+    exit 1
 }
 
 command mkdir -p "$(command dirname "${CMUX_SYMLINK}")"
