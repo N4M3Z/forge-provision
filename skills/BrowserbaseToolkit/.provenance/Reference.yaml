@@ -1,0 +1,36 @@
+provenance:
+    _type: https://in-toto.io/Statement/v1
+    subject:
+        - name: skills/BrowserbaseToolkit/Reference.md
+          digest:
+              sha256: 59fd62b3befb4064131f7a3e98a545b69a05a28de426d91b9829bb887fce875d
+    predicateType: https://slsa.dev/provenance/v1
+    predicate:
+        buildDefinition:
+            buildType: https://forge-cli/adopt/v1
+            externalParameters:
+                # Hosted URL, not a git path, so no commit pin is available; the
+                # adoption is pinned by the upstream content SHA-256 below.
+                upstream_url: https://browserbase.com/SKILL.md
+                transforms:
+                    - align
+            resolvedDependencies:
+                - name: upstream
+                  uri: https://browserbase.com/SKILL.md
+                  digest:
+                      sha256: d90f5e5c0e3a0d1da2bc98e1e531a5e52a5255bd0416f7e19f1a0cfb9618d192
+                - name: AdoptArtifact
+                  uri: forge-core/skills/AdoptArtifact/SKILL.md
+                  digest:
+                      sha256: 9dd33f5bb58579c93784d9a7b1f098d87d8c0b05c6e47c0942a6e30e96159bf8
+                - name: RefinePrompt
+                  uri: forge-core/skills/RefinePrompt/SKILL.md
+                  digest:
+                      sha256: d04d2610148eb9ec2589cd521f1214b6a11d033600335c0295f2fc7a472ca87c
+        runDetails:
+            builder:
+                id: forge-cli
+                version:
+                    forge: 0.3.2
+            metadata:
+                startedOn: 2026-07-03T00:36:53Z
