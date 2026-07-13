@@ -31,6 +31,20 @@ cask "lm-studio"
 # Config TBD — capture as scripts/configure/opencode.sh once provider files settle.
 brew "opencode"
 
+# Antigravity CLI (Google's terminal coding agent). An independent cross-reviewer
+# alongside Claude Code and Codex. Config lives under ~/.gemini/; MCP servers are
+# seeded from manifests/gemini/ by scripts/configure/gemini.sh. Auth is
+# interactive: launch `agy` and sign in with a Google account. Google serves this
+# to personal Google plans; the earlier gemini-cli does not. The cask auto-updates,
+# so Homebrew does not pin its version.
+cask "antigravity-cli"
+
+# Antigravity (Google's agent-orchestration platform, the desktop app). Separate
+# product from the `agy` CLI above and from the antigravity-ide editor. Shares the
+# ~/.gemini/ config root and the same Google sign-in. Auto-updates, so Homebrew
+# does not pin its version.
+cask "antigravity"
+
 # Codex (OpenAI's coding-agent CLI). Independent cross-reviewer of Claude Code's
 # work via `codex exec review` in a read-only sandbox. Config deployed from
 # manifests/codex/ by scripts/configure/codex.sh; auth is interactive (codex login).
