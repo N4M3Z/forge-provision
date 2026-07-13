@@ -196,6 +196,12 @@ brew "rtk"
 # GitLab CLI — sibling to gh for GitLab repos.
 brew "glab"
 
+# Wrangler (Cloudflare's CLI; formula name differs from the `wrangler` binary
+# it installs). Workers, Pages, KV, R2, D1 from the terminal. Auth is
+# interactive `wrangler login` (browser OAuth) or CLOUDFLARE_API_TOKEN for
+# headless use; scripts/configure/cloudflare.sh checks both lanes.
+brew "cloudflare-wrangler"
+
 # Yubico Authenticator — modern GUI for FIDO2 / PIV / OATH / OpenPGP slot management.
 # Replaces the discontinued yubico-yubikey-manager cask (disabled upstream 2025-07-27).
 cask "yubico-authenticator"
