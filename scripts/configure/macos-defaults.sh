@@ -10,7 +10,7 @@ MACOS_SCRIPT="${HOME}/.macos"
 
 if [[ ! -f "${MACOS_SCRIPT}" ]]; then
     echo "fail:macos-defaults"
-    echo "      ${MACOS_SCRIPT} not found. Run 'chezmoi apply' first to deploy dot_macos."
+    echo "      ${MACOS_SCRIPT} not found. Run scripts/configure/dotfiles.sh (chezmoi init --apply) first."
     exit 1
 fi
 

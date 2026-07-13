@@ -34,6 +34,11 @@ DEPLOYED_FILE="${CODEX_CONFIG}/config.toml"
 HOOKS_FILE="${CODEX_CONFIG}/hooks.json"
 SESSION_SYNC="${SESSION_SYNC:-${DEV_DIR}/forge-data/scripts/session-sync}"
 
+if [[ ! -x "${SESSION_SYNC}" ]]; then
+    echo "warn:codex-hooks (session-sync not found at ${SESSION_SYNC};"
+    echo "      rewritten capture-session hooks stay dormant until forge-data is cloned)"
+fi
+
 repair_codex_hooks() {
     local config_contents=""
     local remove_imported_dcg=false
