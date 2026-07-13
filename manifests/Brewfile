@@ -48,6 +48,13 @@ brew "gh"
 # than lazygit, leaner feature surface. Vim-style keys; `?` shows the keymap.
 brew "gitui"
 
+# Jujutsu (jj). Git-compatible VCS whose working copy is an auto-snapshotted
+# commit, so there is no index to collide on across concurrent agent sessions.
+# Used colocated (.git/ stays alongside .jj/), so gh, gitui, revdiff, tuicr, and
+# Claude Code keep working; signing batches at push (sign-on-push), not per
+# snapshot. Binary is `jj`. Decision: docs/decisions/ARCH-0032.
+brew "jj"
+
 # revdiff (Go-based terminal UI for AI-session diff review). Reads uncommitted
 # changes / commit ranges / staged / single files. Inline annotations exported
 # as structured stdout for piping back to Claude Code or OpenCode. The opencode
@@ -251,6 +258,13 @@ cask "ghostty"
 # (named session save/restore) until cmux ships native support.
 tap "drolosoft/tap"
 brew "drolosoft/tap/crex"
+
+# Entire CLI (ARCH-0028) — AI-session checkpoint + resume. Captures full
+# transcripts onto per-session entire/<hash> branches via Claude hooks,
+# anchored to the commits they produced. Per-repo enablement with public-
+# repo-safe flags is scripts/configure/entire.sh; usage in docs/tldrs/entire.md.
+tap "entireio/tap"
+cask "entire"
 
 # Meslo LG Nerd Font — Powerline-glyph-patched Meslo. MesloLGS Nerd Font Mono
 # variant is the p10k canonical face and what ghostty's font-family points at.
