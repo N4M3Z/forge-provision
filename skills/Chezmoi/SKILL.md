@@ -121,6 +121,8 @@ When the source directory is not at chezmoi's default location (`~/.local/share/
 
 6. **`chezmoi diff` quirk: scripts show as "new file".** A `run_*` script that would execute on apply appears in `chezmoi diff` output as if it were a file deployment. Cross-check with `chezmoi managed --source .` to see which entries are real deploy targets vs script invocations.
 
+7. **`chezmoi re-add` skips templated sources.** A target whose source is a `.tmpl` file is left untouched by `re-add`: no message, no error, exit 0 ("re-add doesn't work with templates" [FAQ][CMFAQ]; the skip is a bare `continue` in [readdcmd.go][READD]). Edits to the live file pile up while the template falls behind. Edit the template by hand (`chezmoi edit <target>`) and detect drift with `chezmoi diff`, never with re-add. On the same target, `chezmoi add` prompts before stripping the template attribute, and `add --force` replaces the template with the live file's literal contents.
+
 ## Constraints
 
 - The `dot_` prefix is the only encoding for leading-dot targets. No config override exists.
@@ -147,3 +149,5 @@ Consider stow, yadm, or a hand-rolled Makefile when:
 [I753]: https://github.com/twpayne/chezmoi/issues/753
 [I1313]: https://github.com/twpayne/chezmoi/issues/1313
 [D2673]: https://github.com/twpayne/chezmoi/discussions/2673
+[CMFAQ]: https://www.chezmoi.io/user-guide/frequently-asked-questions/usage/
+[READD]: https://github.com/twpayne/chezmoi/blob/master/internal/cmd/readdcmd.go
