@@ -93,13 +93,20 @@ brew "gitui"
 # also the closest analogue to lazyjj for muscle-memory parity across git and jj.
 brew "lazygit"
 
+# Git LFS (Large File Storage). Replaces large binaries in the working tree
+# with lightweight pointer files; actual blobs live on the remote LFS store.
+# Required for any repo that tracks media, ML weights, or other multi-MB
+# binaries. After install, `git lfs install` wires the user-global hooks.
+# Eventual successor: Git's native "large object promisers" feature (merged
+# upstream in 2025 but not yet broadly deployed by GitHub/GitLab).
+brew "git-lfs"
+
 # Jujutsu (jj). Git-compatible VCS whose working copy is an auto-snapshotted
 # commit, so there is no index to collide on across concurrent agent sessions.
 # Used colocated (.git/ stays alongside .jj/), so gh, gitui, revdiff, tuicr, and
 # Claude Code keep working; signing batches at push (sign-on-push), not per
 # snapshot. Binary is `jj`. Decision: docs/decisions/ARCH-0032.
 brew "jj"
-
 # revdiff (Go-based terminal UI for AI-session diff review). Reads uncommitted
 # changes / commit ranges / staged / single files. Inline annotations exported
 # as structured stdout for piping back to Claude Code or OpenCode. The opencode
@@ -409,6 +416,34 @@ cask "claude"
 # chosen on first launch (typically ~/Developer or iCloud Drive).
 cask "obsidian"
 
+# SuperWhisper (dictation with LLM reformatting). Local Whisper model plus
+# optional LLM post-processing for voice-to-text. Config and models migrate
+# from the old Mac (~/Library/Application Support/superwhisper/).
+cask "superwhisper"
+
+# MacWhisper (speech recognition / transcription). Standalone Whisper-based
+# transcription app. Config at ~/Library/Application Support/MacWhisper/.
+cask "macwhisper"
+
+# Thaw (menu bar manager). Hides overflow menu bar items behind a toggle.
+# Open source. Reference: https://github.com/stonerl/Thaw/
+cask "thaw"
+
+# iStat Menus (system monitor in the menu bar). CPU, GPU, memory, disk,
+# network, sensors and temperatures, and battery readouts. Paid one-time
+# license; the cask installs the app and it self-updates. Sits beside Thaw,
+# which manages the menu-bar density it adds. Reference:
+# https://bjango.com/mac/istatmenus/
+cask "istat-menus"
+
+# btop (terminal resource monitor). TUI showing CPU, memory, disks, network,
+# and per-process load; the in-terminal counterpart to iStat Menus' menu-bar
+# readouts, runs inside Ghostty. Reference: https://github.com/aristocratos/btop
+brew "btop"
+
+# fd (find replacement, friendlier syntax, respects .gitignore by default).
+brew "fd"
+
 # Discord (official desktop app), contained by Little Snitch rather than
 # replaced by a third-party client. The official app carries a more-hardened
 # supply chain than a single-maintainer wrapper; its real cost (client
@@ -426,7 +461,6 @@ cask "little-snitch"
 # NOT in Brewfile (official DMG, own auto-updater, same pattern as cmux +
 # Claude Code): Parallels Desktop. See scripts/install/parallels.sh.
 # Fallback if the official installer is unavailable: `brew install --cask parallels`
-
 # Mac App Store apps. `mas install <id>` requires being signed into the same
 # Apple ID that owns / purchased the app. Bundled iWork (Pages/Numbers/Keynote)
 # is auto-entitled after first Apple ID sign-in; the entries below let `brew
