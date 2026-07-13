@@ -1,0 +1,53 @@
+# Provider targets managed by the SettingsMaintenance workflow.
+# Canonical policies and live-file templates live in the dotfiles source.
+schema_version: 1
+providers:
+    antigravity:
+        capability_gaps:
+            - Stable settings do not expose a granular credential read-deny or network allowlist.
+        deployment: chezmoi
+        format: json
+        strategy: json-deep-merge
+        source: .gemini/antigravity-cli/settings.json
+        policy: .harness-settings/antigravity.json
+        policy_root: chezmoi
+        managed_source: dot_gemini/antigravity-cli/modify_private_settings.json.tmpl
+    claude:
+        capability_gaps: []
+        deployment: chezmoi
+        format: json
+        strategy: json-deep-merge
+        source: .claude/settings.json
+        policy: .harness-settings/claude.json
+        policy_root: chezmoi
+        managed_source: dot_claude/private_settings.json.tmpl
+    codex:
+        capability_gaps:
+            - Codex has no native credential read-deny equivalent; isolation depends on the active sandbox profile.
+        deployment: chezmoi
+        format: toml
+        strategy: object-deep-merge
+        source: .codex/config.toml
+        policy: .harness-settings/codex.json
+        policy_root: chezmoi
+        managed_source: dot_codex/modify_private_config.toml.tmpl
+    grok:
+        capability_gaps:
+            - Sandbox enforcement details vary by platform; verification must exercise the selected profile.
+        deployment: chezmoi
+        format: toml
+        strategy: object-deep-merge
+        source: .grok/config.toml
+        policy: .harness-settings/grok.json
+        policy_root: chezmoi
+        managed_source: dot_grok/modify_private_config.toml.tmpl
+    opencode:
+        capability_gaps:
+            - OpenCode has no separate kernel sandbox; granular permission rules are its enforcement layer.
+        deployment: chezmoi
+        format: json
+        strategy: json-deep-merge
+        source: .config/opencode/opencode.json
+        policy: .harness-settings/opencode.json
+        policy_root: chezmoi
+        managed_source: dot_config/opencode/modify_private_opencode.json.tmpl

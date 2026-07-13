@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "gui": {
+    "computer_use": "explicit-user-request-only",
+    "finder": "deny"
+  },
+  "capture": {
+    "native_raw": "required",
+    "normalized_markdown": "required",
+    "unsupported_adapter": "pass-with-limitation",
+    "failure": "persist-debt-and-warn"
+  },
+  "artifact": {
+    "required_dynamic_test_unavailable": "fail",
+    "model_fallback": "pass-with-warning",
+    "transcripts": "complete-and-unedited"
+  },
+  "vcs": {
+    "author": "human",
+    "harness_model": "coauthor-trailer",
+    "empty_review_revision": "abandon",
+    "wip_or_missing_attribution": "block-push"
+  }
+}

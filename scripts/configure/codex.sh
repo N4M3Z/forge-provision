@@ -84,7 +84,7 @@ repair_codex_hooks() {
                 (.hooks[$event] // [])[]
                 | .hooks = [
                     (.hooks // [])[]
-                    | if .command == "capture-session"
+                    | if ((.command // "") | test("(^|/)capture-session$"))
                       then .command = $session_sync
                       else .
                       end
@@ -135,7 +135,11 @@ repair_codex_hooks() {
         return 0
     fi
 
-    command cp "${temporary_file}" "${HOOKS_FILE}"
+    if ! command cp "${temporary_file}" "${HOOKS_FILE}"; then
+        command rm -f "${temporary_file}"
+        echo "fail:codex-hooks (could not update ${HOOKS_FILE})"
+        return 1
+    fi
     command rm -f "${temporary_file}"
     echo "ok:codex-hooks (repaired lifecycle and imported Claude hooks)"
 }

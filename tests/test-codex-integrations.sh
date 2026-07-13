@@ -45,7 +45,7 @@ test_codex_removes_only_imported_claude_hooks() {
         '      {"matcher":"Bash","hooks":[{"type":"command","command":"keep-me"}]}' \
         '    ],' \
         '    "PreCompact": [' \
-        '      {"hooks":[{"type":"command","command":"capture-session"}]}' \
+        '      {"hooks":[{"type":"command","command":"/old/forge-data/scripts/capture-session"}]}' \
         '    ]' \
         '  }' \
         '}' > "$hooks"
@@ -69,8 +69,8 @@ test_codex_removes_only_imported_claude_hooks() {
         '[.hooks.PreToolUse[].hooks[].command] | index("keep-me") != null' \
         'Codex preserves unrelated PreToolUse hooks'
     assert_jq "$hooks" \
-        '[.hooks.PreCompact[].hooks[].command] | index("capture-session") == null' \
-        'Codex removes retired capture-session hook'
+        '[.hooks.PreCompact[].hooks[].command | select(test("(^|/)capture-session$"))] | length == 0' \
+        'Codex removes retired absolute-path capture-session hook'
     assert_jq "$hooks" \
         "[.hooks.PreCompact[].hooks[].command] | index(\"${session_sync}\") != null" \
         'Codex rewrites capture-session to session-sync'

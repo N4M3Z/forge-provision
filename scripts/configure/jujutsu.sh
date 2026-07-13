@@ -1,81 +1,59 @@
 #!/usr/bin/env bash
-# Configure global Jujutsu: identity and GPG signing, sourced from git's own
-# config so there is one place that holds the name, email, and signing key.
-# Applied through `jj config set --user`, which writes jj's user config in the
-# right location on every platform. Idempotent: re-running converges.
-#
-# signing.behavior is "drop" so jj does not sign on every working-copy snapshot
-# (that would touch the YubiKey on nearly every command); git.sign-on-push signs
-# the pushed commits in one batch instead. Under the cached touch policy that is
-# one touch per push, and pushed commits still land "Verified" on GitHub.
-#
-# jj does not inherit git's identity or signing key at runtime; it keeps its own
-# config, so these values are read from git here and written into jj.
-#
-# Decision: docs/decisions/ARCH-0032 (jj colocated) + ARCH-0006 (signing).
-#
+# Deploy and verify the chezmoi-owned Jujutsu configuration.
 # Source: https://github.com/N4M3Z/forge-provision
-#
+
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "${SCRIPT_DIR}/../lib/env.sh"
 
+dotfiles_source="${DOTFILES_SOURCE:-${HOME}/Developer/N4M3Z/dotfiles}"
+target="${XDG_CONFIG_HOME:-${HOME}/.config}/jj/config.toml"
+
 if ! command -v jj >/dev/null 2>&1; then
-    echo "fail:jujutsu (jj not found; install it via the Brewfile: brew bundle --file manifests/Brewfile)"
+    echo "fail:jujutsu (jj not found; install it via the Brewfile)"
+    exit 0
+fi
+if ! command -v chezmoi >/dev/null 2>&1; then
+    echo "fail:jujutsu (chezmoi not found; jj config remains unchanged)"
+    exit 0
+fi
+if [[ ! -f "${dotfiles_source}/dot_config/jj/config.toml" ]]; then
+    echo "fail:jujutsu (canonical chezmoi source missing at ${dotfiles_source}/dot_config/jj/config.toml)"
     exit 0
 fi
 
-# jj does not create its config directory; `jj config set` errors if it is absent.
-command mkdir -p "${XDG_CONFIG_HOME:-${HOME}/.config}/jj"
+if ! chezmoi \
+    --source "$dotfiles_source" \
+    --destination "$HOME" \
+    --no-tty \
+    --refresh-externals=never \
+    apply "$target"; then
+    echo "fail:jujutsu (targeted chezmoi apply failed)"
+    exit 0
+fi
 
-git_name="$(git config --global user.name 2>/dev/null)"
-[[ -z "${git_name}" ]] && git_name="${GIT_NAME:-}"
-git_email="$(git config --global user.email 2>/dev/null)"
-[[ -z "${git_email}" ]] && git_email="${GIT_EMAIL:-}"
-signing_key="$(git config --global user.signingkey 2>/dev/null)"
+verify_value() {
+    local key="$1" expected="$2" actual
 
-set_user_config() {
-    local key="$1" want="$2"
-    local have
-    have="$(jj config get "${key}" 2>/dev/null)"
-    if [[ "${have}" == "${want}" ]]; then
-        echo "skip:jujutsu (${key} already ${want})"
-    elif jj config set --user "${key}" "${want}"; then
-        echo "config:jujutsu ${key}=${want}"
-    else
-        echo "fail:jujutsu (could not set ${key})"
+    actual="$(jj config get --user "$key" 2>/dev/null)"
+    if [[ "$actual" != "$expected" ]]; then
+        echo "fail:jujutsu (${key} expected ${expected}, got ${actual:-unset})"
+        return 1
     fi
 }
 
-if [[ -n "${git_name}" ]]; then
-    set_user_config user.name "${git_name}"
-else
-    echo "warn:jujutsu (user.name unset in git and .env; jj commits will lack a name)"
+failures=0
+verify_value signing.backend gpg || failures=$((failures + 1))
+verify_value signing.behavior drop || failures=$((failures + 1))
+verify_value git.sign-on-push true || failures=$((failures + 1))
+if ! jj config get --user aliases.push >/dev/null 2>&1; then
+    echo "fail:jujutsu (aliases.push is missing)"
+    failures=$((failures + 1))
 fi
 
-if [[ -n "${git_email}" ]]; then
-    set_user_config user.email "${git_email}"
-else
-    echo "warn:jujutsu (user.email unset in git and .env; jj commits will lack an email)"
+if [[ "$failures" -gt 0 ]]; then
+    echo "fail:jujutsu (${failures} verification check(s) failed)"
+    exit 0
 fi
 
-set_user_config signing.backend gpg
-set_user_config signing.behavior drop
-set_user_config git.sign-on-push true
-
-# 'jj push' gate: jj runs no git hooks, so there is no native pre-push stage.
-# This alias makes `jj push` run the repo's .githooks/jj-push (gitleaks/semgrep)
-# and then `jj git push`. The repo root is resolved at runtime, so one global
-# definition works in every repo and clone without baking an absolute path;
-# repos without a .githooks/jj-push fall through to plain `jj git push`.
-# It only gates `jj push`; `jj git push` bypasses it (the real wall is GitHub
-# push protection + CI).
-set_user_config aliases.push '["util", "exec", "--", "bash", "-c", "cd \"$(jj workspace root)\" && if [ -x .githooks/jj-push ]; then exec .githooks/jj-push \"$@\"; else exec jj git push \"$@\"; fi", "jj-push"]'
-
-if [[ -n "${signing_key}" ]]; then
-    set_user_config signing.key "${signing_key}"
-else
-    echo "warn:jujutsu (git user.signingkey unset; signing.key not pinned; jj signs with the key matching user.email)"
-fi
-
-echo "ok:jujutsu"
+echo "ok:jujutsu (chezmoi-owned config converged)"
 echo "      verify: jj config list --user"
