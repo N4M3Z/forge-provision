@@ -1,0 +1,3 @@
+# Transient build inputs assembled by build-redact and removed after the build.
+forge_redact.whl
+pubkey.asc

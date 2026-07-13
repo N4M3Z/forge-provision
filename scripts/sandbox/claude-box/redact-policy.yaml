@@ -1,0 +1,55 @@
+# Redaction policy baked into claude-box-redact. Mirrors forge-redact's
+# config/presidio.yaml; only the vault, seed, and log paths differ, pointing at the
+# in-VM mounts. vault_gpg_recipient is filled at build time from the GPG_RECIPIENT
+# build arg, because the box holds only the public key and cannot auto-detect a
+# secret key.
+
+redact_entities:
+    - PERSON
+    - EMAIL_ADDRESS
+    - PHONE_NUMBER
+    - LOCATION
+    - CREDIT_CARD
+    - IBAN_CODE
+    - US_SSN
+    - US_BANK_NUMBER
+    - US_PASSPORT
+    - US_DRIVER_LICENSE
+    - MEDICAL_LICENSE
+    - CRYPTO
+
+score_threshold: 0.7
+
+redact_roles:
+    - user
+
+redact_system: false
+
+surrogate_style: pseudonym
+
+pseudonym_locale: en_US
+
+skip_patterns:
+    - "<system-reminder>.*?</system-reminder>"
+
+secret_patterns:
+    anthropic_key: "sk-ant-[A-Za-z0-9_-]{20,}"
+    openai_key: "sk-(?:proj-)?[A-Za-z0-9]{32,}"
+    aws_access_key: "\\b(?:AKIA|ASIA)[0-9A-Z]{16}\\b"
+    github_token: "\\bgh[pousr]_[A-Za-z0-9]{36,}\\b"
+    google_api_key: "\\bAIza[0-9A-Za-z_-]{35}\\b"
+    slack_token: "\\bxox[baprs]-[A-Za-z0-9-]{10,}"
+    jwt: "\\beyJ[A-Za-z0-9_-]+\\.eyJ[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+"
+    private_key: "-----BEGIN (?:[A-Z]+ )?PRIVATE KEY-----"
+
+# Values-free proof log, captured out to the host with the vault.
+redactions_log: /capture/redactions.jsonl
+
+# The box loads the host-decrypted seed mounted read-only at /seed (no in-box
+# decrypt, no YubiKey) and writes the updated mapping, encrypted to the public key
+# (touchless), to /capture, which the launcher promotes to the master after the run.
+vault_seed_path: /seed/vault.json
+vault_path: /capture/vault.gpg
+
+# Filled at build time from the GPG_RECIPIENT build arg.
+vault_gpg_recipient: ""

@@ -107,6 +107,7 @@ brew "git-lfs"
 # Claude Code keep working; signing batches at push (sign-on-push), not per
 # snapshot. Binary is `jj`. Decision: docs/decisions/ARCH-0032.
 brew "jj"
+
 # revdiff (Go-based terminal UI for AI-session diff review). Reads uncommitted
 # changes / commit ranges / staged / single files. Inline annotations exported
 # as structured stdout for piping back to Claude Code or OpenCode. The opencode
@@ -461,6 +462,25 @@ cask "little-snitch"
 # NOT in Brewfile (official DMG, own auto-updater, same pattern as cmux +
 # Claude Code): Parallels Desktop. See scripts/install/parallels.sh.
 # Fallback if the official installer is unavailable: `brew install --cask parallels`
+
+# Apple container: runs Linux containers in per-container lightweight VMs.
+# This is the primary Linux-isolation tier for agents and disposable
+# experiments, chosen for its own CLI (no Docker engine to install), the
+# strongest boundary (one VM per container, not a shared kernel), and open
+# source (Apache-2.0). Intentionally NOT in Brewfile: it requires macOS 26 +
+# Apple Silicon, and `brew bundle` has no gate for that, so the install lives
+# in scripts/install/container.sh behind version and architecture guards
+# (along with the `container system start` bootstrap). Pairs with Parallels
+# (untrusted macOS-app VMs) and the Claude Code Seatbelt sandbox (the harness
+# tier).
+
+# OrbStack: Docker-API-compatible container + Linux-VM runtime, kept alongside
+# Apple container for convenience and ecosystem reach (Compose, Kubernetes,
+# Docker tooling that Apple container's pre-1.0 CLI does not yet cover). Note
+# it is the shared-kernel tier (containers share one VM), closed source, and
+# paid for commercial use, so it is a DX convenience, not the isolation pick.
+# Separate engine from Apple container; the two coexist without integration.
+cask "orbstack"
 # Mac App Store apps. `mas install <id>` requires being signed into the same
 # Apple ID that owns / purchased the app. Bundled iWork (Pages/Numbers/Keynote)
 # is auto-entitled after first Apple ID sign-in; the entries below let `brew

@@ -1,0 +1,45 @@
+{
+    "sandbox": {
+        "enabled": true,
+        "failIfUnavailable": true,
+        "allowUnsandboxedCommands": false,
+        "enableWeakerNestedSandbox": true,
+        "network": {
+            "allowManagedDomainsOnly": true,
+            "allowedDomains": [
+                "api.anthropic.com",
+                "github.com",
+                "*.github.com",
+                "raw.githubusercontent.com",
+                "objects.githubusercontent.com",
+                "codeload.github.com",
+                "registry.npmjs.org",
+                "pypi.org",
+                "files.pythonhosted.org",
+                "crates.io",
+                "static.crates.io",
+                "index.crates.io"
+            ]
+        },
+        "filesystem": {
+            "denyRead": [
+                "/seed",
+                "/capture",
+                "~/.ssh",
+                "~/.gnupg",
+                "~/.aws",
+                "~/.config/gcloud",
+                "~/.netrc",
+                "~/.npmrc",
+                "~/.pypirc",
+                "**/.env",
+                "**/.env.*",
+                "**/*.pem",
+                "**/*.key",
+                "**/credentials*",
+                "**/id_rsa*",
+                "**/id_ed25519*"
+            ]
+        }
+    }
+}
