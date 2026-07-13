@@ -1,0 +1,170 @@
+{
+    // Baseline Zed config, seeded to ~/.config/zed/ by scripts/configure/zed.sh
+    // only when no config exists there. The live config is chezmoi-owned
+    // (dot_config/zed in the dotfiles repo); capture tweaks with chezmoi re-add.
+    // Personal infra (the gbrain context_server, brain DB URL) lives in the
+    // dotfiles lane, not in this generic seed. Zed parses JSONC; keep jq away.
+
+    "autosave": "on_focus_change",
+
+    // Markdown preview typography.
+    "markdown_preview_font_family": "Atkinson Hyperlegible Next",
+    "markdown_preview_code_font_family": "MesloLGS Nerd Font Mono",
+
+    "project_panel": {
+        "dock": "left"
+    },
+
+    // Predictions ride the default provider (Zeta); they activate after
+    // the one-time Zed sign-in. Data collection stays declined.
+    "edit_predictions": {
+        "allow_data_collection": "no"
+    },
+
+    // Local model providers for Inline Assist and the agent — Ollama (GGUF, :11434)
+    // and oMLX (MLX, :8000). Both are localhost, no personal data. Fill each
+    // provider's models from the server (`GET /v1/models`; Ollama `/api/tags`);
+    // a model `name` must match its server id exactly. Keys go in the Agent Panel
+    // provider UI, never here. Gotcha: if a model carries `capabilities`, it must
+    // be COMPLETE (`tools`, `images`, `parallel_tool_calls`, `prompt_cache_key`) —
+    // a partial object makes Zed reject the entire settings file.
+    "language_models": {
+        "ollama": {
+            "api_url": "http://localhost:11434",
+            "context_window": 32768
+        },
+        "openai_compatible": {
+            "oMLX": {
+                "api_url": "http://localhost:8000/v1",
+                "available_models": []
+            }
+        }
+    },
+
+    "session": {
+        "trust_all_worktrees": true
+    },
+
+    "theme": {
+        "mode": "system",
+        "light": "Catppuccin Latte",
+        "dark": "Catppuccin Mocha"
+    },
+
+    "vim_mode": true,
+    "relative_line_numbers": "disabled",
+    "cursor_blink": false,
+
+    "inlay_hints": {
+        "enabled": true
+    },
+
+    "telemetry": {
+        "diagnostics": false,
+        "metrics": false
+    },
+
+    // Claude Code in the agent panel over ACP.
+    "agent_servers": {
+        "claude-acp": { "type": "registry" }
+    },
+
+    // Temporary Markdown Focus profile, selected via the settings profile
+    // selector (`space m w`); deselecting restores the base user settings.
+    "profiles": {
+        "Markdown Focus": {
+            "base": "user",
+            "settings": {
+                "buffer_font_family": "Atkinson Hyperlegible Mono",
+                "buffer_font_fallbacks": ["MesloLGS Nerd Font Mono"],
+                "buffer_font_size": 17.0,
+                "buffer_line_height": "comfortable",
+                "current_line_highlight": "gutter",
+                "tab_bar": {
+                    "show": false
+                },
+                "toolbar": {
+                    "breadcrumbs": false
+                },
+                "minimap": {
+                    "show": "never"
+                },
+                "gutter": {
+                    "line_numbers": false,
+                    "runnables": false,
+                    "bookmarks": false,
+                    "breakpoints": false,
+                    "folds": false,
+                    "min_line_number_digits": 2
+                },
+                "diagnostics": {
+                    "inline": {
+                        "enabled": false
+                    }
+                },
+                "inlay_hints": {
+                    "enabled": false
+                }
+            }
+        }
+    },
+
+    // Nerd font so prompt glyphs render in the built-in terminal.
+    // Mono variant to match Ghostty (p10k canonical, single-cell glyphs).
+    "terminal": {
+        "copy_on_select": true,
+        "scrollbar": {
+            "show": "system"
+        },
+        "font_family": "MesloLGS Nerd Font Mono"
+    },
+
+    // Centered text column for long-form writing; toggle via the command
+    // palette ("toggle centered layout").
+    "centered_layout": {
+        "left_padding": 0.15,
+        "right_padding": 0.15
+    },
+
+    // Give odd-named files real syntax highlighting.
+    "file_types": {
+        "Ruby": ["Brewfile", "Brewfile.optional"],
+        "env": [".env", ".env.*"]
+    },
+
+    // Declarative extension install, applied on startup. Every id is
+    // verified against zed-industries/extensions.
+    "auto_install_extensions": {
+        "catppuccin": true,
+        "nord": true,
+        "html": true,
+        "toml": true,
+        "make": true,
+        "dockerfile": true,
+        "docker-compose": true,
+        "sql": true,
+        "env": true,
+        "markdown-oxide": true,
+        "git-firefly": true,
+        "csv": true,
+        "lua": true,
+        "basher": true,
+        "harper": true
+    },
+
+    "languages": {
+        // Markdown wraps at the lesser of editor width and 80 columns, keeps
+        // trailing spaces (two spaces = a hard line break), and is not formatted
+        // on save.
+        "Markdown": {
+            "format_on_save": "off",
+            "soft_wrap": "bounded",
+            "preferred_line_length": 80,
+            "show_wrap_guides": false,
+            "indent_guides": {
+                "enabled": false
+            },
+            "remove_trailing_whitespace_on_save": false
+        }
+    }
+}

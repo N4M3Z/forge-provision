@@ -60,7 +60,12 @@ brew "gh"
 # gitui (Rust-based terminal UI for git). Replaces SourceTree for the day-to-day
 # stage/commit/rebase/stash flow without leaving the terminal. Faster startup
 # than lazygit, leaner feature surface. Vim-style keys; `?` shows the keymap.
+# Preferred git TUI (bound to `space t g` in Zed); lazygit installed alongside.
 brew "gitui"
+
+# lazygit (Go terminal UI for git). Kept as the menu-driven alternative to gitui;
+# also the closest analogue to lazyjj for muscle-memory parity across git and jj.
+brew "lazygit"
 
 # Jujutsu (jj). Git-compatible VCS whose working copy is an auto-snapshotted
 # commit, so there is no index to collide on across concurrent agent sessions.
@@ -68,7 +73,6 @@ brew "gitui"
 # Claude Code keep working; signing batches at push (sign-on-push), not per
 # snapshot. Binary is `jj`. Decision: docs/decisions/ARCH-0032.
 brew "jj"
-
 # revdiff (Go-based terminal UI for AI-session diff review). Reads uncommitted
 # changes / commit ranges / staged / single files. Inline annotations exported
 # as structured stdout for piping back to Claude Code or OpenCode. The opencode
@@ -272,6 +276,38 @@ cask "raycast"
 # the terminal-first stack (helix, neovim, gitui).
 cask "cursor"
 
+# Zed: GPU-native editor; Claude Code runs in its agent panel via ACP.
+# Cask links the bundled CLI as `zed` (no in-app "install cli" step needed).
+# Config deployed from manifests/zed/ by scripts/configure/zed.sh.
+cask "zed"
+
+# Zed Preview channel: separate app (CLI `zed-preview`), self-updating, about a
+# week ahead of stable. Channels share ~/.config/zed AND most application data
+# (extensions included); only the workspace databases are channel-keyed.
+cask "zed@preview"
+
+# Building Zed from source (the fork at ~/Developer/N4M3Z/zed):
+#   cmake — wasmtime-c-api's build script hard-requires it.
+# Metal shader compilation additionally needs full Xcode plus its Metal
+# Toolchain component; scripts/configure/zed-dev.sh checks and downloads those.
+brew "cmake"
+
+# jj terminal UIs — Zed has no view of jj state, so a TUI fills the gap.
+#   jjui    — Rust TUI (idursun), the gitui-style analogue; preferred, bound to
+#             `space t j` in Zed.
+#   lazyjj  — lazygit-style alternative, kept for parity with lazygit.
+brew "jjui"
+brew "lazyjj"
+
+# Dependencies for Zed's REPL kernels (scripts/configure/zed-repl-kernel.sh):
+#   bash    — modern bash for the bash_kernel (macOS ships only 3.2; the kernel
+#             spawns `bash` from PATH and needs >= 4 with readline).
+#   zeromq  — libzmq, the native transport iruby (Ruby kernel) links against.
+#   ruby    — Homebrew Ruby for iruby; system ruby 2.6 is too old to gem-install into.
+brew "bash"
+brew "zeromq"
+brew "ruby"
+
 # Ghostty — Zig+Swift terminal emulator, replaces Apple Terminal.app. Config
 # at ~/.config/ghostty/config (managed via chezmoi). Reference:
 # https://ghostty.org/docs/config
@@ -302,6 +338,12 @@ cask "entire"
 # Meslo LG Nerd Font — Powerline-glyph-patched Meslo. MesloLGS Nerd Font Mono
 # variant is the p10k canonical face and what ghostty's font-family points at.
 cask "font-meslo-lg-nerd-font"
+
+# Atkinson Hyperlegible: high-legibility faces for Markdown. The Next
+# proportional face renders Markdown preview body text; the Mono face backs the
+# Markdown Focus editor profile. Code stays on MesloLGS Nerd Font Mono.
+cask "font-atkinson-hyperlegible-next"
+cask "font-atkinson-hyperlegible-mono"
 
 # Google Chrome (Chromium browser). Safari is the default; Chrome stays for
 # cross-browser dev/testing and sites that need Chromium quirks.

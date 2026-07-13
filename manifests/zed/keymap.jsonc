@@ -1,0 +1,32 @@
+[
+    {
+        // Space-leader bindings, vim-style. VimControl scopes them to
+        // normal/visual modes; !menu keeps space usable in completions.
+        // Generic baseline: the personal bindings (recall, Obsidian-open,
+        // current-file review) that depend on zed-run/memex live in the
+        // dotfiles lane, not here.
+        "context": "VimControl && !menu",
+        "bindings": {
+            "space space": "file_finder::Toggle",
+            "space e": "project_panel::ToggleFocus",
+            "space g": "git_panel::ToggleFocus",
+            "space o": "outline::Toggle",
+            "space b": "editor::FindAllReferences",
+            "space p s": "project_symbols::Toggle",
+            "space m p": "markdown::OpenPreviewToTheSide",
+            "space m r": "repl::Run",
+            "space m w": "settings_profile_selector::Toggle",
+            "space m c": "workspace::ToggleCenteredLayout",
+            "space m f": "markdown::OpenFollowingPreview",
+            "space m g": ["task::Spawn", { "task_name": "Render markdown (glow)", "reveal_target": "center" }],
+            "space a a": "agent::ToggleFocus",
+            "space a s": "agent::AddSelectionToThread",
+            "space r": ["task::Spawn", { "task_name": "Review working tree (tuicr)", "reveal_target": "center" }],
+            "space t g": ["task::Spawn", { "task_name": "gitui", "reveal_target": "center" }],
+            "space t d": ["task::Spawn", { "task_name": "sabiql", "reveal_target": "center" }],
+            "space t j": ["task::Spawn", { "task_name": "jjui", "reveal_target": "center" }],
+            "space c": ["task::Spawn", { "task_name": "Shellcheck current file" }],
+            "space s g": ["task::Spawn", { "task_name": "Scan for secrets (gitleaks)" }]
+        }
+    }
+]

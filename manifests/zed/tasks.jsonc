@@ -1,0 +1,84 @@
+[
+    {
+        // Render the current note to a sibling PDF via pandoc + typst (PROV-0016).
+        "label": "Export note to PDF",
+        "command": "pandoc",
+        "args": ["$ZED_FILE", "-o", "$ZED_STEM.pdf", "--pdf-engine=typst"],
+        "cwd": "$ZED_DIRNAME",
+        "reveal": "no_focus"
+    },
+    {
+        // Review the working tree (uncommitted changes) in tuicr: tag comments
+        // ISSUE/SUGGESTION/NOTE/PRAISE, export with :clip or --stdout, or :submit
+        // to post a GitHub PR review. Bound to `space r`.
+        "label": "Review working tree (tuicr)",
+        "command": "tuicr",
+        "args": ["-w"],
+        "cwd": "$ZED_WORKTREE_ROOT",
+        "reveal": "always",
+        "use_new_terminal": true,
+        "allow_concurrent_runs": true
+    },
+    {
+        // Review everything since the main branch point.
+        "label": "Review vs main (tuicr)",
+        "command": "tuicr",
+        "args": ["-r", "main..HEAD"],
+        "cwd": "$ZED_WORKTREE_ROOT",
+        "reveal": "always",
+        "use_new_terminal": true,
+        "allow_concurrent_runs": true
+    },
+    {
+        // gitui: full terminal git UI for stage/commit/rebase/stash. Bound to `space t g`.
+        "label": "gitui",
+        "command": "gitui",
+        "cwd": "$ZED_WORKTREE_ROOT",
+        "reveal": "always",
+        "use_new_terminal": true,
+        "allow_concurrent_runs": true
+    },
+    {
+        // jjui: gitui-style TUI for Jujutsu, the state Zed can't show. Bound to `space t j`.
+        "label": "jjui",
+        "command": "jjui",
+        "cwd": "$ZED_WORKTREE_ROOT",
+        "reveal": "always",
+        "use_new_terminal": true,
+        "allow_concurrent_runs": true
+    },
+    {
+        // sabiql: driver-less Postgres browser TUI (wraps psql). First run prompts
+        // for host/port/db and saves to its own connections.toml. Bound to `space t d`.
+        "label": "sabiql",
+        "command": "sabiql",
+        "reveal": "always",
+        "use_new_terminal": true,
+        "allow_concurrent_runs": true
+    },
+    {
+        // Lint the current shell script with shellcheck. Bound to `space c`.
+        "label": "Shellcheck current file",
+        "command": "shellcheck",
+        "args": ["$ZED_FILE"],
+        "cwd": "$ZED_WORKTREE_ROOT",
+        "reveal": "always"
+    },
+    {
+        // Scan the working tree for secrets with gitleaks. Bound to `space s g`.
+        "label": "Scan for secrets (gitleaks)",
+        "command": "gitleaks",
+        "args": ["dir", "."],
+        "cwd": "$ZED_WORKTREE_ROOT",
+        "reveal": "always"
+    },
+    {
+        // Render the current markdown file in glow's pager. Bound to `space m g`.
+        "label": "Render markdown (glow)",
+        "command": "glow",
+        "args": ["-p", "$ZED_FILE"],
+        "reveal": "always",
+        "use_new_terminal": true,
+        "allow_concurrent_runs": true
+    }
+]
