@@ -28,8 +28,13 @@ clone_if_missing "https://github.com/${GITHUB_USER}/check-mac.git"  check-mac
 clone_if_missing "https://github.com/${GITHUB_USER}/mac-setup.git"  mac-setup
 clone_if_missing "https://github.com/${GITHUB_USER}/dotfiles.git"   dotfiles
 
-# Private — needs SSH key on this machine; fails gracefully if not yet set up
-clone_if_missing "git@github.com:${GITHUB_USER}/dotfiles-private.git" dotfiles-private
+# Private personal archive — never lands on a work-scoped machine; needs an
+# SSH key elsewhere and fails gracefully if not yet set up.
+if [[ "${SCOPE:-}" == "work" ]]; then
+    echo "skip:dotfiles-private (personal scope; SCOPE=work)"
+else
+    clone_if_missing "git@github.com:${GITHUB_USER}/dotfiles-private.git" dotfiles-private
+fi
 
 # External canonical reference
 clone_if_missing "https://github.com/drduh/macOS-Security-and-Privacy-Guide.git" macOS-Security-and-Privacy-Guide

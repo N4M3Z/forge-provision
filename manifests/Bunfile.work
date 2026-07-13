@@ -1,0 +1,9 @@
+# Bunfile.work - Bun globals for the work scope (SCOPE=work).
+# Subset of manifests/Bunfile; the personal brain CLI (gbrain) stays out.
+
+# ccline (@cometix/ccline) - Claude Code status-line renderer; manifests/
+# claude-settings.json points statusLine.command at ~/.bun/bin/ccline.
+@cometix/ccline
+
+# Defuddle (kepano) - HTML-to-markdown extraction CLI (binary: defuddle).
+defuddle-cli

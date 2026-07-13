@@ -10,7 +10,7 @@ Bring a fresh macOS install to the owner's working baseline (Homebrew apps, conf
 
 ## DONE WHEN
 
-`brew bundle check --file=manifests/Brewfile` reports the approved dependencies satisfied, `./provision.sh --topic verify` passes, `git config --global user.email` shows a real identity (not a placeholder), and every box under **Manual steps** has been completed by the operator.
+`./provision.sh --topic verify` passes (it checks the scope-selected Brewfile, the subset invariant, and that the git identity is real, not a placeholder or private address), and every box under **Manual steps** has been completed by the operator.
 
 ## TODO
 
@@ -25,10 +25,13 @@ Bring a fresh macOS install to the owner's working baseline (Homebrew apps, conf
 ### Prerequisites
 
 ```sh
-xcode-select -p || xcode-select --install
+xcode-select -p || xcode-select --install    # opens a GUI dialog; click Install and wait
 brew --version || /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 git --version
 ```
+
+The `xcode-select --install` dialog is GUI-only — automation stalls until the
+operator clicks Install and the download finishes.
 
 ### Clone and identify
 
@@ -47,7 +50,9 @@ On a work machine, use the work identity here, plus:
   ceremony tools excluded; OrbStack included, licensed corporately, activate
   manually after install).
 - `DOTFILES_REPO` — the chezmoi source to deploy; leave empty to skip
-  dotfiles entirely.
+  dotfiles entirely. If the repo is private, run `gh auth login` BEFORE the
+  configure topic — `scripts/configure/dotfiles.sh` probes reachability and
+  fails with that instruction otherwise.
 
 ### Inventory, then ask
 
@@ -55,7 +60,7 @@ Before mutating anything, determine the machine's state and preview the plan:
 
 ```sh
 ./provision.sh --dry-run
-brew bundle check --file=manifests/Brewfile || true
+./scripts/verify/bundle.sh || true    # checks the scope-selected Brewfile
 ```
 
 Then ask the operator which scopes to apply — the Brewfile and scripts mirror the
@@ -76,19 +81,23 @@ owner's personal machine, and several groups are opt-in on a managed or work dev
 - **System posture** — macOS defaults via chezmoi, dcg destructive-command guard,
   sandbox/container runtimes (OrbStack, Apple container), firefox hardened profile.
 
-Skip anything the operator declines: `brew bundle` installs the whole Brewfile, so
-for a partial scope install the approved entries with `brew install`/`brew install
---cask` directly, or comment out declined sections in a local Brewfile copy.
+On a corporate machine set `SCOPE="work"` in `.env`: the run then installs the
+`manifests/Brewfile.work` subset, applies the work Bunfile, and every
+personal-lane script (oMLX, Ollama, Postgres, cmux, Parallels, pxpipe,
+keyvault, entire, Zed source-build, dotfiles-private clone) skips itself with a
+`skip:… (personal scope; SCOPE=work)` line — no manual Brewfile editing. To add
+a single declined tool back on either scope, `brew install <formula>` directly.
 
 ### Execute
 
 ```sh
+gh auth login                       # before configure if DOTFILES_REPO is private
 ./provision.sh --topic install
 ./provision.sh --topic configure
 ./provision.sh --topic verify
-# migrate/ and clone/ topics only when bringing state over from the old Mac:
-./provision.sh --topic migrate
-./provision.sh --topic clone
+# Opt-in only, when bringing state from the old Mac:
+./provision.sh --topic clone        # reference repos into DEV_DIR
+./provision.sh --topic migrate      # app state (SuperWhisper, Claude history, …)
 ```
 
 Interactive auth the scripts cannot do headlessly: `gh auth login`,

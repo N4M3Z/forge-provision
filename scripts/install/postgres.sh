@@ -15,6 +15,7 @@
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "${SCRIPT_DIR}/../lib/env.sh"
+require_scope full
 
 if brew list postgresql@17 >/dev/null 2>&1; then
     echo "skip:postgresql@17 (already installed)"

@@ -14,6 +14,7 @@
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "${SCRIPT_DIR}/../lib/env.sh"
+require_scope full
 
 CMUX_APP="/Applications/cmux.app"
 CMUX_SYMLINK="${HOME}/.local/bin/cmux"

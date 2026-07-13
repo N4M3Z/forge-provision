@@ -15,6 +15,7 @@
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "${SCRIPT_DIR}/../lib/env.sh"
+require_scope full
 
 KERNEL_VENV="${HOME}/.local/share/zed-repl"
 VENV_PY="${KERNEL_VENV}/bin/python"

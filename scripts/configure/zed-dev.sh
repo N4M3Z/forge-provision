@@ -13,6 +13,10 @@
 # Reference: https://zed.dev/docs/development/macos
 # Source: https://github.com/N4M3Z/forge-provision
 
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source "${SCRIPT_DIR}/../lib/env.sh"
+require_scope full
+
 XCODE_DEVELOPER_DIR="/Applications/Xcode.app/Contents/Developer"
 
 if ! command -v cmake >/dev/null 2>&1; then

@@ -25,6 +25,16 @@ if [[ -n "${FORGE_ENV_DEFAULTS:-}" ]]; then
     exit 1
 fi
 
+# A private DOTFILES_REPO needs credentials before chezmoi clones it; probe
+# reachability first so the failure names the actual problem (gh auth login)
+# instead of chezmoi's generic clone error.
+repo_url="${DOTFILES_REPO}"
+[[ "${repo_url}" != *"://"* && "${repo_url}" != git@* ]] && repo_url="https://github.com/${repo_url}.git"
+if ! git ls-remote --exit-code "${repo_url}" HEAD >/dev/null 2>&1; then
+    echo "fail:dotfiles (${repo_url} unreachable — private repo? run 'gh auth login' first)"
+    exit 1
+fi
+
 CHEZMOI_SOURCE="${HOME}/.local/share/chezmoi"
 
 if [[ -d "${CHEZMOI_SOURCE}/.git" ]]; then

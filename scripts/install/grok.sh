@@ -7,6 +7,7 @@
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "${SCRIPT_DIR}/../lib/env.sh"
+require_scope full
 
 if command -v grok >/dev/null 2>&1; then
     echo "skip:grok (already installed: $(command -v grok))"

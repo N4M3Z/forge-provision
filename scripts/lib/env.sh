@@ -31,3 +31,32 @@ elif [[ -f "${FORGE_PROVISION_ROOT}/.env.example" ]]; then
     export FORGE_ENV_DEFAULTS=1
     echo "warn:env (.env missing; using .env.example placeholders — cp .env.example .env and edit)" >&2
 fi
+
+# Validate SCOPE once, here, so an unknown value fails closed everywhere
+# instead of silently falling through to the full personal manifest.
+case "${SCOPE:-}" in
+    ""|full|work) : ;;
+    *)
+        echo "fail:env (unknown SCOPE '${SCOPE}'; use 'work', 'full', or leave unset)" >&2
+        exit 1
+        ;;
+esac
+
+# The manifest the active SCOPE selects. Everything that applies or checks the
+# bundle (brew-bundle.sh, verify scripts, INSTALL.md commands) uses this.
+if [[ "${SCOPE:-}" == "work" ]]; then
+    FORGE_BREWFILE="${FORGE_PROVISION_ROOT}/manifests/Brewfile.work"
+else
+    FORGE_BREWFILE="${FORGE_PROVISION_ROOT}/manifests/Brewfile"
+fi
+export FORGE_BREWFILE
+
+# Personal-lane gate. Scripts whose payload belongs only on the owner's personal
+# machine call `require_scope full` right after sourcing env.sh; on a work-scoped
+# machine they skip instead of installing.
+require_scope() {
+    if [[ "$1" == "full" && "${SCOPE:-}" == "work" ]]; then
+        echo "skip:$(basename "${0%.sh}") (personal scope; SCOPE=work)"
+        exit 0
+    fi
+}

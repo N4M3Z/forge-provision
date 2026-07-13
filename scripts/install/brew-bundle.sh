@@ -7,16 +7,12 @@
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "${SCRIPT_DIR}/../lib/env.sh"
 
-# SCOPE=work (from .env) selects the corporate-laptop subset manifest;
-# unset means the full personal Brewfile.
-case "${SCOPE:-}" in
-    work) BREWFILE="${FORGE_PROVISION_ROOT}/manifests/Brewfile.work" ;;
-    "")   BREWFILE="${FORGE_PROVISION_ROOT}/manifests/Brewfile" ;;
-    *)
-        echo "fail:brew-bundle (unknown SCOPE '${SCOPE}'; use 'work' or leave unset)"
-        exit 1
-        ;;
-esac
+# SCOPE=work selects manifests/Brewfile.work; env.sh resolves FORGE_BREWFILE.
+if [[ -n "${SCOPE:-}" && "${SCOPE}" != "work" ]]; then
+    echo "fail:brew-bundle (unknown SCOPE '${SCOPE}'; use 'work' or leave unset)"
+    exit 1
+fi
+BREWFILE="${FORGE_BREWFILE}"
 
 if [[ ! -f "${BREWFILE}" ]]; then
     echo "fail:brew-bundle (Brewfile not found at ${BREWFILE})"
@@ -25,9 +21,20 @@ fi
 
 echo "scope:${SCOPE:-full} (${BREWFILE#"${FORGE_PROVISION_ROOT}/"})"
 
+# brew-bundle globs before brew.sh in a topic run ('-' sorts before '.'), so a
+# pristine machine reaches this script first. Bootstrap Homebrew inline instead
+# of failing the very first step.
 if ! command -v brew >/dev/null 2>&1; then
-    echo "fail:brew-bundle (brew not on PATH — run scripts/install/brew.sh first)"
-    exit 1
+    echo "bootstrap:brew (not on PATH; running scripts/install/brew.sh)"
+    bash "${SCRIPT_DIR}/brew.sh" || {
+        echo "fail:brew-bundle (Homebrew bootstrap failed)"
+        exit 1
+    }
+    [[ -x /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
+    command -v brew >/dev/null 2>&1 || {
+        echo "fail:brew-bundle (brew still not on PATH after bootstrap)"
+        exit 1
+    }
 fi
 
 # Newer Homebrew refuses to load formulae from non-official taps unless they are

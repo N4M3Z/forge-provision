@@ -13,7 +13,11 @@ source "${LIB_DIR}/env.sh"
 # Source helpers if present (lands after bootstrap copies them from check-mac)
 [[ -f "${LIB_DIR}/helpers.sh" ]] && source "${LIB_DIR}/helpers.sh"
 
-TOPIC_ORDER=(install clone migrate configure verify)
+# Default run: bring THIS machine to baseline. migrate/ (old-Mac state) and
+# clone/ (reference repos) are opt-in via --topic — they assume context a
+# fresh machine does not have.
+TOPIC_ORDER=(install configure verify)
+OPT_IN_TOPICS=(clone migrate)
 
 usage() {
     cat <<USAGE
@@ -25,8 +29,10 @@ Options:
     --topic <name>   Run only the named topic (subdir of scripts/)
     -h, --help       Show this help
 
-Topics: subdirectories of scripts/ except lib, run in this order:
-    ${TOPIC_ORDER[*]}
+Default topics, in order: ${TOPIC_ORDER[*]}
+Opt-in via --topic only:  ${OPT_IN_TOPICS[*]}
+Scope: SCOPE=work in .env selects the corporate subset (Brewfile.work,
+work Bunfile, personal-lane scripts skip themselves).
 USAGE
 }
 

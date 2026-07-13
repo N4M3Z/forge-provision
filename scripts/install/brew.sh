@@ -27,4 +27,6 @@ if [[ -x /usr/local/bin/brew ]]; then
 fi
 
 echo "install:brew"
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+# NONINTERACTIVE suppresses the installer press-RETURN prompt so a topic run
+# does not stall headless; sudo may still prompt once for the prefix.
+NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
