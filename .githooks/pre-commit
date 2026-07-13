@@ -4,6 +4,16 @@ set -euo pipefail
 # forge module pre-commit hook
 # Canonical source: https://github.com/N4M3Z/forge-cli/blob/main/templates/init/.githooks/pre-commit
 
+# Author identity gate (PROV-0008): commits in this public repo carry the
+# noreply identity, never a private mailbox or a LAN hostname.
+author_email="$(git config user.email || true)"
+case "${author_email}" in
+    *@pm.me|*@proton.me|*@protonmail.com|*.lan|*@example.com|"")
+        echo "pre-commit: author email '${author_email}' is private or placeholder; use the noreply identity (PROV-0008)" >&2
+        exit 1
+        ;;
+esac
+
 SCRIPT_URL="https://raw.githubusercontent.com/N4M3Z/forge-cli/main/scripts/validate.sh"
 SCRIPT_SHA="55998b60a7e972c09c9bcc9767d675b95e011e58309c69849b44fec994909d0b"
 

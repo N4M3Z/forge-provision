@@ -11,6 +11,21 @@ set -euo pipefail
 # cd to the repo root so prek finds .pre-commit-config.yaml regardless of cwd.
 cd "$(jj workspace root 2>/dev/null || git rev-parse --show-toplevel 2>/dev/null || dirname "$0")"
 
+# Session transcripts under entire/* carry raw prompts and never leave this
+# machine. --all could sweep them along, so bookmarks are pushed explicitly.
+for arg in "$@"; do
+    case "${arg}" in
+        *entire/*)
+            echo "jj-push: refusing to push entire/* session-transcript refs (raw prompts)" >&2
+            exit 1
+            ;;
+        --all|--all-bookmarks)
+            echo "jj-push: --all can carry entire/* session refs; push bookmarks explicitly with -b" >&2
+            exit 1
+            ;;
+    esac
+done
+
 if command -v prek >/dev/null 2>&1; then
     prek run --all-files --stage pre-push
 elif command -v forge >/dev/null 2>&1; then

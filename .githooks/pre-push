@@ -1,10 +1,19 @@
 #!/bin/sh
 # Entire CLI hooks
-# Pre-push hook: push session logs alongside user's push
-# $1 is the remote name (e.g., "origin")
-if command -v entire >/dev/null 2>&1; then entire hooks git pre-push "$1" || true; else :; fi
+# Pre-push hook: refuse session-transcript refs, then push session logs
+# alongside the user's push. $1 is the remote name (e.g., "origin").
+_refs="$(cat)"
+
+# Session transcripts under entire/* carry raw prompts and never leave this
+# machine. Deletions of remote entire/* refs stay allowed.
+if printf '%s\n' "${_refs}" | awk '$1 != "(delete)" && $3 ~ /^refs\/heads\/entire\// { found=1 } END { exit !found }'; then
+    echo "pre-push: refusing to push entire/* session-transcript refs (raw prompts)" >&2
+    exit 1
+fi
+
+if command -v entire >/dev/null 2>&1; then printf '%s\n' "${_refs}" | entire hooks git pre-push "$1" || true; else :; fi
 # Chain: run pre-existing hook
 _entire_hook_dir="$(dirname "$0")"
 if [ -x "$_entire_hook_dir/pre-push.pre-entire" ]; then
-    "$_entire_hook_dir/pre-push.pre-entire" "$@"
+    printf '%s\n' "${_refs}" | "$_entire_hook_dir/pre-push.pre-entire" "$@"
 fi
