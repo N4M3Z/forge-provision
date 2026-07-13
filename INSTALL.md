@@ -40,7 +40,14 @@ cp .env.example .env    # then edit: GIT_NAME, GIT_EMAIL, GITHUB_USER, paths
 
 `.env` is mandatory: `scripts/lib/env.sh` warns on the placeholder fallback and
 `scripts/configure/git-identity.sh` refuses to write placeholder identity.
-On a work machine, use the work identity here.
+On a work machine, use the work identity here, plus:
+
+- `SCOPE="work"` — selects `manifests/Brewfile.work`, the deterministic
+  corporate subset (personal apps, media, session capture, and key-custody
+  ceremony tools excluded; OrbStack included, licensed corporately, activate
+  manually after install).
+- `DOTFILES_REPO` — the chezmoi source to deploy; leave empty to skip
+  dotfiles entirely.
 
 ### Inventory, then ask
 

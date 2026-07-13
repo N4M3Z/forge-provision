@@ -7,12 +7,23 @@
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "${SCRIPT_DIR}/../lib/env.sh"
 
-BREWFILE="${FORGE_PROVISION_ROOT}/manifests/Brewfile"
+# SCOPE=work (from .env) selects the corporate-laptop subset manifest;
+# unset means the full personal Brewfile.
+case "${SCOPE:-}" in
+    work) BREWFILE="${FORGE_PROVISION_ROOT}/manifests/Brewfile.work" ;;
+    "")   BREWFILE="${FORGE_PROVISION_ROOT}/manifests/Brewfile" ;;
+    *)
+        echo "fail:brew-bundle (unknown SCOPE '${SCOPE}'; use 'work' or leave unset)"
+        exit 1
+        ;;
+esac
 
 if [[ ! -f "${BREWFILE}" ]]; then
     echo "fail:brew-bundle (Brewfile not found at ${BREWFILE})"
     exit 1
 fi
+
+echo "scope:${SCOPE:-full} (${BREWFILE#"${FORGE_PROVISION_ROOT}/"})"
 
 if ! command -v brew >/dev/null 2>&1; then
     echo "fail:brew-bundle (brew not on PATH — run scripts/install/brew.sh first)"

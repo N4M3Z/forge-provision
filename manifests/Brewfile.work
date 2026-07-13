@@ -1,0 +1,128 @@
+# forge-provision Brewfile.work — the corporate-laptop subset of manifests/Brewfile.
+# Selected by SCOPE=work in .env; scripts/install/brew-bundle.sh picks this file.
+# Apply with: brew bundle install --file=manifests/Brewfile.work
+#
+# Invariant: every entry here also exists in manifests/Brewfile (the full personal
+# manifest); scripts/verify/brewfile-scope.sh enforces the subset relation.
+# Rationale for each tool lives with its entry in the full Brewfile — this file
+# stays terse on purpose. Deliberately excluded from the work scope: personal
+# media and licenses (steam, superwhisper, macwhisper, istat-menus, discord,
+# little-snitch, yt-dlp, ffmpeg), personal key-custody ceremony tools (paperkey,
+# qrencode, sequoia-sq), session capture (specstory, entire, crex), the personal
+# second-brain stack (sabiql, graphviz, otel-tui), Zed source-build and REPL
+# extras (zed@preview, cmake, bash, zeromq, ruby), and personal MAS purchases.
+# Add any of them per-machine after an explicit policy check.
+
+# ── Proton suite (the employer's own products) ───────────────────────────────
+cask "proton-drive"
+cask "proton-mail"
+cask "proton-mail-bridge"
+cask "proton-meet"
+cask "proton-pass"
+cask "protonvpn"
+brew "proton-pass-cli"
+tap "N4M3Z/tap"
+brew "N4M3Z/tap/proton-drive-cli"
+
+# ── AI harnesses and local inference ─────────────────────────────────────────
+cask "claude"
+cask "lm-studio"
+brew "opencode"
+cask "antigravity-cli"
+cask "antigravity"
+cask "codex"
+cask "codex-app"
+
+# ── Runtimes and language toolchains ─────────────────────────────────────────
+brew "rust"
+brew "uv"
+brew "ruff"
+tap "oven-sh/bun"
+brew "oven-sh/bun/bun"
+brew "node"
+
+# ── Version control and review ───────────────────────────────────────────────
+brew "gh"
+brew "glab"
+brew "gitui"
+brew "lazygit"
+brew "git-lfs"
+brew "jj"
+brew "jjui"
+brew "lazyjj"
+tap "umputun/apps"
+brew "umputun/apps/revdiff"
+tap "agavra/tap"
+brew "agavra/tap/tuicr"
+tap "jackchuka/tap"
+brew "jackchuka/tap/mdschema"
+brew "gitleaks"
+
+# ── Identity, signing, and hardware keys ─────────────────────────────────────
+cask "yubico-authenticator"
+brew "openssh"
+tap "theseal/ssh-askpass"
+brew "theseal/ssh-askpass/ssh-askpass"
+brew "gnupg"
+brew "pinentry-mac"
+brew "ykman"
+
+# ── Shell environment ────────────────────────────────────────────────────────
+brew "chezmoi"
+brew "starship"
+brew "atuin"
+brew "zoxide"
+brew "direnv"
+brew "fzf"
+brew "sesh"
+tap "morantron/tmux-fingers"
+brew "morantron/tmux-fingers/tmux-fingers"
+
+# ── Editors, terminal, fonts ─────────────────────────────────────────────────
+cask "zed"
+cask "visual-studio-code"
+brew "helix"
+brew "neovim"
+cask "ghostty"
+cask "font-meslo-lg-nerd-font"
+cask "font-atkinson-hyperlegible-next"
+cask "font-atkinson-hyperlegible-mono"
+
+# ── Documents and rendering ──────────────────────────────────────────────────
+brew "glow"
+brew "tlrc"
+brew "pandoc"
+brew "typst"
+brew "poppler"
+
+# ── CLI utilities ────────────────────────────────────────────────────────────
+brew "rsync"
+brew "jq"
+brew "yq"
+brew "rtk"
+brew "fd"
+brew "btop"
+brew "mas"
+brew "cloudflare-wrangler"
+
+# ── Browsers and communication ───────────────────────────────────────────────
+cask "google-chrome"
+cask "firefox"
+cask "microsoft-teams"
+cask "raycast"
+cask "obsidian"
+
+# ── Containers (corporate OrbStack license; activate manually after install) ─
+cask "orbstack"
+
+# ── Mac App Store (work Apple ID; free or work-entitled apps only) ──────────
+mas "Keynote",        id: 361285480
+mas "Numbers",        id: 361304891
+mas "Pages",          id: 361309726
+mas "Developer",      id: 640199958
+mas "TestFlight",     id: 899247664
+mas "Xcode",          id: 497799835
+mas "Slack",          id: 803453959
+mas "Proton Pass for Safari", id: 6502835663
+mas "uBlock Origin Lite",     id: 6745342698
+mas "WireGuard",              id: 1451685025
