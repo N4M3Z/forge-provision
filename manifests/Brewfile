@@ -280,6 +280,7 @@ brew "morantron/tmux-fingers/tmux-fingers"
 
 # JavaScript runtime and global package installer, primary (PROV-0004).
 # Used for `bun install -g` of global npm tools (@cometix/ccline, defuddle-cli).
+# pxpipe (bun global, version-pinned) -> scripts/install/pxpipe.sh (PROV-0022)
 tap "oven-sh/bun"
 brew "oven-sh/bun/bun"
 
