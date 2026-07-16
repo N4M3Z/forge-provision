@@ -274,6 +274,14 @@ brew "direnv"
 # for vim plugins, git tools, completion menus.
 brew "fzf"
 
+# television — fuzzy finder TUI with preview channels. Backs Zed's cmd-p
+# file-picker task (`tv files`, opened via zed-open). Decision: PROV-0024.
+brew "television"
+
+# bat — syntax-highlighting cat. Television's default previewer; also a
+# general pager-friendly file viewer.
+brew "bat"
+
 # sesh — tmux session manager with zoxide integration and fzf picker.
 # Standalone Go binary, not a TPM plugin. Replaces ad-hoc sessionizer scripts.
 brew "sesh"
