@@ -1,0 +1,18 @@
+# forge-provision Microsoft bundle — opt-in, not part of any baseline.
+# Apply with: brew bundle install --file=manifests/Brewfile.microsoft
+# Reference: https://github.com/Homebrew/homebrew-bundle
+#
+# Microsoft apps are grouped here so neither the personal baseline nor the
+# work subset carries them by default: Teams tends to arrive via MDM on
+# managed machines, and the Office mas entries need an App Store sign-in
+# that a fresh or work machine may not have yet.
+
+cask "microsoft-teams"
+
+# Microsoft Office
+mas "Microsoft Excel",      id: 462058435
+mas "Microsoft OneNote",    id: 784801555
+mas "Microsoft Outlook",    id: 985367838
+mas "Microsoft PowerPoint", id: 462062816
+mas "Microsoft Word",       id: 462054704
+mas "OneDrive",             id: 823766827
