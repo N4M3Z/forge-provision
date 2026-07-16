@@ -1,7 +1,7 @@
 ---
 name: HarnessSecurity
-version: 0.1.0
-description: "Security architecture and config provisioning for AI coding harnesses (Claude Code, Codex). Covers the layered model (macOS Seatbelt sandbox, hard permission-deny, the destructive-command guard, the soft auto-mode classifier), the self-modification guard, the Computer Use trust boundary, cross-harness parity, and the seed-not-mirror pattern for app-managed config. USE WHEN provisioning or hardening an AI coding harness, configuring its sandbox / permissions / auto-mode policy, wiring dcg, deciding what Computer Use may touch, mirroring config across Claude and Codex, or versioning a config file the app rewrites itself."
+version: 0.2.0
+description: "Security architecture and config provisioning for Claude Code, Codex, Antigravity, Grok, and OpenCode. Covers native sandboxes, hard denies, dcg, partial config ownership, Computer Use, and explicit capability gaps. USE WHEN provisioning or hardening an AI coding harness, configuring sandbox / permissions / auto-mode policy, wiring dcg, deciding what Computer Use may touch, or versioning config the app rewrites itself."
 sources:
     - https://developers.openai.com/codex/sandbox
     - https://code.claude.com/docs/en/permissions
@@ -9,16 +9,16 @@ sources:
 
 # HarnessSecurity
 
-How the AI coding harnesses on this machine (Claude Code, Codex) are confined, and how to configure that without weakening it. This is the host-level harness layer; it pairs with [SandboxToolkit](../SandboxToolkit/SKILL.md) (the per-VM container tier) and the Seatbelt baseline (ADR VIRT-0001).
+How the five coding harnesses on this machine are confined, and how to configure them without weakening them. This is the host-level harness layer; it pairs with [SandboxToolkit](../SandboxToolkit/SKILL.md) for untrusted or autonomous workloads.
 
 ## The layered policy model
 
 Four layers, outermost first. Configure each harness at every layer it supports; never rely on one alone.
 
-1. **OS sandbox (enforced).** macOS Seatbelt via `sandbox-exec` confines the commands a harness runs: writes scoped to the workspace, reads broad, network off by default. Both Claude Code (the `sandbox` block) and Codex (`default_permissions = "workspace-local"` plus `[permissions.workspace-local.*]`) use the same primitive.
+1. **Native sandbox (enforced where available).** Claude and Codex use macOS sandboxing; Antigravity enables its terminal sandbox; Grok selects a named sandbox profile. OpenCode has granular tool permissions but no separate kernel sandbox, so say so explicitly.
 2. **Hard structural deny (enforced, unoverridable).** Claude `permissions.deny` runs before anything else; the destructive-command guard `dcg` runs as a `PreToolUse` hook on both harnesses (denials via stdout JSON on Claude, stderr + exit 2 on Codex). Regex and path rules, not model judgment. This skill covers wiring the guard; recovering from a live dcg or safety-plugin block is GuardRails' job.
 3. **Soft AI-judged policy (prose).** Claude's auto-mode classifier reads the `autoMode` block (`environment`, `soft_deny`, `hard_deny`, `allow`) plus CLAUDE.md; Codex routes escalations through `approvals_reviewer` and reads AGENTS.md. Natural-language rules a classifier applies, where explicit user intent can clear a soft deny.
-4. **Credential protection.** Claude `sandbox.filesystem.denyRead` read-blocks credential directories; Codex has no read-deny (Seatbelt reads stay broad), so credential isolation there rests on the OS account, not config.
+4. **Credential protection.** Use provider-native read denies where available. Otherwise keep credentials outside allowed project roots and disclose the gap. Authentication state is provider-owned and is never copied into tracked policy.
 
 Prose steers (layer 3); the guard and deny rules enforce (layers 1 and 2). Never relax a lower layer to satisfy a higher one.
 
@@ -36,20 +36,17 @@ The Codex desktop app's Computer Use drives arbitrary macOS GUI apps by seeing a
 
 Configure the second harness to match the first where the tool allows, and make the gaps explicit rather than discovered.
 
-| Capability | Claude Code | Codex | Translates? |
-| --- | --- | --- | --- |
-| OS sandbox | `sandbox` (Seatbelt) | `default_permissions = "workspace-local"` | yes, same primitive |
-| Network allowlist | `network.allowedDomains` | `[permissions.workspace-local.network.domains]` | yes |
-| Writable roots | `filesystem.allowWrite` | `[permissions.workspace-local.workspace_roots]` | yes |
-| Destructive guard | dcg `PreToolUse` hook | dcg `PreToolUse` hook | yes, same tool |
-| Knowledge MCP | gbrain MCP | `[mcp_servers.gbrain]` | yes |
-| Read-only reviewer | no native profile | `[profiles.review]` | Codex only |
-| Credential read-deny | `filesystem.denyRead` | none | no, Seatbelt reads broad |
-| Command exclusion | `sandbox.excludedCommands` | none | no, escalate via approval |
+| Capability | Claude | Codex | Antigravity | Grok | OpenCode |
+| --- | --- | --- | --- | --- | --- |
+| Workspace confinement | native sandbox | workspace-local | terminal sandbox | workspace/read-only profiles | permission rules only |
+| Non-interactive review | explicit tool policy | read-only + never ask | sandbox + print mode | read-only + `dontAsk` | deny-by-default permission override |
+| Credential read-deny | yes | no native equivalent | project boundary | sandbox profile | explicit path denies |
+| Model pin for automation | `--model` | `--model` | `--model` | `--model` | `--model` |
+| Native raw transcript | JSONL | JSONL | conversation DB | session JSONL | SQLite DB |
 
 ## App-managed config: seed, don't mirror
 
-Some harness apps rewrite their own config (Zed `settings.json`, the Codex desktop app's `~/.codex/config.toml`), injecting plugins, trusted-hook hashes, marketplaces, and UI state. The live file churns. Version a curated seed in this module and deploy it copy-if-absent (`scripts/configure/<tool>.sh`); never apply a full mirror over the live file, which fights the app and strips its state on the next launch. The live config belongs to the app; the seed is the durable, reviewable artifact.
+Harness apps rewrite their own config, injecting authentication references, plugins, trusted-hook hashes, marketplaces, and UI state. The live file churns. Manage only declared policy keys through chezmoi `modify_` templates and preserve every unknown or provider-owned field. A redacted, hash-approved plan is the durable review artifact; the live file remains provider-owned outside the declared subset.
 
 ## Constraints
 
@@ -57,3 +54,5 @@ Some harness apps rewrite their own config (Zed `settings.json`, the Codex deskt
 - Never weaken the sandbox, dcg, or commit signing to make a task easier; escalate to the human.
 - Treat Computer Use as a deliberate, per-session grant, never autonomous.
 - Change settings that govern the agent's own permissions via the dotfiles source plus a human `chezmoi apply`, never a live write by the agent.
+- Never use Finder through shell or GUI automation. Computer Use is allowed only for the user's specific GUI task.
+- A missing enforcement capability is a limitation, not a green check.
