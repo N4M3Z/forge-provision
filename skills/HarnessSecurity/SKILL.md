@@ -1,6 +1,6 @@
 ---
 name: HarnessSecurity
-version: 0.2.0
+version: 0.3.0
 description: "Security architecture and config provisioning for Claude Code, Codex, Antigravity, Grok, and OpenCode. Covers native sandboxes, hard denies, dcg, partial config ownership, Computer Use, and explicit capability gaps. USE WHEN provisioning or hardening an AI coding harness, configuring sandbox / permissions / auto-mode policy, wiring dcg, deciding what Computer Use may touch, or versioning config the app rewrites itself."
 sources:
     - https://developers.openai.com/codex/sandbox
@@ -43,6 +43,10 @@ Configure the second harness to match the first where the tool allows, and make 
 | Credential read-deny | yes | no native equivalent | project boundary | sandbox profile | explicit path denies |
 | Model pin for automation | `--model` | `--model` | `--model` | `--model` | `--model` |
 | Native raw transcript | JSONL | JSONL | conversation DB | session JSONL | SQLite DB |
+
+## Signing lanes
+
+Who holds the key decides the lane (ARCH-0034). Each harness commits under its own identity (`<harness>@noreply.<hostname>.local`) and signs with its own passphrase-less ed25519 key at `~/.ssh/<harness>`, injected per-process by the `harness-run` overlay with `signing.behavior = "own"`; agent pushes never wait on hardware. The human's YubiKey signs only the human's own commits (batched at push, cached touch policy) and dated `signed/YYYY-MM-DD` attestation tags over reviewed history, driven by `sd sign check`/`sd sign run` on a four-hour launchd summons. Local verification runs through `~/.config/git/allowed_signers` (`scripts/configure/agent-signing.sh`); the `.local` addresses mean no GitHub Verified badge on agent commits, which is the honest state, not a gap to fake.
 
 ## App-managed config: seed, don't mirror
 

@@ -231,6 +231,12 @@ brew "ykman"
 brew "paperkey"
 brew "qrencode"
 
+# Actionable macOS notifications from launchd scripts: blocks until the user
+# clicks and prints the chosen action to stdout. Drives the sd sign summons
+# (~/sd/sign/check); not in homebrew-core, notarized via the author's tap.
+tap "vjeantet/tap"
+brew "vjeantet/tap/alerter"
+
 # sq (Sequoia-PGP) — v6 / post-quantum OpenPGP. The only tool that reads Proton's
 # post-quantum mail-key export; GnuPG cannot and structurally will not (GPG-0007).
 # Pinned into the offline key vault's tools/ as the break-glass decryptor.
@@ -508,6 +514,13 @@ cask "little-snitch"
 # paid for commercial use, so it is a DX convenience, not the isolation pick.
 # Separate engine from Apple container; the two coexist without integration.
 cask "orbstack"
+
+# DOSBox-Staging: DOS emulator for running abandonware games (Space Crusade and
+# similar). Native arm64 bottle, no Rosetta. The formula, not the dosbox-x-app
+# cask. Mount a game directory as C: and run its .BAT; CPU speed is throttled
+# with Ctrl+F11 / Ctrl+F12 rather than the games' own moslo TSR.
+brew "dosbox-staging"
+
 # Mac App Store apps. `mas install <id>` requires being signed into the same
 # Apple ID that owns / purchased the app. Bundled iWork (Pages/Numbers/Keynote)
 # is auto-entitled after first Apple ID sign-in; the entries below let `brew
