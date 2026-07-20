@@ -1,26 +1,38 @@
 #!/usr/bin/env bash
-# Migrate MacWhisper preferences between two machines.
+# Migrate MacWhisper DATA between machines. Settings are not migrated here:
+# they deploy as a curated plist from the dotfiles repo (chezmoi
+# run_onchange_after_macwhisper.sh applies `defaults import`), which carries
+# user intent (prompts, dictation dictionary, export formats, AI-service
+# metadata) and never machine state or the raw plist's embedded app-icon blobs.
+#
+# What moves, from the source home dir:
+#   Library/Application Support/MacWhisper/Database/   -> rsync --delete
+#       main.sqlite + WAL (sessions, transcripts, meetings) and
+#       ExternalMedia/ (the recorded meetings' audio — the bulk of the bytes)
+#   Library/Application Support/MacWhisper/RecordedMeetings/ -> rsync, if present
+#
+# Path trap: this is the NON-sandboxed location. A machine may also carry
+# Library/Containers/com.goodsnooze.MacWhisper/ with its own
+# Application Support/MacWhisper/Database — that is a stale sandboxed-era
+# install with an old empty schema. Never migrate the container copy.
+#
+# Skipped on purpose:
+#   models under Application Support/MacWhisper/models and the
+#   Library/Caches/argmax-sdk-swift model cache (multi-GB, re-downloaded
+#   in-app on demand)
+#   license + API keys (macOS Keychain; re-enter once on the new machine)
+#
+# Count caveat when verifying: query the copied DB with plain read-only mode,
+# not immutable=1 — immutable ignores the WAL, which may hold the app's last
+# not-yet-checkpointed deletions, so it overcounts.
 #
 # Usage:
-#   bash macwhisper.sh [SRC] [DST]
-#     SRC  source prefs plist   (default ${MIGRATE_SRC}/Library/Preferences/com.goodsnooze.MacWhisper.plist)
-#     DST  destination plist    (default ~/Library/Preferences/com.goodsnooze.MacWhisper.plist)
+#   bash macwhisper.sh [SRC_HOME]
+#     SRC_HOME  mounted source home dir (default ${MIGRATE_SRC})
 #
-# Portable vs machine-local:
-#   Preferences/com.goodsnooze.MacWhisper.plist        <- migrated (config)
-#   Application Support/com.goodsnooze.MacWhisper/      <- skipped (license
-#       cache, logs, queue, anonymous IDs — machine-local, not portable)
-#
-# Models are re-downloaded in-app or relocated to ${VOICE_DIR}/macwhisper via
-# MacWhisper's own settings, so no model bytes move through this script.
-#
-# The plist mixes user settings with license state and machine identifiers.
-# Importing it over a machine that already launched MacWhisper can clobber the
-# new machine's license/identity. The script refuses to overwrite an existing
-# DST unless FORCE=1, so the safe path is: run before first launch, or diff
-# manually.
-#
-# Idempotent. Skips gracefully when SRC is absent. Supports DRY_RUN and FORCE.
+# Idempotent (rsync skips unchanged). Skips gracefully when the source is
+# absent. Supports DRY_RUN. A non-empty destination Database is backed up
+# once per day (Database.YYYY-MM-DD.bak) before --delete replaces it.
 #
 # Source: https://github.com/N4M3Z/forge-provision
 #
@@ -33,39 +45,53 @@ require_scope full
 RSYNC="/opt/homebrew/bin/rsync"
 [[ -x "${RSYNC}" ]] || RSYNC="$(command -v rsync)"
 
-BUNDLE="com.goodsnooze.MacWhisper"
-SRC="${1:-${MIGRATE_SRC:-}/Library/Preferences/${BUNDLE}.plist}"
-DST="${2:-${HOME}/Library/Preferences/${BUNDLE}.plist}"
+SRC_HOME="${1:-${MIGRATE_SRC:-}}"
+SRC_APP="${SRC_HOME}/Library/Application Support/MacWhisper"
+DST_APP="${HOME}/Library/Application Support/MacWhisper"
 
 echo "migrate:macwhisper"
 
-if [[ ! -f "${SRC}" ]]; then
-    echo "skip:macwhisper (source prefs not found at ${SRC})"
-    echo "      mount the source machine and set MIGRATE_SRC in .env, or pass SRC as arg 1"
-    exit 0
-fi
-
-if [[ -f "${DST}" && -z "${FORCE:-}" ]]; then
-    echo "skip:macwhisper (dest prefs already exist: ${DST})"
-    echo "      MacWhisper has run on this machine. Diff manually, or re-run with FORCE=1"
-    echo "      to overwrite (clobbers this machine's license/identity keys)."
+if [[ ! -d "${SRC_APP}/Database" ]]; then
+    echo "skip:macwhisper (no source Database at ${SRC_APP})"
+    echo "      mount the source machine and set MIGRATE_SRC in .env, or pass SRC_HOME as arg 1"
     exit 0
 fi
 
 if [[ -n "${DRY_RUN:-}" ]]; then
-    echo "  would copy ${SRC} -> ${DST}"
+    echo "  would rsync '${SRC_APP}/Database/' -> '${DST_APP}/Database/' (with --delete)"
+    [[ -d "${SRC_APP}/RecordedMeetings" ]] && \
+        echo "  would rsync '${SRC_APP}/RecordedMeetings/' -> '${DST_APP}/RecordedMeetings/'"
     echo "skip:macwhisper (dry-run)"
     exit 0
 fi
 
-# Preferences are cached by cfprefsd; quit the app before importing.
+# The sqlite database must not be open during the copy.
 osascript -e 'quit app "MacWhisper"' 2>/dev/null || true
 
-"${RSYNC}" -a "${SRC}" "${DST}" || {
-    echo "fail:macwhisper (rsync error)"
-    exit 0
-}
-defaults read "${BUNDLE}" >/dev/null 2>&1 || true
+mkdir -p "${DST_APP}"
 
-echo "ok:macwhisper (prefs migrated; relaunch MacWhisper, re-point model store"
-echo "      to ${VOICE_DIR:-~/Data/Voice}/macwhisper, re-download or relocate models)"
+backup="${DST_APP}/Database.$(date -u +%Y-%m-%d).bak"
+if [[ -d "${DST_APP}/Database" && ! -d "${backup}" ]] \
+    && [[ -n "$(ls "${DST_APP}/Database" 2>/dev/null)" ]]; then
+    echo "backup:${backup}"
+    cp -R "${DST_APP}/Database" "${backup}"
+fi
+
+echo "copy:Database (sessions, transcripts, meeting audio)"
+"${RSYNC}" -a --delete "${SRC_APP}/Database/" "${DST_APP}/Database/" || {
+    echo "fail:macwhisper (Database rsync error)"
+    exit 1
+}
+
+if [[ -d "${SRC_APP}/RecordedMeetings" ]]; then
+    echo "copy:RecordedMeetings"
+    "${RSYNC}" -a "${SRC_APP}/RecordedMeetings/" "${DST_APP}/RecordedMeetings/" || {
+        echo "fail:macwhisper (RecordedMeetings rsync error)"
+        exit 1
+    }
+fi
+
+sessions="$(sqlite3 "file:${DST_APP}/Database/main.sqlite?mode=ro" \
+    'SELECT COUNT(*) FROM session;' 2>/dev/null || echo '?')"
+echo "ok:macwhisper (${sessions} sessions migrated; settings deploy via dotfiles chezmoi,"
+echo "      license + API keys re-enter once from Keychain, models re-download in-app)"
