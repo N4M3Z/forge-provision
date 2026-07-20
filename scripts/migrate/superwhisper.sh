@@ -91,13 +91,27 @@ else
 fi
 
 # --- 2. History database -> rsync -------------------------------------------
+# Regression guard: the copy REPLACES the destination database. When this
+# machine already holds a larger history than the source (migrated earlier,
+# then kept dictating), a blind copy would delete the newer recordings. Compare
+# row counts and refuse the downgrade unless FORCE=1; recovering individual
+# missing rows is a manual merge (ATTACH both DBs, INSERT the id-diff, copy the
+# matching Data/Voice recordings/ folders).
+count_recordings() {
+    sqlite3 "file:$1?mode=ro&immutable=1" 'SELECT COUNT(*) FROM recording;' 2>/dev/null || echo 0
+}
 if [[ -d "${SRC_DB}" ]]; then
-    if [[ -n "${DRY_RUN:-}" ]]; then
-        echo "  would rsync ${SRC_DB}/ -> ${DST_DB}/"
+    src_count="$(count_recordings "${SRC_DB}/superwhisper.sqlite")"
+    dst_count="$(count_recordings "${DST_DB}/superwhisper.sqlite")"
+    if [[ "${dst_count}" -gt "${src_count}" && -z "${FORCE:-}" ]]; then
+        echo "skip:superwhisper-db (destination has ${dst_count} recordings, source only ${src_count};"
+        echo "      refusing the downgrade — FORCE=1 to overwrite, or merge the id-diff manually)"
+    elif [[ -n "${DRY_RUN:-}" ]]; then
+        echo "  would rsync ${SRC_DB}/ -> ${DST_DB}/ (${src_count} -> over ${dst_count} recordings)"
     else
         mkdir -p "${DST_DB}"
         if "${RSYNC}" -a "${SRC_DB}/" "${DST_DB}/"; then
-            echo "ok:superwhisper-db (history + search index)"
+            echo "ok:superwhisper-db (history + search index, ${src_count} recordings)"
         else
             echo "warn:superwhisper-db (rsync error)"
         fi
