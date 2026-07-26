@@ -24,13 +24,33 @@ if [[ -z "${signingkey}" ]]; then
 fi
 
 # Absolute paths in gitconfig break when the file is copied between machines,
-# and git reports them only when a signature is attempted.
-for setting in gpg.ssh.allowedSignersFile gpg.ssh.program gpg.program; do
+# and git reports them only when a signature is attempted. Which settings are
+# load-bearing depends on the lane: the gpg.ssh.* pair is inert under
+# gpg.format=openpgp, so a missing path there is a warning rather than a
+# failure. A path under someone else's home is always wrong, active or not.
+case "${format:-openpgp}" in
+    ssh) active_paths=(gpg.ssh.program gpg.ssh.allowedSignersFile); inactive_paths=(gpg.program) ;;
+    *)   active_paths=(gpg.program); inactive_paths=(gpg.ssh.program gpg.ssh.allowedSignersFile) ;;
+esac
+
+for setting in "${active_paths[@]}" "${inactive_paths[@]}"; do
     value="$(git config --global "${setting}" 2>/dev/null)"
-    if [[ -n "${value}" && "${value}" == /* && ! -e "${value}" ]]; then
+    [[ -n "${value}" && "${value}" == /* ]] || continue
+
+    # ${HOME%/} guards against a trailing slash making every path look foreign.
+    if [[ "${value}" == /Users/* || "${value}" == /home/* ]] \
+            && [[ "${value}" != "${HOME%/}/"* ]]; then
+        echo "fail:signing (${setting} points into another machine's home: ${value})"
+        exit 1
+    fi
+
+    [[ -e "${value}" ]] && continue
+
+    if [[ " ${active_paths[*]} " == *" ${setting} "* ]]; then
         echo "fail:signing (${setting} points at ${value}, which does not exist on this machine)"
         exit 1
     fi
+    echo "warn:signing (${setting} points at missing ${value}; unused while gpg.format=${format:-openpgp})"
 done
 
 case "${format:-openpgp}" in

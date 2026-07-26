@@ -42,9 +42,12 @@ found by inspecting the machine rather than the manifests.
   topic pass never deletes system paths as a side effect. `~/.gnupg` is never
   touched, since it holds the keyring rather than the Suite.
 - `scripts/verify/signing.sh` (new) asserts the configured lane can actually
-  sign: a signing key with no available secret fails, and an absolute path in
-  gitconfig that does not exist on this machine fails. Both states used to
-  surface at the first commit instead of at provision time.
+  sign. A signing key with no available secret fails. A path setting is judged
+  against the active lane: a missing path the lane depends on fails, while the
+  `gpg.ssh.*` pair merely warns under `gpg.format=openpgp`, where it is inert.
+  A path under another machine's home fails either way, since that is wrong
+  whether the lane uses it or not. All of it used to surface at the first
+  commit instead of at provision time.
 
 ## Still open
 
