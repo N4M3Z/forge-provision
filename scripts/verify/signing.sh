@@ -55,26 +55,59 @@ done
 
 case "${format:-openpgp}" in
     openpgp)
-        if ! command -v gpg >/dev/null 2>&1; then
-            echo "fail:signing (gpg.format=openpgp but gpg is not on PATH)"
+        # git calls gpg.program when set, so verifying whatever `gpg` resolves to
+        # on PATH would check a different binary than the one that signs. That is
+        # the dual-gpg divergence this script exists to catch.
+        gpg_command="$(git config --global gpg.program 2>/dev/null || true)"
+        gpg_command="${gpg_command:-gpg}"
+        if ! command -v "${gpg_command}" >/dev/null 2>&1; then
+            echo "fail:signing (gpg.format=openpgp but '${gpg_command}' is not on PATH)"
             exit 1
         fi
-        # A key whose private part lives on an absent card lists no secret, so
-        # this is the check that distinguishes "configured" from "can sign".
-        if ! gpg --list-secret-keys "${signingkey%!}" >/dev/null 2>&1; then
-            echo "fail:signing (no secret key for ${signingkey} — insert the YubiKey, then 'gpg --card-status')"
+
+        key_records="$("${gpg_command}" --list-secret-keys --with-colons "${signingkey%!}" 2>/dev/null)"
+        if [[ -z "${key_records}" ]]; then
+            echo "fail:signing (no secret key for ${signingkey} in the keyring)"
             exit 1
         fi
-        echo "ok:signing (openpgp, ${signingkey})"
+
+        # Field 15 of a sec or ssb record carries a token serial number, so its
+        # presence means the private key lives on a smartcard and the keyring
+        # holds only a stub. A stub lists successfully with the card unplugged,
+        # which is why listing a key proves nothing about signing: the card has
+        # to answer before the next commit can succeed.
+        if awk -F: '$1 ~ /^(sec|ssb)$/ && $15 != "" { found = 1 } END { exit !found }' <<< "${key_records}"; then
+            if ! "${gpg_command}" --card-status >/dev/null 2>&1; then
+                echo "fail:signing (${signingkey} lives on a smartcard that is not reachable — insert the YubiKey)"
+                exit 1
+            fi
+            echo "ok:signing (openpgp, ${signingkey}, smartcard reachable)"
+        else
+            echo "ok:signing (openpgp, ${signingkey}, local secret key)"
+        fi
         ;;
     ssh)
-        if [[ ! -f "${signingkey}" ]]; then
+        # -r rather than -f: an unreadable key file is a regular file that
+        # ssh-keygen still cannot sign with.
+        if [[ ! -r "${signingkey}" ]]; then
             echo "fail:signing (gpg.format=ssh but ${signingkey} is not a readable public key)"
             exit 1
         fi
         echo "ok:signing (ssh, ${signingkey})"
         ;;
+    x509)
+        x509_program="$(git config --global gpg.x509.program 2>/dev/null || true)"
+        x509_program="${x509_program:-gpgsm}"
+        if ! command -v "${x509_program}" >/dev/null 2>&1; then
+            echo "fail:signing (gpg.format=x509 but '${x509_program}' is not on PATH)"
+            exit 1
+        fi
+        echo "ok:signing (x509, ${signingkey})"
+        ;;
     *)
-        echo "warn:signing (unrecognized gpg.format '${format}')"
+        # git accepts only openpgp, ssh, and x509. Any other value with
+        # commit.gpgsign=true fails every commit, so this is not a warning.
+        echo "fail:signing (gpg.format '${format}' is not one of openpgp, ssh, x509)"
+        exit 1
         ;;
 esac
