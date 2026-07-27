@@ -12,6 +12,13 @@
 # second-brain stack (sabiql, graphviz, otel-tui), Zed source-build and REPL
 # extras (zed@preview, cmake, bash, zeromq, ruby), and personal MAS purchases.
 # Add any of them per-machine after an explicit policy check.
+#
+# Employer-managed software is out of scope entirely and never belongs in this
+# manifest: endpoint agents, VPN and device-trust clients, and the rest of the
+# MDM payload arrive from corporate device management, outside Homebrew, and are
+# neither ours to install nor ours to reproduce. When auditing a work machine for
+# tools worth capturing, compare Homebrew's installed set against this manifest;
+# the MDM payload does not appear there, which is the correct outcome.
 
 # ── Proton suite (the employer's own products) ───────────────────────────────
 cask "proton-drive"
@@ -58,6 +65,14 @@ tap "jackchuka/tap"
 brew "jackchuka/tap/mdschema"
 brew "gitleaks"
 
+# Commit-time validation chain. .pre-commit-config.yaml declares shellcheck and
+# semgrep as `language: system` hooks, so pre-commit never installs them and a
+# missing binary fails the hook on a fresh machine. prek is the runner
+# .githooks/pre-commit prefers before its forge and validate.sh fallbacks.
+brew "prek"
+brew "shellcheck"
+brew "semgrep"
+
 # ── Identity, signing, and hardware keys ─────────────────────────────────────
 cask "yubico-authenticator"
 brew "openssh"
@@ -80,6 +95,10 @@ brew "fzf"
 # so the work scope needs it too or that binding fails on a work machine.
 # Decision: PROV-0024.
 brew "television"
+
+# tmux — the multiplexer dot_config/tmux configures and its plugins extend, and
+# the one sesh and tmux-fingers below both depend on.
+brew "tmux"
 
 brew "sesh"
 tap "morantron/tmux-fingers"
@@ -119,8 +138,20 @@ cask "microsoft-teams"
 cask "raycast"
 cask "obsidian"
 
+# Zoom — external meetings with parties who are not on Proton Meet.
+cask "zoom"
+
+# Thaw — menu bar manager, hides overflow items behind a toggle. Open source.
+# The menu-bar item arrangement INSTALL.md lists as a manual step stays manual;
+# Thaw manages overflow visibility, it does not script the arrangement.
+cask "thaw"
+
 # ── Containers (corporate OrbStack license; activate manually after install) ─
 cask "orbstack"
+
+# Apple container — per-container-VM runtime, the isolation tier beside
+# OrbStack's shared kernel. scripts/install/container.sh carries no scope gate.
+brew "container"
 
 # Mac App Store apps are intentionally NOT in this manifest: `mas` cannot sign
 # into the App Store from the CLI on current macOS, so an unsigned-in machine

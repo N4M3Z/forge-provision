@@ -27,6 +27,15 @@ brew "N4M3Z/tap/proton-drive-cli"
 # Local LLM runner.
 cask "lm-studio"
 
+# ollama — local model runner and API server, and grok — xAI's terminal coding
+# agent. Both stay out of manifests/Brewfile.work: local inference carries a data
+# policy question on a managed machine, and grok is a personal-account harness.
+# scripts/install/ollama.sh and scripts/install/grok.sh already gate themselves
+# with `require_scope full`; declaring them here records what the personal
+# machine actually runs.
+brew "ollama"
+brew "grok"
+
 # AI coding agent (CLI). Configured locally with lm-studio + Proton Lumo as providers.
 # Config TBD — capture as scripts/configure/opencode.sh once provider files settle.
 brew "opencode"
@@ -225,6 +234,13 @@ brew "gnupg"
 brew "pinentry-mac"
 brew "ykman"
 
+# pass — the Unix password-store, GPG-backed, distinct from the Proton Pass CLI
+# above. pass-otp adds TOTP generation from stored secrets. Personal lane:
+# scripts/install/pass.sh gates itself with `require_scope full`, and key custody
+# ceremony tools stay off a managed machine.
+brew "pass"
+brew "pass-otp"
+
 # Offline key-backup tooling (GPG-0006): paperkey strips an OpenPGP secret to the
 # bytes not derivable from the public key; qrencode renders them OCR-free for paper.
 # scripts/install/paperkey.sh.
@@ -240,6 +256,15 @@ brew "sequoia-sq"
 # entropy-flagged strings in git history + working tree. Deterministic, fast, runs
 # locally (no LLM). Pairs with deeper LLM-based scans via the SecretScan skill.
 brew "gitleaks"
+
+# prek, shellcheck, and semgrep back the commit-time validation chain. The
+# repo's .pre-commit-config.yaml declares shellcheck and semgrep as
+# `language: system` hooks, so pre-commit never installs them and a missing
+# binary fails the hook. prek is the runner .githooks/pre-commit prefers before
+# falling back to forge or a downloaded validate.sh.
+brew "prek"
+brew "shellcheck"
+brew "semgrep"
 
 # GitHub Desktop — GUI client.
 cask "github"
@@ -281,6 +306,12 @@ brew "television"
 # bat — syntax-highlighting cat. Television's default previewer; also a
 # general pager-friendly file viewer.
 brew "bat"
+
+# tmux — terminal multiplexer. The chezmoi-managed dot_config/tmux configures it
+# and clones its plugins (resurrect, continuum, cpu, extrakto, fingers,
+# catppuccin), and sesh plus tmux-fingers below extend it, so the multiplexer
+# they all depend on belongs in the manifest rather than arriving incidentally.
+brew "tmux"
 
 # sesh — tmux session manager with zoxide integration and fzf picker.
 # Standalone Go binary, not a TPM plugin. Replaces ad-hoc sessionizer scripts.
@@ -508,6 +539,16 @@ cask "little-snitch"
 # paid for commercial use, so it is a DX convenience, not the isolation pick.
 # Separate engine from Apple container; the two coexist without integration.
 cask "orbstack"
+
+# Apple container — the per-container-VM runtime, Apple's own, open source.
+# The isolation tier next to OrbStack's shared kernel. Installed by
+# scripts/install/container.sh, which carries no scope gate, so it applies to
+# work machines too and appears in both manifests.
+brew "container"
+
+# Zoom — external meetings with parties who are not on Proton Meet. Corporate
+# reality on a work machine rather than a preference.
+cask "zoom"
 # Mac App Store apps. `mas install <id>` requires being signed into the same
 # Apple ID that owns / purchased the app. Bundled iWork (Pages/Numbers/Keynote)
 # is auto-entitled after first Apple ID sign-in; the entries below let `brew
