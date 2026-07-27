@@ -74,6 +74,13 @@ brew "atuin"
 brew "zoxide"
 brew "direnv"
 brew "fzf"
+
+# television — fuzzy finder TUI with preview channels. The chezmoi-managed Zed
+# keymap binds its file picker (`space f`, a task shelling out to `tv files`),
+# so the work scope needs it too or that binding fails on a work machine.
+# Decision: PROV-0024.
+brew "television"
+
 brew "sesh"
 tap "morantron/tmux-fingers"
 brew "morantron/tmux-fingers/tmux-fingers"
