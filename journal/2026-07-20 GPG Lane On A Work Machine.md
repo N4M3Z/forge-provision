@@ -37,10 +37,13 @@ found by inspecting the machine rather than the manifests.
   the default first in a topic pass.
 - `gpg-toolchain.sh` enumerates the GPG Suite components and receipts it
   finds, names which gpg git currently resolves to, and removes them on
-  request. Removal is receipt-based because GPGTools ships no uninstaller;
-  it requires `FORGE_REMOVE_GPG_SUITE=1` and an interactive terminal, so a
-  topic pass never deletes system paths as a side effect. `~/.gnupg` is never
-  touched, since it holds the keyring rather than the Suite.
+  request. Removal takes the Homebrew path when Homebrew owns the cask, since
+  `brew uninstall --cask` runs the vendor's own uninstaller from the Caskroom
+  and that uninstaller knows every component it installed. Receipt-based
+  removal remains the fallback for a GPG Suite that Homebrew does not own.
+  Either path requires `FORGE_REMOVE_GPG_SUITE=1` and an interactive terminal,
+  so a topic pass never touches system paths as a side effect, and `~/.gnupg`
+  is never touched, since it holds the keyring rather than the Suite.
 - `scripts/verify/signing.sh` (new) asserts the configured lane can actually
   sign. A signing key with no available secret fails. A path setting is judged
   against the active lane: a missing path the lane depends on fails, while the

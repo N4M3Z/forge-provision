@@ -33,8 +33,13 @@ done
 
 # A GPG Suite install shadows Homebrew gnupg with MacGPG 2.2.x. GPG-0005 keeps
 # it off the machine, so report the components found and remove them on request.
-# GPGTools ships no uninstaller script, so removal is receipt-based: forget the
-# pkgutil receipts, then delete what they installed.
+#
+# Two removal paths, because GPG Suite arrives either way. When Homebrew owns the
+# cask, `brew uninstall --cask` runs the vendor's own uninstaller from the
+# Caskroom, which knows every component it installed. A cask install is the
+# common case and the safer path, so prefer it. Only when Homebrew does not own
+# it does removal fall back to forgetting the pkgutil receipts and deleting the
+# paths they installed.
 GPG_SUITE_PATHS=(
     "/Applications/GPG Keychain.app"
     "/usr/local/MacGPG2"
@@ -63,8 +68,16 @@ if [[ ${#suite_found[@]} -gt 0 || -n "${suite_receipts}" ]]; then
         echo "manual:gpg-toolchain (remove with: FORGE_REMOVE_GPG_SUITE=1 ${BASH_SOURCE[0]})"
     elif [[ ! -t 0 ]]; then
         echo "manual:gpg-toolchain (removal needs an interactive terminal for sudo; rerun it yourself)"
+    elif brew list --cask gpg-suite >/dev/null 2>&1; then
+        echo "remove:gpg-suite (homebrew cask; running the vendor uninstaller)"
+        brew uninstall --cask gpg-suite || {
+            echo "fail:gpg-toolchain (cask uninstall failed; the vendor uninstaller needs sudo)"
+            exit 1
+        }
+        echo "      ~/.gnupg is left untouched; it holds your keyring, not GPG Suite"
+        echo "      restart the agent afterwards: gpgconf --kill gpg-agent"
     else
-        echo "remove:gpg-suite (receipts, then installed paths)"
+        echo "remove:gpg-suite (not a homebrew cask; receipts, then installed paths)"
         while IFS= read -r receipt; do
             [[ -z "${receipt}" ]] && continue
             echo "      forget: ${receipt}"
