@@ -31,10 +31,65 @@ for formula in "${FORMULAE[@]}"; do
     brew install "${formula}"
 done
 
-# A GPG Suite install would shadow Homebrew gnupg with MacGPG 2.2.x.
-if [[ -e "/Applications/GPG Keychain.app" || -d "/usr/local/MacGPG2" ]]; then
-    echo "warn:gpg-toolchain (GPG Suite / MacGPG present — it ships gpg 2.2.x and"
-    echo "      collides with Homebrew gnupg over ~/.gnupg; uninstall it, see GPG-0005)"
+# A GPG Suite install shadows Homebrew gnupg with MacGPG 2.2.x. GPG-0005 keeps
+# it off the machine, so report the components found and remove them on request.
+#
+# Two removal paths, because GPG Suite arrives either way. When Homebrew owns the
+# cask, `brew uninstall --cask` runs the vendor's own uninstaller from the
+# Caskroom, which knows every component it installed. A cask install is the
+# common case and the safer path, so prefer it. Only when Homebrew does not own
+# it does removal fall back to forgetting the pkgutil receipts and deleting the
+# paths they installed.
+GPG_SUITE_PATHS=(
+    "/Applications/GPG Keychain.app"
+    "/usr/local/MacGPG2"
+    "/Library/Services/GPGServices.service"
+    "/Library/PreferencePanes/GPGPreferences.prefPane"
+)
+
+suite_found=()
+for path in "${GPG_SUITE_PATHS[@]}"; do
+    [[ -e "${path}" ]] && suite_found+=("${path}")
+done
+suite_receipts="$(pkgutil --pkgs 2>/dev/null | grep '^org\.gpgtools\.' || true)"
+
+if [[ ${#suite_found[@]} -gt 0 || -n "${suite_receipts}" ]]; then
+    installed_gpg="$(command -v gpg 2>/dev/null)"
+    echo "warn:gpg-toolchain (GPG Suite / MacGPG present — ships gpg 2.2.x and shares"
+    echo "      ~/.gnupg with Homebrew gnupg; GPG-0005 keeps one gpg on the machine)"
+    echo "      git and scripts currently resolve gpg to: ${installed_gpg:-none}"
+    for path in "${suite_found[@]}"; do
+        echo "      found: ${path}"
+    done
+
+    # Removal deletes system paths and needs sudo, so it never runs as a side
+    # effect of a topic pass: it is opt-in and refuses without a terminal.
+    if [[ "${FORGE_REMOVE_GPG_SUITE:-}" != "1" ]]; then
+        echo "manual:gpg-toolchain (remove with: FORGE_REMOVE_GPG_SUITE=1 ${BASH_SOURCE[0]})"
+    elif [[ ! -t 0 ]]; then
+        echo "manual:gpg-toolchain (removal needs an interactive terminal for sudo; rerun it yourself)"
+    elif brew list --cask gpg-suite >/dev/null 2>&1; then
+        echo "remove:gpg-suite (homebrew cask; running the vendor uninstaller)"
+        brew uninstall --cask gpg-suite || {
+            echo "fail:gpg-toolchain (cask uninstall failed; the vendor uninstaller needs sudo)"
+            exit 1
+        }
+        echo "      ~/.gnupg is left untouched; it holds your keyring, not GPG Suite"
+        echo "      restart the agent afterwards: gpgconf --kill gpg-agent"
+    else
+        echo "remove:gpg-suite (not a homebrew cask; receipts, then installed paths)"
+        while IFS= read -r receipt; do
+            [[ -z "${receipt}" ]] && continue
+            echo "      forget: ${receipt}"
+            sudo pkgutil --forget "${receipt}" >/dev/null || echo "      warn: could not forget ${receipt}"
+        done <<< "${suite_receipts}"
+        for path in "${suite_found[@]}"; do
+            echo "      delete: ${path}"
+            sudo rm -rf "${path}" || echo "      warn: could not delete ${path}"
+        done
+        echo "      ~/.gnupg is left untouched; it holds your keyring, not GPG Suite"
+        echo "      restart the agent afterwards: gpgconf --kill gpg-agent"
+    fi
 fi
 
 echo "ok:gpg-toolchain (${FORMULAE[*]})"

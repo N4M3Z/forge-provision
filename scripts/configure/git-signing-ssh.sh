@@ -11,6 +11,18 @@ source "${SCRIPT_DIR}/../lib/env.sh"
 PUBKEY="${HOME}/.ssh/${SSH_KEY_NAME:-yubikey}.pub"
 ALLOWED_SIGNERS="${HOME}/.config/git/allowed_signers"
 
+# SSH/FIDO2 is the alternative lane; OpenPGP-on-card is the default (ARCH-0006).
+# A machine already configured for OpenPGP — by git-signing-openpgp.sh or by a
+# chezmoi-managed gitconfig — must not be silently switched here, or whichever
+# of the two runs last decides how commits sign.
+if [[ "${FORGE_SIGNING_LANE:-}" != "ssh" ]] \
+        && [[ "$(git config --global gpg.format 2>/dev/null)" == "openpgp" ]] \
+        && [[ -n "$(git config --global user.signingkey 2>/dev/null)" ]]; then
+    echo "skip:git-signing-ssh (OpenPGP lane already configured — the ARCH-0006 default)"
+    echo "      force this lane instead with: FORGE_SIGNING_LANE=ssh $0"
+    exit 0
+fi
+
 if [[ ! -f "${PUBKEY}" ]]; then
     echo "fail:git-signing-ssh (no SSH public key at ${PUBKEY} — run scripts/install/ssh-yubikey-key.sh first)"
     exit 1
