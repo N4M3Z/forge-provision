@@ -27,14 +27,12 @@ brew "N4M3Z/tap/proton-drive-cli"
 # Local LLM runner.
 cask "lm-studio"
 
-# ollama — local model runner and API server, and grok — xAI's terminal coding
-# agent. Both stay out of manifests/Brewfile.work: local inference carries a data
-# policy question on a managed machine, and grok is a personal-account harness.
-# scripts/install/ollama.sh and scripts/install/grok.sh already gate themselves
-# with `require_scope full`; declaring them here records what the personal
-# machine actually runs.
-brew "ollama"
-brew "grok"
+# ollama and grok are deliberately absent. scripts/install/ollama.sh installs the
+# ollama-app cask and then launches and health-checks the daemon, so a bare
+# formula entry would add a second, divergent artifact. scripts/install/grok.sh
+# installs xAI's CLI from x.ai/cli/install.sh; Homebrew's `grok` formula is an
+# unrelated regular-expression utility that would take the same binary name.
+# Both scripts also gate on `require_scope full`, keeping them off work machines.
 
 # AI coding agent (CLI). Configured locally with lm-studio + Proton Lumo as providers.
 # Config TBD — capture as scripts/configure/opencode.sh once provider files settle.
@@ -540,11 +538,12 @@ cask "little-snitch"
 # Separate engine from Apple container; the two coexist without integration.
 cask "orbstack"
 
-# Apple container — the per-container-VM runtime, Apple's own, open source.
-# The isolation tier next to OrbStack's shared kernel. Installed by
-# scripts/install/container.sh, which carries no scope gate, so it applies to
-# work machines too and appears in both manifests.
-brew "container"
+# Apple container is deliberately absent from every manifest. It belongs solely
+# to scripts/install/container.sh, which requires Apple Silicon and macOS 26 for
+# container-to-container networking and then bootstraps the system service from
+# the keg path. `brew bundle` applies no platform condition, so a manifest entry
+# would attempt the formula on an Intel or older-macOS host and can fail the
+# whole bundle instead of skipping cleanly.
 
 # Zoom — external meetings with parties who are not on Proton Meet. Corporate
 # reality on a work machine rather than a preference.

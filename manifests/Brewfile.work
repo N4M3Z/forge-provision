@@ -149,9 +149,9 @@ cask "thaw"
 # ── Containers (corporate OrbStack license; activate manually after install) ─
 cask "orbstack"
 
-# Apple container — per-container-VM runtime, the isolation tier beside
-# OrbStack's shared kernel. scripts/install/container.sh carries no scope gate.
-brew "container"
+# Apple container stays out of this manifest: scripts/install/container.sh gates
+# on Apple Silicon and macOS 26 and bootstraps the system service, and
+# `brew bundle` has no platform condition to reproduce those guards.
 
 # Mac App Store apps are intentionally NOT in this manifest: `mas` cannot sign
 # into the App Store from the CLI on current macOS, so an unsigned-in machine
