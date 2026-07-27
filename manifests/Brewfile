@@ -27,6 +27,17 @@ brew "N4M3Z/tap/proton-drive-cli"
 # Local LLM runner.
 cask "lm-studio"
 
+# CLIProxyAPI — fronts the CLI-based provider subscriptions (Claude, Codex,
+# Gemini/Antigravity, Grok, Qwen) and re-exposes them as OpenAI-, Claude-,
+# Gemini-, and Codex-compatible HTTP endpoints, so a harness points at one local
+# base URL instead of carrying its own provider auth. Binary is `cliproxyapi`.
+# Config path is compiled in at build time as /opt/homebrew/etc/cliproxyapi.conf
+# (a copy of the project's config.example.yaml), default port 8317, provider
+# tokens under ~/.cli-proxy-api. Runs as a launchd service via
+# `brew services start cliproxyapi`. Provider logins are interactive OAuth
+# (`cliproxyapi -<provider>-login`), so they stay outside provisioning.
+brew "cliproxyapi"
+
 # ollama and grok are deliberately absent. scripts/install/ollama.sh installs the
 # ollama-app cask and then launches and health-checks the daemon, so a bare
 # formula entry would add a second, divergent artifact. scripts/install/grok.sh

@@ -34,6 +34,12 @@ brew "N4M3Z/tap/proton-drive-cli"
 # ── AI harnesses and local inference ─────────────────────────────────────────
 cask "claude"
 cask "lm-studio"
+
+# CLIProxyAPI — one local endpoint (port 8317) re-exposing the CLI provider
+# subscriptions as OpenAI/Claude/Gemini/Codex-compatible APIs, so harnesses share
+# one auth path. Config at /opt/homebrew/etc/cliproxyapi.conf; provider logins
+# are interactive OAuth and stay outside provisioning.
+brew "cliproxyapi"
 brew "opencode"
 cask "antigravity-cli"
 cask "antigravity"
