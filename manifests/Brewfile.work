@@ -80,7 +80,12 @@ brew "shellcheck"
 brew "semgrep"
 
 # ── Identity, signing, and hardware keys ─────────────────────────────────────
-cask "yubico-authenticator"
+# yubico-authenticator is deliberately absent here while present in the full
+# manifest. Device management deploys it as a pkg (receipts com.yubico.ykman and
+# com.yubico.yubioath, app owned by root), so Homebrew does not own the bundle in
+# /Applications and its cask upgrade fails on every run. Declaring it would keep
+# `brew bundle check` permanently red for something IT already provides. The
+# `ykman` CLI below is the part provisioning does own.
 brew "openssh"
 tap "theseal/ssh-askpass"
 brew "theseal/ssh-askpass/ssh-askpass"
