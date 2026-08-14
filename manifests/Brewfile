@@ -2,6 +2,13 @@
 # Apply with: brew bundle install --file=manifests/Brewfile
 # Reference: https://github.com/Homebrew/homebrew-bundle
 
+# Bootstrap search tools. Provisioning scripts depend on these commands.
+brew "fd"
+brew "ripgrep"
+
+# GNU timeout bounds each Mac App Store installation.
+brew "coreutils"
+
 # Proton suite (the user is a Proton co-founder — defaults to Proton-native).
 cask "proton-drive"
 cask "proton-mail"
@@ -27,9 +34,10 @@ brew "N4M3Z/tap/proton-drive-cli"
 # Local LLM runner.
 cask "lm-studio"
 
-# AI coding agent (CLI). Configured locally with lm-studio + Proton Lumo as providers.
-# Config TBD — capture as scripts/configure/opencode.sh once provider files settle.
-brew "opencode"
+# OpenCode (AI coding agent CLI) is installed by scripts/install/opencode.sh
+# through the vendor installer: the core formula lags the weekly releases and
+# the harness updates itself in place. Configured locally with lm-studio +
+# Proton Lumo as providers; config TBD as scripts/configure/opencode.sh.
 
 # Antigravity CLI (Google's terminal coding agent). An independent cross-reviewer
 # alongside Claude Code and Codex. Config lives under ~/.gemini/; MCP servers are
@@ -45,17 +53,19 @@ cask "antigravity-cli"
 # does not pin its version.
 cask "antigravity"
 
-# Codex (OpenAI's coding-agent CLI). Independent cross-reviewer of Claude Code's
-# work via `codex exec review` in a read-only sandbox. Config deployed from
+# Codex (OpenAI's coding-agent CLI) is installed by scripts/install/codex.sh
+# through the vendor installer, not the cask: the cask lags the releases the
+# review models require. Independent cross-reviewer of Claude Code's work via
+# `codex exec review` in a read-only sandbox. Config deployed from
 # manifests/codex/ by scripts/configure/codex.sh; auth is interactive (codex login).
-cask "codex"
 
-# Codex desktop app (official OpenAI, separate from the CLI). Adds Computer Use,
-# which drives arbitrary macOS apps by seeing and clicking, gated behind macOS
-# Screen Recording + Accessibility grants (TCC, granted manually in System
-# Settings, not scriptable). Auto-updates itself, so Homebrew does not pin its
-# version. Shares ~/.codex/config.toml with the CLI.
-cask "codex-app"
+# ChatGPT desktop app — replaces the discontinued Codex desktop app (the
+# codex-app cask is deprecated upstream and will be disabled 2027-07-12; its
+# Computer Use features folded into the ChatGPT app). Computer Use stays gated
+# behind macOS Screen Recording + Accessibility grants (TCC, granted manually
+# in System Settings, not scriptable). Auto-updates itself, so Homebrew does
+# not pin its version. The Codex CLI (cask "codex" above) is separate.
+cask "chatgpt"
 
 # Modern rsync 3+ (Apple ships openrsync 2.6.9-compatible which lacks --info=progress2 etc).
 # scripts/migrate/claude-history.sh requires this.
@@ -238,6 +248,13 @@ brew "sequoia-sq"
 # entropy-flagged strings in git history + working tree. Deterministic, fast, runs
 # locally (no LLM). Pairs with deeper LLM-based scans via the SecretScan skill.
 brew "gitleaks"
+
+# act — runs GitHub Actions workflow YAML locally in Docker (OrbStack). The
+# runedeck review controller and seal checks are workflow-level logic, so
+# their unit tests prove the scripts and act proves the YAML around them.
+# Homebrew's formula is unpinned; the version that works is recorded in the
+# runedeck workshop (docs/todos), pin there if a newer act breaks a fixture.
+brew "act"
 
 # GitHub Desktop — GUI client.
 cask "github"
@@ -489,7 +506,9 @@ cask "raycast"
 
 # Cursor (AI-native editor). Sibling to the existing VS Code install; reuses
 # the VS Code extension ecosystem. Used for AI-assisted editing alongside
-# the terminal-first stack (helix, neovim, gitui).
+# the terminal-first stack (helix, neovim, gitui). The IDE has its own updater
+# and the cask is auto_updates upstream, so `brew upgrade` leaves it alone.
+# The Cursor CLI (`agent`) comes from scripts/install/cursor-agent.sh, not a cask.
 cask "cursor"
 
 # Zed: GPU-native editor; Claude Code runs in its agent panel via ACP.
@@ -611,9 +630,6 @@ cask "istat-menus"
 # readouts, runs inside Ghostty. Reference: https://github.com/aristocratos/btop
 brew "btop"
 
-# fd (find replacement, friendlier syntax, respects .gitignore by default).
-brew "fd"
-
 # Discord (official desktop app), contained by Little Snitch rather than
 # replaced by a third-party client. The official app carries a more-hardened
 # supply chain than a single-maintainer wrapper; its real cost (client
@@ -640,6 +656,14 @@ brew "cliproxyapi"
 # scripts/install/cpa-manager-plus.sh.
 # Reference: https://github.com/seakee/CPA-Manager-Plus
 brew "N4M3Z/tap/cpa-manager-plus"
+
+# Multica CLI plus the local agent runtime daemon as a brew service. Shadows
+# multica-ai/tap/multica, whose formula has no service block. The self-hosted
+# server is a Compose stack in ~/Developer/multica-server behind
+# https://multica.internal (Caddy block above the observability section).
+# Daemon config and login token live in ~/.multica; log in once with
+# `multica setup self-host` before `brew services start`.
+brew "N4M3Z/tap/multica"
 
 # dnsmasq — resolver for the `*.internal` service names, listening on 127.0.0.1
 # port 5354 (not 53, so it needs no root and cannot contend with anything else).
@@ -707,7 +731,6 @@ mas "Final Cut Pro",  id: 1631624924
 mas "GarageBand",     id: 682658836
 mas "iMovie",         id: 408981434
 mas "Logic Pro",      id: 1615087040
-mas "MainStage",      id: 6746637089
 mas "Motion",         id: 6746637149
 
 # Apple iWork
