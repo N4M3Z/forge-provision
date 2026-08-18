@@ -1,0 +1,137 @@
+# Caddy fronts the local services on :443, routing by Host header so their URLs
+# carry no port. Deployed to $(brew --prefix)/etc/Caddyfile by
+# scripts/configure/local-names.sh; run with `sudo brew services start caddy`
+# (binding 443 needs root).
+#
+# Names resolve via dnsmasq (manifests/dnsmasq/internal.conf) and TLS uses one
+# wildcard mkcert certificate, so adding a service means adding a block here and
+# nothing else. Backends stay plain HTTP on loopback: TLS terminates once, here.
+#
+# A block whose backend is not running answers 502 — expected, not a fault.
+#
+# Reference: https://caddyserver.com/docs/caddyfile
+# Source: https://github.com/N4M3Z/forge-provision
+
+{
+    # No ACME: every certificate here is the local mkcert wildcard.
+    auto_https disable_certs
+    admin off
+}
+
+# Caddy binds *:443 (the wildcard): macOS lets an unprivileged process bind a
+# low port only on all interfaces, never on a specific address — so a loopback
+# bind would demand root. The names still resolve to 127.0.0.1 and never leave
+# the machine; the LAN-facing listener is closed with a Little Snitch inbound
+# deny rule for caddy rather than with the bind address.
+
+# One mkcert certificate carrying every site name below as an explicit SAN.
+# A `*.internal` wildcard does not work: validators reject wildcards directly
+# under a top-level suffix (same rule that outlaws `*.com`). The configure
+# script derives the SAN list from this file's site blocks and reissues the
+# certificate whenever a name is missing, so adding a site here is still the
+# only step.
+# Shared per-site defaults. Access logging belongs here rather than in the
+# global block: a global `log` only reconfigures Caddy's runtime logger, while
+# HTTP access logs are a per-site directive. Without it, routing bugs behind
+# the proxy are invisible — each backend sees only what reached it, never what
+# Caddy answered or sent elsewhere.
+(internal_site) {
+    tls /opt/homebrew/etc/caddy/tls/internal.pem /opt/homebrew/etc/caddy/tls/internal-key.pem
+    log {
+        output file /opt/homebrew/var/log/caddy-access.log
+        format console
+    }
+}
+
+# ── AI stack ─────────────────────────────────────────────────────────────────
+
+# CLIProxyAPI. Note the harnesses deliberately keep using http://127.0.0.1:8317
+# directly, so Claude Code and Codex never depend on Caddy or dnsmasq; this name
+# is for browsing and ad-hoc calls.
+#
+# Bare `/` serves the API's endpoint-list JSON, not the management panel, so the
+# root redirects to the panel. The matcher is the exact path `/` (no trailing
+# `*`), leaving every API route — /v1/*, /v0/management/* — untouched.
+# cpamc.internal is the same host under the panel's own name, the Cli-Proxy-API
+# Management Center.
+cliproxy.internal, cpamc.internal {
+    import internal_site
+    redir / /management.html
+    reverse_proxy 127.0.0.1:8317
+}
+
+# CPA-Manager-Plus: per-harness token spend drained from the CLIProxyAPI usage queue.
+#
+# Everything on this host goes to CPAMP, including /v0/management/*. Routing that
+# prefix to CLIProxyAPI instead looks tempting — the panel calls it same-origin —
+# but it is wrong: the panel authenticates those calls with its own admin key,
+# which CLIProxyAPI rejects. The panel reaches CPA directly, cross-origin, for
+# the calls that need the CPA management key.
+usage.internal, cpamp.internal {
+    import internal_site
+    reverse_proxy 127.0.0.1:18317
+}
+
+# API only — no web UI exists. The root returns the plain-text "Ollama is
+# running" liveness string; everything useful is under /api/*.
+ollama.internal {
+    import internal_site
+    reverse_proxy 127.0.0.1:11434
+}
+
+# oMLX serves an OpenAI-compatible API; its root is a 404 and the browsable
+# surface is the generated API docs.
+omlx.internal {
+    import internal_site
+    redir / /docs
+    reverse_proxy 127.0.0.1:8001
+}
+
+# API only — LM Studio's interface is its desktop app, not a served page. A 401
+# at the root is correct: the API wants LMSTUDIO_API_KEY (see ~/.env).
+lmstudio.internal {
+    import internal_site
+    reverse_proxy 127.0.0.1:1234
+}
+
+# gbrain's MCP server (`gbrain serve --http --port 8787`), started on demand, so
+# 502 when it is down. API only: /mcp answers POST and /health answers GET. The
+# startup banner also advertises /admin, but that route 404s in this build —
+# confirmed against 127.0.0.1 directly, so it is gbrain, not this proxy.
+# Root stays unredirected rather than pointing at a path that does not serve a UI.
+#
+# Two names, one backend: `brain` is the engine, `memex` is how it is addressed
+# in practice (the Memex skill, `memex query`). Both are listed so either reads
+# naturally in a URL bar; the certificate carries both as SANs.
+brain.internal, memex.internal {
+    import internal_site
+    reverse_proxy 127.0.0.1:8787
+}
+
+# ── Observability stack ──────────────────────────────────────────────────────
+# Provisioned by scripts/configure/observability.sh.
+
+grafana.internal {
+    import internal_site
+    reverse_proxy 127.0.0.1:3000
+}
+
+prometheus.internal {
+    import internal_site
+    reverse_proxy 127.0.0.1:9090
+}
+
+# VictoriaLogs holds the harness event stream (tool_decision / tool_result), the
+# log half of the stack Prometheus covers for metrics. Its root serves an API
+# index rather than a page, so the browsable surface is vmui — named for the
+# service, not the UI, since VictoriaMetrics ships a vmui of its own.
+victorialogs.internal {
+    import internal_site
+    redir / /select/vmui/
+    reverse_proxy 127.0.0.1:9428
+}
+
+alloy.internal {
+    import internal_site
+    reverse_proxy 127.0.0.1:12345
+}

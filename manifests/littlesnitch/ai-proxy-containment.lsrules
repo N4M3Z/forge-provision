@@ -1,0 +1,69 @@
+{
+    "name": "AI Proxy Containment",
+    "description": "Outbound allowlist for the local AI subscription proxy and its usage dashboard. CLIProxyAPI holds every model subscription credential and sees every prompt, so it reaches model vendors plus two named exceptions and nothing else: the binary also embeds public-IP lookup services (ipify, ifconfig.me, ipinfo.io) and maintainer-operated hosts (router-for.me), none of which are needed to serve requests and all of which the catch-all deny covers. CPA-Manager-Plus reads the proxy's usage queue over loopback and needs no internet access at all. Process paths are stable across upgrades: Homebrew execs the /opt symlink rather than the versioned Cellar path, and the dashboard is installed to a fixed location. Vendor entries are apex domains, which Little Snitch matches for subdomains too. Only providers with credentials on this machine are listed; adding a provider means adding its domain here. This constrains side channels, not the vendor channel itself: a compromised proxy could still embed stolen data in a legitimate request to a vendor it is allowed to reach, so this complements binary provenance rather than replacing it. See PROV-0013 for the wider Little Snitch approach.",
+    "rules": [
+        {
+            "action": "allow",
+            "process": "/opt/homebrew/opt/cliproxyapi/bin/cliproxyapi",
+            "ports": "443",
+            "remote-domains": [
+                "anthropic.com",
+                "claude.ai",
+                "openai.com",
+                "chatgpt.com",
+                "googleapis.com",
+                "google.com",
+                "x.ai",
+                "grok.com",
+                "proton.me"
+            ],
+            "notes": "Model vendors and their OAuth token-refresh endpoints."
+        },
+        {
+            "action": "allow",
+            "process": "/opt/homebrew/opt/cliproxyapi/bin/cliproxyapi",
+            "ports": "443",
+            "remote-domains": [
+                "github.com",
+                "githubusercontent.com"
+            ],
+            "notes": "Management panel assets, re-checked on every startup. Deliberate: the panel tracks upstream. This is the one path by which remote code reaches the page that holds the management key."
+        },
+        {
+            "action": "allow",
+            "process": "/opt/homebrew/opt/cliproxyapi/bin/cliproxyapi",
+            "ports": "443",
+            "remote-domains": [
+                "antigravity-hub-auto-updater-974169037036.us-central1.run.app"
+            ],
+            "notes": "Antigravity auto-updater, contacted at startup for the antigravity credential. Named in full rather than allowing run.app, which would open every Cloud Run service anyone operates."
+        },
+        {
+            "action": "allow",
+            "process": "/opt/homebrew/opt/cliproxyapi/bin/cliproxyapi",
+            "remote": "dns-servers",
+            "notes": "Go can resolve names in-process instead of via mDNSResponder; without this the catch-all deny would break name resolution rather than block egress."
+        },
+        {
+            "action": "deny",
+            "process": "/opt/homebrew/opt/cliproxyapi/bin/cliproxyapi",
+            "remote": "any",
+            "notes": "Catch-all. Blocks IP-lookup services, maintainer hosts, and GitHub panel/plugin downloads."
+        },
+        {
+            "action": "allow",
+            "process": "/Users/N4M3Z/.cpa-manager-plus/cpa-manager-plus",
+            "remote-addresses": [
+                "127.0.0.1",
+                "::1"
+            ],
+            "notes": "Reaches the proxy and its own dashboard on loopback."
+        },
+        {
+            "action": "deny",
+            "process": "/Users/N4M3Z/.cpa-manager-plus/cpa-manager-plus",
+            "remote": "any",
+            "notes": "Makes no external connection on its own: its only non-local calls are three model-price catalogs (models.dev, litellm, openrouter) fetched on demand when sync is clicked in the panel, and its release-version card runs in the browser rather than the daemon. Denying costs only that optional price sync, which fails visibly."
+        }
+    ]
+}

@@ -1,0 +1,7 @@
+--config.file=/opt/homebrew/etc/prometheus.yml
+--storage.tsdb.path=/Users/N4M3Z/Data/Telemetry/prometheus
+--web.listen-address=127.0.0.1:9090
+--web.enable-remote-write-receiver
+--web.enable-otlp-receiver
+--storage.tsdb.retention.time=90d
+--storage.tsdb.retention.size=2GB

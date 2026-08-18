@@ -75,9 +75,29 @@ notifications = true
 
 # Read-only cross-reviewer: cannot edit, cannot prompt.
 # Invoke: codex --profile review "review the staged diff"
+# Escape hatch when the proxy is down or unwanted: restores the vendor provider
+# for one invocation. `noproxy codex` selects it automatically.
+[profiles.direct]
+model_provider = "openai"
+
 [profiles.review]
 approval_policy = "never"
 sandbox_mode = "read-only"
+model_reasoning_effort = "high"
+
+# GPT 5.6 Sol via the local CLIProxyAPI on loopback. The provider reads the
+# client key from CLIPROXY_API_KEY_CODEX (~/.env), so no secret lives in this
+# file and CPA-Manager-Plus attributes this harness's spend separately.
+# Invoke: codex --profile sol   (or: rune launch sol@codex)
+[model_providers.cliproxyapi]
+name = "cliproxyapi"
+base_url = "http://127.0.0.1:8317/v1"
+wire_api = "responses"
+env_key = "CLIPROXY_API_KEY_CODEX"
+
+[profiles.sol]
+model_provider = "cliproxyapi"
+model = "gpt-5.6-sol"
 model_reasoning_effort = "high"
 
 # --- Command policy (Claude's sandbox.excludedCommands has no static analog) ---

@@ -104,6 +104,8 @@ brew "fd"
 brew "btop"
 brew "mas"
 brew "cloudflare-wrangler"
+tap "guumaster/tap"
+brew "guumaster/tap/hostctl"
 
 # ── Browsers and communication ───────────────────────────────────────────────
 cask "google-chrome"

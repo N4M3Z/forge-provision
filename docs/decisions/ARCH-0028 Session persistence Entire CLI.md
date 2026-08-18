@@ -51,7 +51,7 @@ The user explicitly rejected the [git-ai][GITAI] project and dislikes MCP-based 
 3. **git-prompt-story** — stalled (5 stars, "not for public yet"); not viable.
 4. **SpecStory** — alive, writes readable markdown to `.specstory/history/`, but anchoring to commits is manual and it commits files into the repo rather than a side branch.
 5. **Plain sync of `~/.claude/projects/`** (rsync/syncthing/dedicated repo) — preserves the full multi-file DAG but has no commit anchor, no provenance, and is path-coupled (the encoded-cwd dir differs per machine, so resume needs a rehash/restore step regardless).
-6. **Entire CLI** — [Entire][ENTIRE] (Nat Friedman, MIT, actively maintained). Checkpoints the full transcript onto a per-session `entire/<hash>` branch; resume restores Claude's native session log and prints `claude --resume <id>`. Branch-based storage sidesteps the 1MB note cap, the refspec footgun, and rebase-orphaning that plague the notes approach.
+6. **Entire CLI** — [Entire][ENTIRE] (Thomas Dohmke, MIT, actively maintained). Checkpoints the full transcript onto a per-session `entire/<hash>` branch; resume restores Claude's native session log and prints `claude --resume <id>`. Branch-based storage sidesteps the 1MB note cap, the refspec footgun, and rebase-orphaning that plague the notes approach.
 
 ## Decision Outcome
 

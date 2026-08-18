@@ -327,10 +327,23 @@ brew "graphviz"
 tap "specstoryai/tap"
 brew "specstory"
 
-# otel-tui — live OTLP viewer (single Go binary) for the full Claude Code + SpecStory
-# telemetry (dot_config/zsh/otel.zsh exports). otel-lgtm + Grafana is the durable option.
+# otel-tui — live OTLP viewer (single Go binary) for ad-hoc inspection of a single
+# session. It views but does not persist; the stack below is the durable layer.
 tap "ymtdzzz/tap"
 brew "ymtdzzz/tap/otel-tui"
+
+# AI-harness observability, all native services, no containers. Claude Code, Codex and
+# Grok already export OTLP to localhost:4318; Alloy owns that port and fans out, so no
+# harness config changes hands. Wired by scripts/configure/observability.sh.
+#   alloy  :4318/:4317  OTLP in, standard paths every harness expects
+#   prometheus   :9090  metrics, capped by --storage.tsdb.retention.size
+#   victorialogs :9428  events, capped by -retention.maxDiskSpaceUsageBytes
+#   grafana      :3000  dashboards (grafana.com IDs 25255, 25052)
+# Sizing: eight Claude Code metrics at 60s plus event logs stays under 2 GB a year.
+brew "grafana-alloy"
+brew "prometheus"
+brew "victorialogs"
+brew "grafana"
 
 # Mac App Store CLI for inventory and reinstalls.
 brew "mas"
@@ -478,6 +491,52 @@ brew "fd"
 # telemetry, native modules, process scanning) is constrained at the network
 # layer instead. See PROV-0011 and ARCH-0030. Reference: https://discord.com/
 cask "discord"
+
+# CLIProxyAPI — local gateway (127.0.0.1:8317) fronting the Claude, Codex, and
+# Gemini subscription credentials with an OpenAI/Anthropic-compatible API, so
+# every coding harness routes through one metered point. Config lives at
+# $(brew --prefix)/etc/cliproxyapi.conf, managed by
+# scripts/configure/cliproxyapi-usage.sh; account credentials in
+# ~/.cli-proxy-api/. Spend is drained per harness key by CPA-Manager-Plus
+# (scripts/install/cpa-manager-plus.sh). Tracks upstream deliberately — no pin.
+# Reference: https://github.com/router-for-me/CLIProxyAPI
+brew "cliproxyapi"
+
+# CPA-Manager-Plus — persistence and dashboard layer for CLIProxyAPI's usage
+# queue: drains per-request records into SQLite (~/.cpa-manager-plus/data/) and
+# serves https://usage.internal on 127.0.0.1:18317. Formula in the personal tap
+# (upstream ships binary releases only); the bin wrapper pins the working
+# directory so the app finds its data beside ~/.cpa-manager-plus. Runs under
+# `brew services`. Admin key and loopback bind converge via
+# scripts/install/cpa-manager-plus.sh.
+# Reference: https://github.com/seakee/CPA-Manager-Plus
+brew "N4M3Z/tap/cpa-manager-plus"
+
+# dnsmasq — resolver for the `*.internal` service names, listening on 127.0.0.1
+# port 5354 (not 53, so it needs no root and cannot contend with anything else).
+# /etc/resolver/internal scopes macOS to send only that suffix here, leaving
+# system DNS — and therefore ProtonVPN and Tailscale resolution — untouched.
+# One wildcard line covers every present and future service. Config fragment
+# from manifests/dnsmasq/, deployed by scripts/configure/local-names.sh.
+brew "dnsmasq"
+
+# Caddy — reverse proxy terminating TLS on :443 for the `*.internal` names,
+# routing by Host header to each service's loopback port so URLs carry no port.
+# Binds *:443 unprivileged (macOS allows users the wildcard bind on low ports)
+# and runs as a user LaunchAgent via `brew services start caddy`; the LAN face
+# of that wildcard is closed by a Little Snitch inbound deny, verified by
+# scripts/verify/local-names.sh. Serves mkcert certificates; backends stay
+# plain HTTP on loopback.
+# Caddyfile from manifests/caddy/, deployed by scripts/configure/local-names.sh.
+brew "caddy"
+
+# hostctl — /etc/hosts manager with named profiles, so a group of entries can be
+# enabled or disabled as a unit instead of hand-editing. Not part of the
+# `*.internal` naming stack (dnsmasq owns that); this is for the cases that need
+# a static override — pinning a hostname during a migration, or bypassing DNS to
+# test against a specific backend. Reference: https://guumaster.github.io/hostctl/
+tap "guumaster/tap"
+brew "guumaster/tap/hostctl"
 
 # Little Snitch (outbound application firewall). Per-app, per-domain rules
 # with wildcard matching, used to block Discord's telemetry endpoints while
