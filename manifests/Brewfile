@@ -159,12 +159,10 @@ brew "yt-dlp"
 # swiss-army-knife (transcode, trim, concat) in its own right.
 brew "ffmpeg"
 
-# tlrc — the tldr-pages project's official Rust client (https://github.com/tldr-pages/tlrc).
-# Provides the `tldr` command: community-curated, example-first cheatsheets that answer
-# "what are the three flags I actually use" far faster than a full man page. Tracks the
-# tldr-pages spec directly. Conflicts with tealdeer and the Node `tldr` client (all three
-# install a `tldr` binary), so pick one — this is the official one.
-brew "tlrc"
+# tealdeer — native Rust tldr client with first-class custom and patch pages.
+# Forge pages extend upstream help with this machine's tool connections. It
+# conflicts with tlrc and the Node client because each installs `tldr`.
+brew "tealdeer"
 
 # pandoc — universal markup converter. Reads/writes markdown, HTML, LaTeX,
 # DOCX, EPUB, reST, org-mode, and ~30 more formats; the standard tool for

@@ -90,7 +90,7 @@ cask "font-atkinson-hyperlegible-mono"
 
 # ── Documents and rendering ──────────────────────────────────────────────────
 brew "glow"
-brew "tlrc"
+brew "tealdeer"
 brew "pandoc"
 brew "typst"
 brew "poppler"

@@ -34,6 +34,13 @@ repos:
             pass_filenames: false
             stages: [pre-push]
 
+          - id: tldr-pages
+            name: validate tldr pages
+            entry: scripts/validate/tldr-pages.sh
+            language: system
+            pass_filenames: false
+            files: ^(docs/tldr-pages/|scripts/(configure|validate|verify)/tldr-pages\.sh$)
+
           - id: forge-validate
             name: forge validate
             entry: forge validate

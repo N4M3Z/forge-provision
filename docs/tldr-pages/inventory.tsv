@@ -1,0 +1,66 @@
+command	state	guide	reason
+agy	full	docs/tldr/antigravity.md	Primary Antigravity CLI command and local sandbox wrapper.
+antigravity	full	docs/tldr/antigravity.md	Discovery alias for the Antigravity CLI product name.
+claude	full	-	Local wrapper adds proxy selection, tmux identity, and capture.
+cliproxyapi	full	-	Local provider logins and management mode need concise examples.
+cmux	full	docs/tldrs/cmux.md	Local hooks, resume pins, and crex persistence extend normal use.
+codex	full	docs/tldr/codex.md	Local review profile, hooks, and MCP ownership need one page.
+dcg	full	-	Agent safety hooks require direct test and diagnosis commands.
+entire	full	docs/tldrs/entire.md	Local-only checkpoint policy changes the safe enable command.
+gbrain	full	-	The personal knowledge-brain command has no useful upstream page.
+gitui	patch	-	Local configuration and repository selection extend the upstream page.
+grok	full	-	Local proxy routing and shared capture change normal invocation.
+jj	patch	docs/tldrs/jujutsu.md	Local workspace and stacked-change practices extend the upstream page.
+jjui	full	-	The terminal Jujutsu browser has no reliable upstream page.
+markdown-oxide	full	docs/tldr/markdown-oxide.md	The Zed extension and moxide configuration path form a local connection.
+memex	full	-	This local wrapper selects the personal database and embedding limit.
+opencode	full	-	Local capture and automated-review policy change normal invocation.
+pass	patch	docs/tldr/pass.md	YubiKey migration and pass-otp examples extend the upstream page.
+pxpipe	full	docs/tldr/pxpipe.md	The Claude wrapper controls proxy startup and direct fallback.
+review-clip	full	-	This personal command exports Zed markers as review Markdown.
+review-strip	full	-	This personal command removes or gates Zed review markers.
+revdiff	full	docs/tldrs/revdiff.md	Local defaults and annotation workflow need a concise page.
+rtk	full	-	Agent hooks and output compaction need direct setup and verification examples.
+sabiql	full	-	The brain database browser has no useful upstream page.
+sd	full	-	The personal command tree connects agents, Zed, tmux, and tldr.
+sesh	full	-	The local tmux binding uses a specific combined picker invocation.
+tldr	patch	-	Tealdeer paths and the sd alias extend the upstream page.
+tmux	patch	docs/tldrs/tmux.md	Stable session identifiers and the local project resolver prevent dot-name failures.
+tuicr	full	docs/tldrs/tuicr.md	The local wrapper and annotation export differ from the bare binary.
+wrangler	patch	docs/tldrs/wrangler.md	Profiles, pass tokens, and temporary deploys extend the upstream page.
+zed	full	docs/tldr/zed.md	The local sd dispatcher and personal build add essential commands.
+zed-run	full	-	This personal wrapper preserves Zed selection and file context.
+atuin	upstream	-	The upstream page covers history search and synchronization.
+btop	upstream	-	The upstream page covers the provisioned monitor without local behavior.
+chezmoi	upstream	-	The upstream page covers apply, diff, and source-state workflows.
+fd	upstream	-	The upstream page covers the provisioned file finder.
+fzf	upstream	-	The upstream page covers the provisioned fuzzy finder.
+gh	upstream	-	The upstream page covers GitHub authentication and repository actions.
+gitleaks	upstream	-	The upstream page covers repository secret scanning.
+git	upstream	-	Long signing decisions remain in guides, while normal commands use upstream help.
+glow	upstream	-	The upstream page covers terminal Markdown rendering.
+gpg	upstream	docs/tldr/YubiKey GPG.md	The page covers commands, while the guide owns the hardware ceremony.
+hostctl	upstream	-	The upstream page covers host-profile management.
+jq	upstream	-	The upstream page covers JSON queries.
+ollama	upstream	-	The upstream page covers local model service and model commands.
+orbstack	upstream	-	The upstream page covers the command-line surface.
+pandoc	upstream	-	The upstream page covers document conversion.
+psql	upstream	-	The upstream page covers PostgreSQL access and queries.
+ruff	upstream	-	The upstream page covers linting and formatting.
+shellcheck	upstream	-	The upstream page covers shell analysis.
+typst	upstream	-	The upstream page covers compilation and watch mode.
+uv	upstream	-	The upstream page covers environments, tools, and Python commands.
+ykman	upstream	docs/tldr/YubiKey GPG.md	The page covers card commands, while the guide owns touch policy.
+yq	upstream	-	The upstream page covers YAML queries.
+zoxide	upstream	-	The upstream page covers directory database and shell integration.
+crex	exempt	docs/tldrs/cmux.md	The cmux page includes the stable crex save and restore connection.
+cpa-manager-plus	exempt	-	This managed service exposes a web interface, not a daily CLI workflow.
+forge	exempt	-	Forge CLI owns generated command help and changes faster than this provision repository.
+forge-deploy	exempt	-	This internal provision action has no user-facing command contract.
+forge-gates	exempt	-	This internal hook installer has no user-facing command contract.
+lm-studio	exempt	-	The provisioned application uses a graphical interface and OpenAI-compatible endpoint.
+omlx	exempt	-	A managed launch service owns normal operation; operators use its native help for maintenance.
+review-kinds	exempt	-	Other review commands call this internal marker-schema helper.
+tv	exempt	-	Zed invokes Television through a task; normal interactive use has built-in discovery.
+zed-dev	exempt	docs/tldr/zed.md	The zed page covers the personal bundle through sd zed commands.
+zed-repl-kernel	exempt	-	This provision action installs kernels and has no stable daily command.
