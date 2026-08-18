@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>forge.victorialogs</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/homebrew/opt/victorialogs/bin/victoria-logs</string>
+        <string>-httpListenAddr=127.0.0.1:9428</string>
+        <string>-storageDataPath=/Users/N4M3Z/Data/Telemetry/victorialogs</string>
+        <string>-retentionPeriod=90d</string>
+        <string>-retention.maxDiskSpaceUsageBytes=5GiB</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/opt/homebrew/var/log/victorialogs.log</string>
+    <key>StandardErrorPath</key>
+    <string>/opt/homebrew/var/log/victorialogs.log</string>
+</dict>
+</plist>

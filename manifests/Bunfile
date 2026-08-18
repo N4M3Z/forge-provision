@@ -12,3 +12,10 @@ defuddle-cli
 # ccline (@cometix/ccline) - Claude Code status-line renderer; manifests/
 # claude-settings.json points statusLine.command at ~/.bun/bin/ccline.
 @cometix/ccline
+
+# ccusage - terminal usage tables parsed from local Claude Code / Codex
+# transcripts. Token counts are trustworthy; the cost column is only valid for
+# direct-vendor traffic (proxied models price wrong or not at all). The
+# authoritative per-harness meter is CPA-Manager-Plus on the CLIProxyAPI
+# usage queue (scripts/install/cpa-manager-plus.sh).
+ccusage

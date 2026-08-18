@@ -1,17 +1,16 @@
 ---
 title: tldr client
-description: The tldr-pages client providing the `tldr` command is tlrc, the project's official Rust client, chosen over the community client tealdeer and the original Node.js client for being official, spec-tracking, and a fast native binary. All three share the `tldr` binary, so only one installs.
+description: Tealdeer provides the tldr command because forge-provision requires native custom pages and patch pages for local tool connections.
 type: adr
 category: tooling
 tags:
     - tldr
-    - tlrc
     - tealdeer
     - cli
     - documentation
 status: accepted
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-08-14
 author: "@N4M3Z"
 project: forge-provision
 related:
@@ -27,28 +26,57 @@ upstream: []
 
 ## Context and Problem Statement
 
-Man pages are exhaustive but slow to answer the common question "what are the three flags I actually use for this command." The tldr-pages project provides community-curated, example-first cheatsheets that answer it directly, and the value lives in a client that fetches and renders those pages at the terminal. A client has to be installed to get the `tldr` command.
+The `tldr` command shows short, example-first command help. Forge-provision also
+needs pages for personal commands and local tool connections.
 
-The constraint is that the obvious candidates all install a binary named `tldr` and therefore conflict in Homebrew, so exactly one can be present. The tldr-pages project maintains three official clients (Rust, Python, Node.js), and a popular community client, tealdeer, also exists. The choice is which single one to provision.
+The initial decision selected tlrc. Tlrc is the official Rust client, but it
+has no supported custom-page directory. Its cache workaround omits custom pages
+from normal listing and completion.
+
+Tealdeer supports a configured custom-page directory. It can replace an
+upstream page or append local examples to it.
+
+All clients install a binary named `tldr`, so only one client can be installed.
+
+## Decision Drivers
+
+- Custom pages must use normal `tldr <command>` lookup.
+- Local examples must extend useful upstream pages without copying them.
+- The client must show its active page and configuration paths.
+- Forge-provision must validate pages without network access.
+- The client must remain a fast native binary.
 
 ## Considered Options
 
-1. **tlrc** — the tldr-pages project's official Rust client. Tracks the page spec directly, actively maintained, fast native binary.
-2. **tealdeer** — a community Rust client, older and more widely installed, the one general "modern Unix" roundups tend to recommend. Not official.
-3. **Node.js tldr** — the original official client. Heavier, requires a Node runtime, and has fallen behind in updates per the tldr-pages project.
+1. **Tealdeer** provides custom pages, patch pages, and `--show-paths`.
+2. **Tlrc** is official, but custom pages depend on an undocumented cache workaround.
+3. **Node.js tldr** is official, but it requires a heavier runtime.
 
 ## Decision Outcome
 
-Chosen option: **tlrc**, because it is the official tldr-pages client and tracks the page specification first, so spec changes land in it before community clients. It is a fast native Rust binary, which fits the rest of the Rust-native CLI stack (ripgrep, fd, bat, and the like). tealdeer is functionally equivalent for daily use and has a larger user base, but it is unofficial; the Node.js client is heavier and lagging. Since the three install the same `tldr` binary and cannot coexist, the official, actively maintained, native option is the clean pick.
+Chosen option: **tealdeer**.
+
+Forge-provision stores strict pages in `docs/tldr-pages/`. Tealdeer reads that
+directory through `custom_pages_dir`.
+
+A `<command>.page.md` file replaces an upstream page. A
+`<command>.patch.md` file appends local examples to an upstream page.
+
+Long-form guides remain separate because their structure does not satisfy the
+tldr page specification.
 
 ### Consequences
 
-- [+] Official client receives spec changes first
-- [+] Native Rust binary consistent with the rest of the CLI tooling
-- [-] Smaller user base than tealdeer, though the two are functionally equivalent for everyday lookups
-- [-] The page cache is populated on first lookup (or via `tldr --update`); a first run with no cache needs network access
+- [+] Personal commands use the normal `tldr` interface.
+- [+] Patch pages add local examples without copying upstream content.
+- [+] `tldr --show-paths` explains which directories tealdeer uses.
+- [+] Custom pages participate in normal listing and completion.
+- [-] Tealdeer is a community client, not the official tldr-pages client.
+- [-] Existing tlrc installations must be replaced because both clients install `tldr`.
 
 ## Links
 
-- [tlrc](https://github.com/tldr-pages/tlrc) — the official tldr-pages Rust client
-- [tldr-pages](https://github.com/tldr-pages/tldr) — the community cheatsheet collection the client renders
+- [Tealdeer](https://github.com/tealdeer-rs/tealdeer)
+- [Custom pages and patches](https://tealdeer-rs.github.io/tealdeer/usage_custom_pages.html)
+- [Custom page directory](https://tealdeer-rs.github.io/tealdeer/config_directories.html)
+- [tldr-pages](https://github.com/tldr-pages/tldr)

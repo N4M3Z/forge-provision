@@ -1,0 +1,52 @@
+// Grafana Alloy: the single OTLP endpoint every AI harness already exports to.
+//
+// Claude Code, Codex and Grok are all configured for http://localhost:4318 with the
+// standard OTLP paths. Prometheus serves /api/v1/otlp/v1/metrics and VictoriaLogs
+// /insert/opentelemetry/v1/logs, so neither can receive those exports directly:
+// Codex hardcodes the standard paths and Grok exposes only a base endpoint. Alloy
+// owns 4318, speaks standard OTLP, and fans out to both backends, which keeps the
+// harness configs untouched.
+
+otelcol.receiver.otlp "harnesses" {
+    http {
+        endpoint = "127.0.0.1:4318"
+    }
+
+    grpc {
+        endpoint = "127.0.0.1:4317"
+    }
+
+    output {
+        metrics = [otelcol.processor.batch.default.input]
+        logs    = [otelcol.processor.batch.default.input]
+    }
+}
+
+otelcol.processor.batch "default" {
+    output {
+        metrics = [otelcol.exporter.prometheus.metrics.input]
+        logs    = [otelcol.exporter.otlphttp.logs.input]
+    }
+}
+
+otelcol.exporter.prometheus "metrics" {
+    forward_to = [prometheus.remote_write.local.receiver]
+}
+
+prometheus.remote_write "local" {
+    endpoint {
+        url = "http://127.0.0.1:9090/api/v1/write"
+    }
+}
+
+// The otlphttp exporter appends /v1/logs, so the endpoint stops one segment short
+// of VictoriaLogs' documented /insert/opentelemetry/v1/logs path.
+otelcol.exporter.otlphttp "logs" {
+    client {
+        endpoint = "http://127.0.0.1:9428/insert/opentelemetry"
+
+        tls {
+            insecure = true
+        }
+    }
+}

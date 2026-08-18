@@ -90,7 +90,7 @@ cask "font-atkinson-hyperlegible-mono"
 
 # ── Documents and rendering ──────────────────────────────────────────────────
 brew "glow"
-brew "tlrc"
+brew "tealdeer"
 brew "pandoc"
 brew "typst"
 brew "poppler"
@@ -104,6 +104,8 @@ brew "fd"
 brew "btop"
 brew "mas"
 brew "cloudflare-wrangler"
+tap "guumaster/tap"
+brew "guumaster/tap/hostctl"
 
 # ── Browsers and communication ───────────────────────────────────────────────
 cask "google-chrome"

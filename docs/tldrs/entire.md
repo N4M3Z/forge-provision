@@ -1,6 +1,6 @@
 # entire
 
-AI-session checkpoint + resume for Claude Code and other agents (entireio/cli, Nat Friedman, MIT). Session hooks capture the full transcript onto a per-session git branch; a git-hook layer links each checkpoint to the commit it produced. **Two layers: local checkpoint/session (works offline) and a cloud layer (recap team view, activity, search, dispatch) behind `entire login`.** `checkpoint search` queries the hosted index, so it stays empty under `--skip-push-sessions`. Verified against 0.7.8. See [ARCH-0028](../decisions/ARCH-0028%20Session%20persistence%20Entire%20CLI.md).
+AI-session checkpoint + resume for Claude Code and other agents (entireio/cli, Thomas Dohmke, MIT). Session hooks capture the full transcript onto a per-session git branch; a git-hook layer links each checkpoint to the commit it produced. **Two layers: local checkpoint/session (works offline) and a cloud layer (recap team view, activity, search, dispatch) behind `entire login`.** `checkpoint search` queries the hosted index, so it stays empty under `--skip-push-sessions`. Verified against 0.7.8. See [ARCH-0028](../decisions/ARCH-0028%20Session%20persistence%20Entire%20CLI.md).
 
 ## Local commands (no login)
 
