@@ -349,6 +349,48 @@ brew "vjeantet/tap/alerter"
 tap "drolosoft/tap"
 brew "drolosoft/tap/cmux-resurrect"
 
+# herdr — agent multiplexer: a tmux-class terminal that tracks whether each
+# coding agent is working, blocked, done, or idle, with a socket API and a
+# JSON CLI for scripted control. Supports the full local roster (Claude
+# Code, Codex, OpenCode, pi, Grok, Antigravity).
+brew "herdr"
+
+# miller (binary: mlr) — awk for structured data: named-field operations over
+# CSV, TSV, and JSON. The house rule sends YAML and JSON parsing to yq and jq;
+# miller covers the tabular cases those two handle poorly.
+brew "miller"
+
+# sd — intuitive find-and-replace, the Rust sed alternative. The earlier name
+# collision with the personal script dispatcher (PROV-0024) is resolved: the
+# dispatcher migrates to just recipes, and the sd name belongs to this tool.
+brew "sd"
+
+# just — command runner, the modern make successor: recipes without build
+# semantics, dotenv loading, and modules. The target of the script-dispatcher
+# migration that supersedes PROV-0024's `sd` command.
+brew "just"
+
+# difftastic (binary: difft) — structural diff: parses code with tree-sitter
+# and diffs syntax trees, so reformatting and moved blocks stop drowning the
+# real change. On-demand second opinion beside delta: `jj diff --tool difft`.
+brew "difftastic"
+
+# watchexec — run a command on file change. The local watch primitive: D2
+# render on save, lint on save outside harnesses, serve-and-watch shims.
+brew "watchexec"
+
+# jless — JSON and YAML pager TUI. The reading half of the data stack: rudof
+# JSON reports, bench matrices, and herdr CLI output without jq sculpting.
+brew "jless"
+
+# taplo — TOML linter and formatter for the growing TOML fleet (dcg, typos,
+# rumdl, codex configs). Guarded prek hook candidate beside check-yaml.
+brew "taplo"
+
+# shfmt — shell formatter beside shellcheck: shellcheck finds bugs, shfmt
+# stops style drift across the hook and script surface.
+brew "shfmt"
+
 # direnv — per-directory environment loader. Wired into zsh via
 # `eval "$(direnv hook zsh)"` in the shell rc. A directory's .envrc loads on
 # entry and unloads on exit. The offline key vault ships an .envrc
