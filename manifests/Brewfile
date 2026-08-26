@@ -83,6 +83,27 @@ brew "ruff"
 # GitHub CLI — repo creation, ssh-key registration, gh auth.
 brew "gh"
 
+# ast-grep — structural (tree-sitter) code search and rewrite. The agent
+# escalation path is: rg for content, ast-grep for structural queries.
+# Structural matches return fewer, more precise results than a regex over
+# code, which saves agent context. CodeRabbit and the official ast-grep
+# agent skill use the same doctrine.
+brew "ast-grep"
+
+# hyperfine — statistical CLI benchmarking with warmup and outlier
+# detection. The standard for performance claims about CLI tools; used to
+# measure rune and the other Rust binaries in this stack.
+brew "hyperfine"
+
+# git-delta — word-level, side-by-side diff pager for human review.
+# Complements tuicr and revdiff for quick `git diff` reads; agents do not
+# use it (rtk compacts their diffs instead).
+brew "git-delta"
+
+# colordiff — colorized plain diff for non-git contexts (file-to-file
+# comparisons, pipes) where the delta git pager does not apply.
+brew "colordiff"
+
 # gitui (Rust-based terminal UI for git). Replaces SourceTree for the day-to-day
 # stage/commit/rebase/stash flow without leaving the terminal. Faster startup
 # than lazygit, leaner feature surface. Vim-style keys; `?` shows the keymap.
