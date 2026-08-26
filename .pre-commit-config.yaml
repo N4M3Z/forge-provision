@@ -22,7 +22,7 @@ repos:
 
           - id: gitleaks
             name: gitleaks
-            entry: gitleaks git --no-banner .
+            entry: gitleaks git --no-banner --log-opts "HEAD --not --remotes" .
             language: system
             pass_filenames: false
             stages: [pre-push]
