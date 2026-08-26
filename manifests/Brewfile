@@ -262,6 +262,50 @@ brew "atuin"
 # fzf picker. cd stays the zsh builtin. Coexists with atuin (history).
 brew "zoxide"
 
+# ─── Prose, spec, and artifact gates (deck DECK-0010) ───────────────────────
+# The declared-world lint row. Each tool is a single binary, runs locally,
+# and backs a guarded prek hook in the runedeck repositories.
+
+# prek — pre-commit-compatible hook runner (Rust). Executes the universal
+# .pre-commit-config.yaml in every scaffolded repository.
+brew "prek"
+
+# rumdl — markdownlint-compatible markdown linter (Rust). MD013/MD025/MD041
+# are off in repo configs because frontmatter carries the title.
+brew "rumdl"
+
+# lychee — link checker (Rust). Offline mode with fragment checks gates
+# relative links; online sweeps stay scheduled CI jobs.
+brew "lychee"
+
+# typos — source-aware spell checker (Rust). Repo typos.toml excludes key
+# material, provenance sidecars, and vendored style packages.
+brew "typos-cli"
+
+# vale — prose style engine (Go). Runs the STE style plus the vendored
+# Deslop package for machine-writing tells.
+brew "vale"
+
+# zizmor — GitHub Actions security auditor (Rust). Pairs with actionlint.
+brew "zizmor"
+
+# actionlint — GitHub Actions schema and shell linter (Go).
+brew "actionlint"
+
+# d2 — declarative diagram DSL (Go). Readable source agents can edit,
+# SVG at build time, ASCII output for tmux review. Mermaid stays only
+# where GitHub renders it natively.
+brew "d2"
+
+# svgbob — hand-drawn ASCII art to SVG (Rust). Renders legacy ASCII
+# diagrams as-is; new schematics use d2. Installed, not wired.
+brew "svgbob"
+
+# flameshot — screenshot annotation with a scriptable CLI. Installed, not
+# wired; macOS native capture plus a fixed screencapture location covers
+# the interactive flow today.
+brew "flameshot"
+
 # direnv — per-directory environment loader. Wired into zsh via
 # `eval "$(direnv hook zsh)"` in the shell rc. A directory's .envrc loads on
 # entry and unloads on exit. The offline key vault ships an .envrc
