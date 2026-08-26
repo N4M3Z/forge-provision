@@ -15,8 +15,14 @@ enabled = [
     "system.disk",
     "containers.docker",
 ]
-# Custom packs auto-load from these globs (per-user, then per-project).
+# Custom packs auto-load from these globs (per-user, then per-repository).
+# ${repo_root} anchors to the nearest .git ancestor, which covers plain git
+# repositories and their subdirectories. jj workspaces carry only .jj, so
+# ${repo_root} resolves past them to the parent checkout; the relative glob
+# covers a jj workspace root. Subdirectories of a jj workspace stay
+# uncovered until the dcg fork learns .jj-aware root resolution (backlog).
 custom_paths = [
     "~/.config/dcg/packs/*.yaml",
     ".dcg/packs/*.yaml",
+    "${repo_root}/.dcg/packs/*.yaml",
 ]
