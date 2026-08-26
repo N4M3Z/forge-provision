@@ -8,7 +8,7 @@
 # stays terse on purpose. Deliberately excluded from the work scope: personal
 # media and licenses (steam, superwhisper, macwhisper, istat-menus, discord,
 # little-snitch, yt-dlp, ffmpeg), personal key-custody ceremony tools (paperkey,
-# qrencode, sequoia-sq), session capture (specstory, entire, crex), the personal
+# qrencode, sequoia-sq), session capture (specstory, crex), the personal
 # second-brain stack (sabiql, graphviz, otel-tui), Zed source-build and REPL
 # extras (zed@preview, cmake, bash, zeromq, ruby), and personal MAS purchases.
 # Add any of them per-machine after an explicit policy check.
