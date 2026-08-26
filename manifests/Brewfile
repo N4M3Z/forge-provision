@@ -306,6 +306,51 @@ brew "svgbob"
 # the interactive flow today.
 brew "flameshot"
 
+# ─── Stack tools present on the machine but absent from the manifest ────────
+# Reconciled 2026-08-26 against `brew leaves`. The observability and proxy
+# cluster (grafana, prometheus, victorialogs, caddy, cliproxyapi, tealdeer)
+# is deliberately absent here: another change in flight carries it.
+
+# rune — the runedeck CLI: validate, assemble, install, run. The center of
+# the artifact pipeline.
+tap "runedeck/tap"
+brew "runedeck/tap/rune"
+
+# ast-grep — structural code search. Named by the UseEfficientCLI rule: a
+# structural match returns fewer results than a regex over code.
+brew "ast-grep"
+
+# semgrep — OWASP static analysis. The prek pre-push hook in every
+# scaffolded repository runs it.
+brew "semgrep"
+
+# copier — template engine behind the skeleton. Consumers receive ceremony
+# updates through `copier update`, never hand-copies.
+brew "copier"
+
+# tmux — terminal multiplexer. The review entry point (statusline segments,
+# turn review picker, popups) lives on it.
+brew "tmux"
+
+# git-delta — syntax-highlighting diff pager for terminal review.
+brew "git-delta"
+
+# git-filter-repo — history rewrite tool for the coordinated authorship
+# rewrite and future surgical rewrites.
+brew "git-filter-repo"
+
+# hyperfine — command benchmarking with statistical rigor.
+brew "hyperfine"
+
+# alerter — macOS notification CLI with actions. The signing summons and
+# attention flows post through it.
+tap "vjeantet/tap"
+brew "vjeantet/tap/alerter"
+
+# cmux-resurrect — session restore for cmux.
+tap "drolosoft/tap"
+brew "drolosoft/tap/cmux-resurrect"
+
 # direnv — per-directory environment loader. Wired into zsh via
 # `eval "$(direnv hook zsh)"` in the shell rc. A directory's .envrc loads on
 # entry and unloads on exit. The offline key vault ships an .envrc
