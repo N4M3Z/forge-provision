@@ -12,6 +12,13 @@
 # second-brain stack (sabiql, graphviz, otel-tui), Zed source-build and REPL
 # extras (zed@preview, cmake, bash, zeromq, ruby), and personal MAS purchases.
 # Add any of them per-machine after an explicit policy check.
+#
+# Employer-managed software is out of scope entirely and never belongs in this
+# manifest: endpoint agents, VPN and device-trust clients, and the rest of the
+# MDM payload arrive from corporate device management, outside Homebrew, and are
+# neither ours to install nor ours to reproduce. When auditing a work machine for
+# tools worth capturing, compare Homebrew's installed set against this manifest;
+# the MDM payload does not appear there, which is the correct outcome.
 
 # ── Proton suite (the employer's own products) ───────────────────────────────
 cask "proton-drive"
@@ -27,6 +34,12 @@ brew "N4M3Z/tap/proton-drive-cli"
 # ── AI harnesses and local inference ─────────────────────────────────────────
 cask "claude"
 cask "lm-studio"
+
+# CLIProxyAPI — one local endpoint (port 8317) re-exposing the CLI provider
+# subscriptions as OpenAI/Claude/Gemini/Codex-compatible APIs, so harnesses share
+# one auth path. Config at /opt/homebrew/etc/cliproxyapi.conf; provider logins
+# are interactive OAuth and stay outside provisioning.
+brew "cliproxyapi"
 brew "opencode"
 cask "antigravity-cli"
 cask "antigravity"
@@ -58,8 +71,21 @@ tap "jackchuka/tap"
 brew "jackchuka/tap/mdschema"
 brew "gitleaks"
 
+# Commit-time validation chain. .pre-commit-config.yaml declares shellcheck and
+# semgrep as `language: system` hooks, so pre-commit never installs them and a
+# missing binary fails the hook on a fresh machine. prek is the runner
+# .githooks/pre-commit prefers before its forge and validate.sh fallbacks.
+brew "prek"
+brew "shellcheck"
+brew "semgrep"
+
 # ── Identity, signing, and hardware keys ─────────────────────────────────────
-cask "yubico-authenticator"
+# yubico-authenticator is deliberately absent here while present in the full
+# manifest. Device management deploys it as a pkg (receipts com.yubico.ykman and
+# com.yubico.yubioath, app owned by root), so Homebrew does not own the bundle in
+# /Applications and its cask upgrade fails on every run. Declaring it would keep
+# `brew bundle check` permanently red for something IT already provides. The
+# `ykman` CLI below is the part provisioning does own.
 brew "openssh"
 tap "theseal/ssh-askpass"
 brew "theseal/ssh-askpass/ssh-askpass"
@@ -74,6 +100,17 @@ brew "atuin"
 brew "zoxide"
 brew "direnv"
 brew "fzf"
+
+# television — fuzzy finder TUI with preview channels. The chezmoi-managed Zed
+# keymap binds its file picker (`space f`, a task shelling out to `tv files`),
+# so the work scope needs it too or that binding fails on a work machine.
+# Decision: PROV-0024.
+brew "television"
+
+# tmux — the multiplexer dot_config/tmux configures and its plugins extend, and
+# the one sesh and tmux-fingers below both depend on.
+brew "tmux"
+
 brew "sesh"
 tap "morantron/tmux-fingers"
 brew "morantron/tmux-fingers/tmux-fingers"
@@ -114,8 +151,20 @@ cask "microsoft-teams"
 cask "raycast"
 cask "obsidian"
 
+# Zoom — external meetings with parties who are not on Proton Meet.
+cask "zoom"
+
+# Thaw — menu bar manager, hides overflow items behind a toggle. Open source.
+# The menu-bar item arrangement INSTALL.md lists as a manual step stays manual;
+# Thaw manages overflow visibility, it does not script the arrangement.
+cask "thaw"
+
 # ── Containers (corporate OrbStack license; activate manually after install) ─
 cask "orbstack"
+
+# Apple container stays out of this manifest: scripts/install/container.sh gates
+# on Apple Silicon and macOS 26 and bootstraps the system service, and
+# `brew bundle` has no platform condition to reproduce those guards.
 
 # Mac App Store apps are intentionally NOT in this manifest: `mas` cannot sign
 # into the App Store from the CLI on current macOS, so an unsigned-in machine
