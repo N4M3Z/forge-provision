@@ -551,13 +551,6 @@ cask "ghostty"
 tap "drolosoft/tap"
 brew "drolosoft/tap/crex"
 
-# Entire CLI (ARCH-0028) — AI-session checkpoint + resume. Captures full
-# transcripts onto per-session entire/<hash> branches via Claude hooks,
-# anchored to the commits they produced. Per-repo enablement with public-
-# repo-safe flags is scripts/configure/entire.sh; usage in docs/tldrs/entire.md.
-tap "entireio/tap"
-cask "entire"
-
 # Meslo LG Nerd Font — Powerline-glyph-patched Meslo. MesloLGS Nerd Font Mono
 # variant is the p10k canonical face and what ghostty's font-family points at.
 cask "font-meslo-lg-nerd-font"
