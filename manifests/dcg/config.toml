@@ -11,9 +11,21 @@ check_updates = false
 [packs]
 # core.* (filesystem, git) is always on and cannot be disabled. system.disk is on
 # by default; containers.docker is added for this machine's container workflow.
+# The 2026-08-26 review added the local-data and publish-side packs: postgres
+# and sqlite guard the local databases (gbrain, chezmoi state, atuin),
+# package_managers guards npm unpublish and cargo yank on owned packages,
+# system.permissions guards recursive chmod and chown sweeps, and compose
+# guards volume-deleting teardowns. system.services and strict_git stay off:
+# services would nag routine daemon management, and planned history rewrites
+# would fight the paranoid git tier.
 enabled = [
     "system.disk",
     "containers.docker",
+    "containers.compose",
+    "database.postgresql",
+    "database.sqlite",
+    "package_managers",
+    "system.permissions",
 ]
 # Custom packs auto-load from these globs (per-user, then per-repository).
 # ${repo_root} anchors to the nearest .git ancestor, which covers plain git
