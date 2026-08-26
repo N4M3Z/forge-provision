@@ -4,3 +4,9 @@
 # memsearch - local section + coding-session recall (Milvus Lite, no MCP). BRAIN-0004.
 # See forge-data MemsearchToolkit; configure the Ollama embedder after install.
 memsearch
+
+# vcs2l - maintained successor of vcstool; installs the `vcs` command. Batch
+# operator over the workdirs.repos manifests (vcs import/export/status/pull).
+# The manifests stay plain YAML without it; vcs makes them executable on a
+# fresh machine.
+vcs2l
