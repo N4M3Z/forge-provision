@@ -482,7 +482,6 @@ brew "mas"
 brew "yq"
 
 # Captured 2026-05-11, installed via `brew install` manually.
-cask "microsoft-teams"
 cask "steam"
 cask "visual-studio-code"
 cask "raycast"
@@ -720,13 +719,8 @@ mas "Developer",      id: 640199958
 mas "TestFlight",     id: 899247664
 mas "Xcode",          id: 497799835
 
-# Microsoft Office
-mas "Microsoft Excel",      id: 462058435
-mas "Microsoft OneNote",    id: 784801555
-mas "Microsoft Outlook",    id: 985367838
-mas "Microsoft PowerPoint", id: 462062816
-mas "Microsoft Word",       id: 462054704
-mas "OneDrive",             id: 823766827
+# Microsoft apps (Teams, Office, OneDrive) live in manifests/Brewfile.microsoft,
+# an opt-in bundle applied separately when a machine needs them.
 
 # Pixelmator family (only current Pixelmator Pro v4.2; the v3.8 install at id
 # 1289583905 is a stale legacy build, not included).

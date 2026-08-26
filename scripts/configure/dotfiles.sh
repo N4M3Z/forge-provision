@@ -31,7 +31,10 @@ fi
 repo_url="${DOTFILES_REPO}"
 [[ "${repo_url}" != *"://"* && "${repo_url}" != git@* ]] && repo_url="https://github.com/${repo_url}.git"
 if ! git ls-remote --exit-code "${repo_url}" HEAD >/dev/null 2>&1; then
-    echo "fail:dotfiles (${repo_url} unreachable — private repo? run 'gh auth login' first)"
+    echo "fail:dotfiles (${repo_url} unreachable from this shell)"
+    echo "      private repo: run 'gh auth login', then 'gh auth setup-git' to wire the credential helper"
+    echo "      sandboxed agent shells may deny the helper access to ~/.config/gh even when gh itself works;"
+    echo "      in that case run 'chezmoi init --apply ${DOTFILES_REPO}' from your own terminal"
     exit 1
 fi
 
