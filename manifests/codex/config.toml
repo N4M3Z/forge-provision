@@ -115,3 +115,14 @@ model_reasoning_effort = "high"
 [[hooks.PreToolUse.hooks]]
 type = "command"
 command = "dcg"
+
+# --- Shared hook dispatcher ---
+# The same parts Claude Code runs, from ~/.sd/hooks/PreToolUse.d/.
+# Parts filter themselves by tool_name and block through stderr plus
+# exit 2, which Codex honors. Codex tool names differ from Claude's, so
+# a part guards Codex only once it also matches the Codex name for that
+# tool. Codex prompts to trust the hook on first run — approve once.
+[[hooks.PreToolUse]]
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "sh /Users/N4M3Z/.sd/hook PreToolUse"
