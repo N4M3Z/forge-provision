@@ -20,3 +20,8 @@ config.yaml
 
 # Forge assemble output (transient: wiped on every `forge assemble`). dist/ is the preserved sibling.
 build/
+
+# Python test and lint caches; runtime key material belongs outside the checkout.
+__pycache__/
+*.py[cod]
+.ruff_cache/
