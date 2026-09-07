@@ -4,10 +4,11 @@
 # The canonical config is dotfiles/dot_config/jj/config.toml; this script runs
 # a targeted `chezmoi apply` of it and then verifies the signing contract:
 #
-# signing.behavior is "drop" so jj does not sign on every working-copy snapshot
-# (that would touch the YubiKey on nearly every command); git.sign-on-push signs
-# the pushed commits in one batch instead. Under the cached touch policy that is
-# one touch per push, and pushed commits still land "Verified" on GitHub.
+# signing.behavior is "drop" and git.sign-on-push is off: commits and pushes
+# stay unsigned, so agent sessions never hit pinentry or the YubiKey mid-push.
+# The owner's signature enters at release tags, and the signed tag vouches for
+# the history beneath it. GitHub vigilant mode stays off, or unsigned commits
+# render as Unverified.
 #
 # jj does not inherit git's identity or signing key at runtime; it keeps its own
 # config, which is why the contract needs verifying at all.
@@ -58,7 +59,7 @@ verify_value() {
 failures=0
 verify_value signing.backend gpg || failures=$((failures + 1))
 verify_value signing.behavior drop || failures=$((failures + 1))
-verify_value git.sign-on-push true || failures=$((failures + 1))
+verify_value git.sign-on-push false || failures=$((failures + 1))
 if ! jj config get --user aliases.push >/dev/null 2>&1; then
     echo "fail:jujutsu (aliases.push is missing)"
     failures=$((failures + 1))
