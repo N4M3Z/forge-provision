@@ -12,13 +12,18 @@ ifeq (redact,$(firstword $(MAKECMDGOALS)))
 endif
 
 .DEFAULT_GOAL := help
-.PHONY: help redact
+.PHONY: help redact test-openpgp
 
 help:
 	@echo "forge-provision:"
+	@echo "  make test-openpgp                     run isolated key-ceremony and migration tests"
 	@echo "  make redact build [<gpg-recipient>]   build claude-box-redact (forge-redact + Presidio in the VM)"
 	@echo "  make redact run                       run Claude in the redaction box (interactive)"
 	@echo "  for claude args, call the script:     $(SANDBOX)/redact run -p '...'"
 
 redact:
 	@$(SANDBOX)/redact $(REDACT_ARGS)
+
+test-openpgp:
+	python3 -m unittest discover -b -s tests -p 'test_openpgp*.py'
+	python3 -m unittest discover -b -s tests -p 'test_password_store_migration.py'
