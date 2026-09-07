@@ -151,41 +151,84 @@ def key_fingerprints(listing):
 
 
 def card_fingerprints(info):
-    if not re.search(r"^OpenPGP version:\s*\d+\.\d+\s*$", info, re.MULTILINE):
-        raise SetupError(
-            "Unrecognized ykman OpenPGP information; cannot establish whether slots are empty."
-        )
+    """Accept the supported ykman 5.x layout, including its omitted empty slots."""
+    required = {
+        "OpenPGP version",
+        "Application version",
+        "PIN tries remaining",
+        "Reset code tries remaining",
+        "Admin PIN tries remaining",
+        "Require PIN for signature",
+        "KDF enabled",
+    }
+    metadata = set()
     slots = {}
+    seen_slots = set()
+    slot_fields = set()
     slot = None
     labels = {
         "Signature key:": "sig",
         "Decryption key:": "dec",
         "Encryption key:": "dec",
         "Authentication key:": "aut",
+        "Attestation key:": "att",
     }
     for line in info.splitlines():
         stripped = line.strip()
+        if not stripped:
+            continue
         if stripped in labels:
             slot = labels[stripped]
-            if slot in slots:
+            if slot in seen_slots:
                 raise SetupError("Duplicate OpenPGP slot metadata.")
-            slots[slot] = None
-        elif stripped.endswith("key:"):
-            if stripped != "Attestation key:":
-                raise SetupError("Unrecognized OpenPGP key-slot label.")
-            slot = None
-        elif stripped.startswith("Fingerprint:") and slot:
-            fingerprint = re.sub(r"[\s:]", "", stripped.split(":", 1)[1]).upper()
-            if not re.fullmatch(r"[0-9A-F]{40}", fingerprint):
+            seen_slots.add(slot)
+            if slot != "att":
+                slots[slot] = None
+            continue
+        field, separator, value = stripped.partition(":")
+        if not separator or not value.strip():
+            raise SetupError(
+                "Unrecognized OpenPGP output; refusing to infer empty slots."
+            )
+        if not line[0].isspace():
+            if field not in required or field in metadata:
                 raise SetupError(
-                    "An occupied OpenPGP slot has missing or invalid fingerprint metadata."
+                    "Unrecognized OpenPGP metadata layout; no card writes allowed."
                 )
-            slots[slot] = fingerprint
-    if any(value is None for value in slots.values()):
+            if field == "OpenPGP version" and not re.fullmatch(
+                r"\d+\.\d+", value.strip()
+            ):
+                raise SetupError("Unrecognized OpenPGP version.")
+            metadata.add(field)
+            slot = None
+        elif slot is None or field not in {"Fingerprint", "Touch policy"}:
+            raise SetupError(
+                "Unrecognized OpenPGP key metadata; no card writes allowed."
+            )
+        else:
+            if (slot, field) in slot_fields:
+                raise SetupError("Duplicate OpenPGP slot field; metadata is ambiguous.")
+            slot_fields.add((slot, field))
+            if field != "Fingerprint":
+                continue
+            fingerprint = re.sub(r"[\s:]", "", value).upper()
+            if not re.fullmatch(r"[0-9A-F]{40}", fingerprint):
+                raise SetupError("An OpenPGP slot has invalid fingerprint metadata.")
+            if slot != "att":
+                slots[slot] = fingerprint
+    if metadata != required or any(value is None for value in slots.values()):
         raise SetupError(
-            "An OpenPGP slot has incomplete metadata; refusing to treat it as empty."
+            "Incomplete OpenPGP information; refusing to infer empty slots."
         )
     return slots
+
+
+def check_ykman_version():
+    version = run(["ykman", "--version"], capture=True).strip()
+    if not re.fullmatch(r"YubiKey Manager \(ykman\) version: 5\.\d+\.\d+", version):
+        raise SetupError(
+            "This helper supports ykman 5.x output only; review newer formats before use."
+        )
 
 
 def compatible_slots(info, expected):
@@ -216,24 +259,78 @@ def publish_public(name, content):
 
 
 def piv_certificates(info):
+    """Reject unfamiliar layouts rather than claiming an unobserved empty inventory."""
+    required = {
+        "PIV version",
+        "PIN tries remaining",
+        "Management key algorithm",
+        "CHUID",
+        "CCC",
+    }
+    top_fields = required | {"PUK tries remaining", "Biometrics"}
+    certificate_fields = {
+        "Private key type",
+        "Public key type",
+        "Subject DN",
+        "Issuer DN",
+        "Serial",
+        "Fingerprint",
+        "Not before",
+        "Not after",
+    }
+    notices = {
+        "WARNING: Using default PIN!",
+        "WARNING: Using default PUK!",
+        "WARNING: Using default Management key!",
+        "PUK is blocked",
+        "Management key is derived from PIN.",
+        "Management key is stored on the YubiKey, protected by PIN.",
+    }
+    metadata = set()
     certificates = {}
+    slot_fields = set()
     slot = None
     for line in info.splitlines():
-        match = re.match(r"Slot ([0-9A-Fa-f]{2})\b", line)
+        stripped = line.strip()
+        if not stripped or stripped in notices:
+            continue
+        match = re.fullmatch(r"Slot ([0-9A-Fa-f]{2})(?: \([A-Z0-9_ ]+\))?:", stripped)
         if match:
             slot = match.group(1).upper()
             if slot in certificates:
                 raise SetupError("Duplicate PIV slot metadata.")
             certificates[slot] = None
-        elif slot and line.strip().startswith("Fingerprint:"):
-            value = re.sub(r"\s+", "", line.split(":", 1)[1]).lower()
-            if not re.fullmatch(r"[0-9a-f]+", value):
+            continue
+        field, separator, value = stripped.partition(":")
+        if not separator or not value.strip():
+            raise SetupError(
+                "Unrecognized PIV output; cannot establish the certificate inventory."
+            )
+        if not line[0].isspace():
+            if field not in top_fields or field in metadata:
+                raise SetupError(
+                    "Unrecognized PIV metadata layout; preserve the existing card."
+                )
+            metadata.add(field)
+            slot = None
+        elif slot is None or field not in certificate_fields:
+            raise SetupError("Unreadable or unfamiliar PIV slot metadata.")
+        else:
+            if (slot, field) in slot_fields:
+                raise SetupError("Duplicate PIV slot field; metadata is ambiguous.")
+            slot_fields.add((slot, field))
+            if field != "Fingerprint":
+                continue
+            fingerprint = re.sub(r"\s+", "", value).lower()
+            if not re.fullmatch(r"[0-9a-f]{64}", fingerprint):
                 raise SetupError("Unreadable PIV certificate fingerprint.")
-            certificates[slot] = value
-    if any(value is None for value in certificates.values()):
-        raise SetupError("A PIV slot has incomplete certificate metadata.")
-    if not certificates and "PIV version:" not in info:
-        raise SetupError("Could not read the PIV certificate inventory.")
+            certificates[slot] = fingerprint
+    if not required.issubset(metadata) or any(
+        value is None for value in certificates.values()
+    ):
+        raise SetupError(
+            "Incomplete PIV certificate inventory; manual inspection is required."
+        )
     return certificates
 
 
@@ -267,11 +364,12 @@ def prerequisites(resume=False):
     if missing:
         raise SetupError("Missing tools: " + ", ".join(missing))
     ui.status("Required tools available")
+    check_ykman_version()
     if resume and not IMAGE.is_file():
         raise SetupError("No existing image to resume.")
     if IMAGE.exists() and not resume:
         raise SetupError(
-            f"{IMAGE} already exists. It has been preserved; do not rerun a fresh setup over it."
+            f"{IMAGE} already exists and is preserved. Use --resume to continue, or --check --resume for read-only checks."
         )
     for path in (MOUNT,):
         if path.exists():
@@ -1106,7 +1204,7 @@ def main(argv=None):
         return 0
     except (Exception, KeyboardInterrupt) as exc:  # noqa: BLE001 - always attempt vault cleanup
         ui.section("Setup stopped", stream=sys.stderr, color="error")
-        ui.status(f"STOPPED: {exc or 'Interrupted.'}", "error", stream=sys.stderr)
+        ui.status(f"STOPPED: {str(exc) or 'Interrupted.'}", "error", stream=sys.stderr)
         ceremony.cleanup()
         if ceremony.image_created:
             ui.status(

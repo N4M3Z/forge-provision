@@ -18,6 +18,9 @@ class GuardTests(unittest.TestCase):
         )
         patcher.start()
         self.addCleanup(patcher.stop)
+        version_check = patch.object(m, "check_ykman_version")
+        version_check.start()
+        self.addCleanup(version_check.stop)
 
     def test_fingerprint_parser_ignores_other_records(self):
         listing = "sec:u:255:22:X:0:0::::cESCA:\nfpr:::::::::AAA:\nuid:u::::::::Someone:\nsub:u:255:18:Y:0:0::::e:\nfpr:::::::::BBB:"
@@ -25,7 +28,7 @@ class GuardTests(unittest.TestCase):
 
     def test_card_slots_are_distinct_and_attestation_is_excluded(self):
         info = (
-            "OpenPGP version: 3.4\nSignature key:\n  Fingerprint: "
+            "OpenPGP version: 3.4\nApplication version: 5.7.1\nPIN tries remaining: 3\nReset code tries remaining: 0\nAdmin PIN tries remaining: 3\nRequire PIN for signature: Once\nKDF enabled: False\nSignature key:\n  Fingerprint: "
             + "AA " * 20
             + "\nDecryption key:\n  Fingerprint: "
             + "BB " * 20
@@ -40,32 +43,44 @@ class GuardTests(unittest.TestCase):
             {"sig": "AA" * 20, "dec": "BB" * 20, "aut": "CC" * 20},
         )
         self.assertEqual(
-            m.card_fingerprints("OpenPGP version: 3.4\nPIN tries remaining: 3"), {}
+            m.card_fingerprints(
+                "OpenPGP version: 3.4\nApplication version: 5.7.1\nPIN tries remaining: 3\nReset code tries remaining: 0\nAdmin PIN tries remaining: 3\nRequire PIN for signature: Once\nKDF enabled: False"
+            ),
+            {},
         )
 
     def test_unreadable_piv_inventory_is_not_accepted(self):
         for info in (
             "unrecognized output",
-            "PIV version: 5.7\nSlot 9A (AUTHENTICATION):",
+            "PIV version: 5.7.1\nPIN tries remaining: 3/3\nManagement key algorithm: AES192\nCHUID: No data available\nCCC: No data available\nSlot 9A (AUTHENTICATION):",
         ):
             with self.assertRaises(m.SetupError):
                 m.piv_certificates(info)
 
     def test_piv_does_not_require_key_management_certificate(self):
         self.assertEqual(
-            m.piv_certificates("Slot 9A (AUTHENTICATION):\n Fingerprint: aaaa"),
-            {"9A": "aaaa"},
+            m.piv_certificates(
+                "PIV version: 5.7.1\nPIN tries remaining: 3/3\nManagement key algorithm: AES192\nCHUID: No data available\nCCC: No data available\nSlot 9A (AUTHENTICATION):\n Fingerprint: "
+                + "aa" * 32
+            ),
+            {"9A": "aa" * 32},
         )
         self.assertEqual(
-            m.piv_certificates("PIV version: 5.7\nPIN tries remaining: 3"), {}
+            m.piv_certificates(
+                "PIV version: 5.7.1\nPIN tries remaining: 3/3\nManagement key algorithm: AES192\nCHUID: No data available\nCCC: No data available"
+            ),
+            {},
         )
 
     def test_piv_fingerprints_match_slots(self):
         self.assertEqual(
             m.piv_certificates(
-                "Slot 9A (AUTHENTICATION):\n Fingerprint: AA AA\nSlot 9D (KEY_MANAGEMENT):\n Fingerprint: BB BB"
+                "PIV version: 5.7.1\nPIN tries remaining: 3/3\nManagement key algorithm: AES192\nCHUID: No data available\nCCC: No data available\nSlot 9A (AUTHENTICATION):\n Fingerprint: "
+                + "AA " * 32
+                + "\nSlot 9D (KEY_MANAGEMENT):\n Fingerprint: "
+                + "BB " * 32
             ),
-            {"9A": "aaaa", "9D": "bbbb"},
+            {"9A": "aa" * 32, "9D": "bb" * 32},
         )
 
     def test_multiple_wrong_or_missing_devices_stop_before_card_access(self):
@@ -103,7 +118,7 @@ class GuardTests(unittest.TestCase):
                 patch.object(
                     m,
                     "target_only",
-                    return_value="OpenPGP version: 3.4\nSignature key:\n Fingerprint: "
+                    return_value="OpenPGP version: 3.4\nApplication version: 5.7.1\nPIN tries remaining: 3\nReset code tries remaining: 0\nAdmin PIN tries remaining: 3\nRequire PIN for signature: Once\nKDF enabled: False\nSignature key:\n Fingerprint: "
                     + "A" * 40,
                 ),
                 self.assertRaises(m.SetupError),
@@ -342,6 +357,28 @@ class GuardTests(unittest.TestCase):
             self.assertEqual(m.main(), 1)
             cleanup.assert_called_once()
 
+    def test_bare_ctrl_c_reports_interruption_and_cleans_up(self):
+        ceremony = m.Ceremony()
+        with (
+            TemporaryDirectory() as tmp,
+            patch.object(m, "OUTPUT", Path(tmp)),
+            patch.object(m, "configure"),
+            patch.object(m.resource, "setrlimit"),
+            patch.object(m.sys, "platform", "darwin"),
+            patch.object(m, "Ceremony", return_value=ceremony),
+            patch.object(m, "prerequisites", return_value={}),
+            patch.object(ceremony, "execute", side_effect=KeyboardInterrupt()),
+            patch.object(ceremony, "cleanup") as cleanup,
+            patch.object(m.sys, "argv", [str(source)]),
+            patch.object(m.signal, "signal"),
+            patch.object(m.os, "umask"),
+            patch.object(m.sys.stdin, "isatty", return_value=False),
+            patch.object(m.sys, "stderr", new_callable=io.StringIO) as stderr,
+        ):
+            self.assertEqual(m.main(), 1)
+            cleanup.assert_called_once()
+            self.assertIn("STOPPED: Interrupted.", stderr.getvalue())
+
     def test_generated_homes_disable_external_cache_and_network_lookup(self):
         with (
             TemporaryDirectory() as tmp,
@@ -357,9 +394,9 @@ class GuardTests(unittest.TestCase):
     def test_parser_rejects_unknown_or_incomplete_layout(self):
         for text in (
             "something else",
-            "OpenPGP version: 3.4\nSignature key:",
-            "OpenPGP version: 3.4\nSignature key:\n Fingerprint: invalid",
-            "OpenPGP version: 3.4\nUnexpected key:",
+            "OpenPGP version: 3.4\nApplication version: 5.7.1\nPIN tries remaining: 3\nReset code tries remaining: 0\nAdmin PIN tries remaining: 3\nRequire PIN for signature: Once\nKDF enabled: False\nSignature key:",
+            "OpenPGP version: 3.4\nApplication version: 5.7.1\nPIN tries remaining: 3\nReset code tries remaining: 0\nAdmin PIN tries remaining: 3\nRequire PIN for signature: Once\nKDF enabled: False\nSignature key:\n Fingerprint: invalid",
+            "OpenPGP version: 3.4\nApplication version: 5.7.1\nPIN tries remaining: 3\nReset code tries remaining: 0\nAdmin PIN tries remaining: 3\nRequire PIN for signature: Once\nKDF enabled: False\nUnexpected key:",
         ):
             with self.subTest(text=text), self.assertRaises(m.SetupError):
                 m.card_fingerprints(text)
@@ -367,7 +404,7 @@ class GuardTests(unittest.TestCase):
     def test_colon_separated_encryption_fingerprint_is_supported(self):
         self.assertEqual(
             m.card_fingerprints(
-                "OpenPGP version: 3.4\nEncryption key:\n Fingerprint: "
+                "OpenPGP version: 3.4\nApplication version: 5.7.1\nPIN tries remaining: 3\nReset code tries remaining: 0\nAdmin PIN tries remaining: 3\nRequire PIN for signature: Once\nKDF enabled: False\nEncryption key:\n Fingerprint: "
                 + ":".join(["AB"] * 20)
             ),
             {"dec": "AB" * 20},
@@ -375,7 +412,10 @@ class GuardTests(unittest.TestCase):
 
     def test_resume_slot_check_accepts_only_matching_subset(self):
         expected = {"sig": "AA" * 20, "dec": "BB" * 20, "aut": "CC" * 20}
-        info = "OpenPGP version: 3.4\nSignature key:\n Fingerprint: " + "AA" * 20
+        info = (
+            "OpenPGP version: 3.4\nApplication version: 5.7.1\nPIN tries remaining: 3\nReset code tries remaining: 0\nAdmin PIN tries remaining: 3\nRequire PIN for signature: Once\nKDF enabled: False\nSignature key:\n Fingerprint: "
+            + "AA" * 20
+        )
         self.assertEqual(m.compatible_slots(info, expected), {"sig": "AA" * 20})
         with self.assertRaises(m.SetupError):
             m.compatible_slots(info.replace("AA" * 20, "DD" * 20), expected)
@@ -450,7 +490,11 @@ class GuardTests(unittest.TestCase):
                 patch.object(ceremony, "attach"),
                 patch.object(ceremony, "kill_agents"),
                 patch.object(ceremony, "gpg", return_value=listing) as gpg,
-                patch.object(m, "target_only", return_value="OpenPGP version: 3.4"),
+                patch.object(
+                    m,
+                    "target_only",
+                    return_value="OpenPGP version: 3.4\nApplication version: 5.7.1\nPIN tries remaining: 3\nReset code tries remaining: 0\nAdmin PIN tries remaining: 3\nRequire PIN for signature: Once\nKDF enabled: False",
+                ),
                 patch.object(ceremony, "finish") as finish,
             ):
                 ceremony.resume(piv)

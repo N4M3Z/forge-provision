@@ -788,29 +788,35 @@ def pass_check(run):
         env.pop(name, None)
     env["GNUPGHOME"] = str(GPG_HOME)
     entry = state["entries"][0][:-4]
-    state.update(normal_pass_read_passed=False, pass_read_entry_count=0)
+    state.update(
+        normal_pass_read_passed=False,
+        pass_read_entry_count=0,
+        target_only_present_for_pass_check=False,
+    )
     save_json(run / "state.json", state)
     notice(
         "Touch target for a normal pass read. Password contents will not be displayed."
     )
+    check_target_only(run)
     result = invoke(["pass", "show", "--", entry], env=env)
     del result
+    check_target_only(run, restart_agent=False)
     state["normal_pass_read_passed"] = True
     state["pass_read_entry_count"] = 1
+    state["target_only_present_for_pass_check"] = True
     save_json(run / "state.json", state)
     notice("✓ Normal pass read succeeded.")
 
 
-def check_target_only(run):
-    invoke(["gpgconf", "--homedir", GPG_HOME, "--kill", "scdaemon"])
+def check_target_only(run, restart_agent=True):
+    load_run(run)
+    if restart_agent:
+        invoke(["gpgconf", "--homedir", GPG_HOME, "--kill", "scdaemon"])
     serials = invoke(["ykman", "list", "--serials"]).stdout.decode().split()
     if serials != [TARGET_SERIAL]:
         raise MigrationError(
             "Leave only the target YubiKey connected, then rerun finish. The live store is unchanged."
         )
-    state = load_run(run)
-    state["target_only_present_for_pass_check"] = True
-    save_json(run / "state.json", state)
     notice("✓ Only the target YubiKey is connected.")
 
 
@@ -854,7 +860,11 @@ def finish(run):
 
 def activate(run):
     state = load_run(run)
-    if state["phase"] != "verified" or not state.get("normal_pass_read_passed"):
+    if (
+        state["phase"] != "verified"
+        or not state.get("normal_pass_read_passed")
+        or not state.get("target_only_present_for_pass_check")
+    ):
         raise MigrationError(
             "All verification and the normal pass read must finish first."
         )
@@ -944,7 +954,11 @@ def recover_activation(run, state):
 
 def complete_activation(run, state):
     all_verified = set(state["verified"]) == set(state["entries"])
-    if not all_verified or not state.get("normal_pass_read_passed"):
+    if (
+        not all_verified
+        or not state.get("normal_pass_read_passed")
+        or not state.get("target_only_present_for_pass_check")
+    ):
         raise MigrationError(
             "The activation journal lacks successful verification checks."
         )

@@ -19,6 +19,73 @@ def load_helper(name):
 
 
 class ConfigurationTests(unittest.TestCase):
+    def test_duplicate_openpgp_slot_fields_are_rejected(self):
+        summary = (
+            "OpenPGP version: 3.4\nApplication version: 5.7.1\nPIN tries remaining: 3\nReset code tries remaining: 0\nAdmin PIN tries remaining: 3\nRequire PIN for signature: Once\nKDF enabled: False\nSignature key:\n Fingerprint: "
+            + "B" * 40
+            + "\n"
+        )
+        for extra in (
+            " Fingerprint: " + "C" * 40,
+            " Touch policy: On\n Touch policy: Cached",
+        ):
+            with self.subTest(extra=extra), self.assertRaises(self.setup.SetupError):
+                self.setup.card_fingerprints(summary + extra)
+
+    def test_duplicate_piv_slot_fields_are_rejected(self):
+        summary = (
+            "PIV version: 5.7.1\nPIN tries remaining: 3/3\nManagement key algorithm: AES192\nCHUID: No data available\nCCC: No data available\nSlot 9A (AUTHENTICATION):\n Fingerprint: "
+            + "a" * 64
+            + "\n"
+        )
+        for extra in (
+            " Fingerprint: " + "b" * 64,
+            " Private key type: ECCP256\n Private key type: EMPTY",
+        ):
+            with self.subTest(extra=extra), self.assertRaises(self.setup.SetupError):
+                self.setup.piv_certificates(summary + extra)
+
+    def test_card_parsers_reject_header_only_and_unfamiliar_key_layouts(self):
+        for info in (
+            "OpenPGP version: 3.4\n",
+            "OpenPGP version: 3.4\nSignature fingerprint: " + "B" * 40,
+        ):
+            with self.subTest(info=info), self.assertRaises(self.setup.SetupError):
+                self.setup.card_fingerprints(info)
+        for info in (
+            "PIV version: 5.7.1\n",
+            "PIV version: 5.7.1\nCertificate in slot 9A: " + "a" * 64,
+        ):
+            with self.subTest(info=info), self.assertRaises(self.setup.SetupError):
+                self.setup.piv_certificates(info)
+
+    def test_full_empty_summaries_reject_extra_unrecognized_metadata(self):
+        openpgp = "OpenPGP version: 3.4\nApplication version: 5.7.1\nPIN tries remaining: 3\nReset code tries remaining: 0\nAdmin PIN tries remaining: 3\nRequire PIN for signature: Once\nKDF enabled: False\n"
+        piv = "PIV version: 5.7.1\nPIN tries remaining: 3/3\nManagement key algorithm: AES192\nCHUID: No data available\nCCC: No data available\n"
+        self.assertEqual(self.setup.card_fingerprints(openpgp), {})
+        self.assertEqual(self.setup.piv_certificates(piv), {})
+        for info, parser in (
+            (
+                openpgp + "Signature fingerprint: " + "B" * 40,
+                self.setup.card_fingerprints,
+            ),
+            (piv + "Certificate in slot 9A: " + "a" * 64, self.setup.piv_certificates),
+        ):
+            with self.assertRaises(self.setup.SetupError):
+                parser(info)
+
+    def test_unreviewed_ykman_major_stops(self):
+        with patch.object(
+            self.setup, "run", return_value="YubiKey Manager (ykman) version: 5.9.2"
+        ):
+            self.setup.check_ykman_version()
+        for version in ("YubiKey Manager (ykman) version: 6.0.0", "unrecognized"):
+            with (
+                patch.object(self.setup, "run", return_value=version),
+                self.assertRaises(self.setup.SetupError),
+            ):
+                self.setup.check_ykman_version()
+
     def setUp(self):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)

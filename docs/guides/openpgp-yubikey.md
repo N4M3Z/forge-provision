@@ -3,7 +3,7 @@
 Use one compatible YubiKey for OpenPGP signing, encryption and SSH authentication
 while preserving its existing PIV credentials. This is an opt-in macOS ceremony,
 not a baseline provisioning task. It requires Python 3.10+, GnuPG 2.4+, YubiKey
-Manager, `pinentry-mac`, `paperkey`, `qrencode`, and a YubiKey that supports
+Manager 5.x, `pinentry-mac`, `paperkey`, `qrencode`, and a YubiKey that supports
 Ed25519 and Curve25519 OpenPGP keys. Connect it over USB for this workflow.
 
 ## Check both applications first
@@ -30,7 +30,7 @@ private keys. Test macOS login separately before retiring another device.
 Install the required tools before disconnecting networking:
 
 ```sh
-brew install gnupg pinentry-mac yubikey-manager paperkey qrencode
+brew install gnupg pinentry-mac ykman paperkey qrencode
 ykman list --serials
 ```
 
@@ -47,7 +47,9 @@ bash scripts/configure/openpgp-yubikey.sh --check
 
 The bare wrapper and bare `--dry-run` skip safely during ordinary provisioning.
 An explicitly configured dry run validates arguments without reading cards or
-creating files. `--check` reads device metadata and checks prerequisites.
+creating files. `--check` reads device metadata and checks prerequisites. For an existing image,
+use `--check --resume`. Unknown metadata layouts stop before card writes; the
+parser requires the supported ykman 5.x summary fields even when slots are empty.
 
 Default locations:
 

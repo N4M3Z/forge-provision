@@ -13,6 +13,41 @@ spec.loader.exec_module(m)
 
 
 class MigrationTests(unittest.TestCase):
+    def test_pass_check_rechecks_devices_and_clears_stale_success(self):
+        self.perform_migration()
+        state = m.load_run(self.run)
+        state.update(
+            normal_pass_read_passed=True,
+            target_only_present_for_pass_check=True,
+            pass_read_entry_count=1,
+        )
+        m.save_json(self.run / "state.json", state)
+        with (
+            patch.object(m, "invoke", return_value=Mock(stdout=b"private fixture")),
+            patch.object(
+                m,
+                "check_target_only",
+                side_effect=[None, m.MigrationError("card reconnected")],
+            ) as check,
+            self.assertRaises(m.MigrationError),
+        ):
+            m.pass_check(self.run)
+        self.assertEqual(check.call_count, 2)
+        self.assertEqual(check.call_args.kwargs, {"restart_agent": False})
+        state = m.load_run(self.run)
+        self.assertFalse(state["normal_pass_read_passed"])
+        self.assertFalse(state["target_only_present_for_pass_check"])
+        with self.assertRaises(m.MigrationError):
+            m.activate(self.run)
+
+    def test_activation_requires_target_only_evidence(self):
+        self.perform_migration()
+        state = m.load_run(self.run)
+        state["normal_pass_read_passed"] = True
+        m.save_json(self.run / "state.json", state)
+        with self.assertRaises(m.MigrationError):
+            m.activate(self.run)
+
     def test_modified_entry_paths_are_rejected_before_gpg(self):
         victim = self.root / "victim.gpg"
         victim.write_bytes(b"untouched ciphertext")
@@ -193,6 +228,7 @@ class MigrationTests(unittest.TestCase):
         self.perform_migration()
         state = m.load_run(self.run)
         state["normal_pass_read_passed"] = True
+        state["target_only_present_for_pass_check"] = True
         m.save_json(self.run / "state.json", state)
         (self.run / "staged-store/entry.gpg").write_bytes(b"tampered fixture")
         with self.assertRaises(m.MigrationError):
@@ -211,6 +247,7 @@ class MigrationTests(unittest.TestCase):
         self.perform_migration()
         state = m.load_run(self.run)
         state["normal_pass_read_passed"] = True
+        state["target_only_present_for_pass_check"] = True
         m.save_json(self.run / "state.json", state)
         rename = Path.rename
 
@@ -231,6 +268,7 @@ class MigrationTests(unittest.TestCase):
         self.perform_migration()
         state = m.load_run(self.run)
         state["normal_pass_read_passed"] = True
+        state["target_only_present_for_pass_check"] = True
         m.save_json(self.run / "state.json", state)
         m.activate(self.run)
         self.assertEqual(m.snapshot(self.run / "original-store"), state["original"])
@@ -348,7 +386,11 @@ class MigrationTests(unittest.TestCase):
     def journal_activation(self):
         self.perform_migration()
         state = m.load_run(self.run)
-        state.update(phase="activating", normal_pass_read_passed=True)
+        state.update(
+            phase="activating",
+            normal_pass_read_passed=True,
+            target_only_present_for_pass_check=True,
+        )
         m.save_json(self.run / "state.json", state)
         return state
 
@@ -410,6 +452,7 @@ class MigrationTests(unittest.TestCase):
         self.perform_migration()
         state = m.load_run(self.run)
         state["normal_pass_read_passed"] = True
+        state["target_only_present_for_pass_check"] = True
         m.save_json(self.run / "state.json", state)
         rename = Path.rename
 
@@ -431,6 +474,7 @@ class MigrationTests(unittest.TestCase):
         self.perform_migration()
         state = m.load_run(self.run)
         state["normal_pass_read_passed"] = True
+        state["target_only_present_for_pass_check"] = True
         m.save_json(self.run / "state.json", state)
         save = m.save_json
 
@@ -454,6 +498,7 @@ class MigrationTests(unittest.TestCase):
         self.perform_migration()
         state = m.load_run(self.run)
         state["normal_pass_read_passed"] = True
+        state["target_only_present_for_pass_check"] = True
         m.save_json(self.run / "state.json", state)
         rename = Path.rename
 
@@ -525,9 +570,12 @@ class MigrationTests(unittest.TestCase):
         self,
     ):
         self.perform_migration()
-        with patch.object(
-            m, "invoke", return_value=Mock(stdout=b"private fixture")
-        ) as invoke:
+        with (
+            patch.object(
+                m, "invoke", return_value=Mock(stdout=b"private fixture")
+            ) as invoke,
+            patch.object(m, "check_target_only"),
+        ):
             m.pass_check(self.run)
         self.assertEqual(invoke.call_args.args[0], ["pass", "show", "--", "entry"])
         self.assertEqual(m.load_run(self.run)["pass_read_entry_count"], 1)
@@ -566,7 +614,10 @@ class MigrationTests(unittest.TestCase):
 
     def test_activation_report_distinguishes_all_crypto_checks_from_one_pass_read(self):
         self.perform_migration()
-        with patch.object(m, "invoke", return_value=Mock(stdout=b"private fixture")):
+        with (
+            patch.object(m, "invoke", return_value=Mock(stdout=b"private fixture")),
+            patch.object(m, "check_target_only"),
+        ):
             m.pass_check(self.run)
         m.activate(self.run)
         report = m.json.loads(
