@@ -7,17 +7,16 @@ not abandoned. Pull one into a session, do it, strike it from the list.
 
 ARCH-0006 was reframed on 2026-05-21 to make GPG-with-pinentry-mac the
 preferred commit-signing path; SSH-with-FIDO2 stays as the alternative.
-The provisioning side hasn't caught up — `scripts/install/` and
-`scripts/configure/` only carry the SSH-FIDO2 setup. To realize the
-preferred path on a fresh Mac, the next dedicated GPG session needs:
+The provisioning side has caught up only in part: `scripts/install/` carries
+the SSH-FIDO2 setup, and `scripts/configure/gpg-signing.sh` pins git to the
+signing subkey of the inserted YubiKey. To realize the preferred path on a
+fresh Mac, the next dedicated GPG session needs:
 
 - **pinentry-mac install** — `brew "pinentry-mac"` in `manifests/Brewfile`.
 - **`scripts/install/gpg-yubikey.sh`** — initialize the YubiKey OpenPGP
   applet (admin PIN, key generation or import of subkeys onto the slot).
-- **`scripts/configure/gpg-signing.sh`** — writes `~/.gnupg/gpg-agent.conf`
-  with `pinentry-program /opt/homebrew/bin/pinentry-mac` + cache TTLs,
-  sets `git config gpg.format openpgp`, `git config user.signingkey
-  <KEY-ID>!`, registers the GPG public key with GitHub.
+- **GitHub registration** — `gh gpg-key add` for the public key that
+  `scripts/configure/gpg-signing.sh` selected, so commits show Verified.
 - **dotfiles `dot_gnupg/gpg-agent.conf`** — chezmoi source for the above.
 - **dotfiles `dot_gitconfig`** — flip `[gpg] format = ssh` to `openpgp`
   once provisioning is complete; today's dot_gitconfig stays on ssh.
