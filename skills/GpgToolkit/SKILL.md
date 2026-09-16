@@ -12,10 +12,11 @@ GPG key custody and signing for this machine's model: the primary certify key `[
 
 ## Scripts
 
-| Script | Does |
-| ------ | ---- |
-| `scripts/install/gpg-toolchain.sh` | Homebrew gnupg 2.5.x toolchain (not GPG Suite); idempotent |
-| `scripts/install/paperkey.sh` | paperkey + qrencode for printed key backup |
+| Script                                   | Does                                                                                                   |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `scripts/install/gpg-toolchain.sh`       | Homebrew gnupg 2.5.x toolchain (not GPG Suite); idempotent                                             |
+| `scripts/install/paperkey.sh`            | paperkey + qrencode for printed key backup                                                             |
+| `scripts/configure/gpg-signing.sh`       | Pins git's signing key to the inserted YubiKey's signing subkey; openpgp, commit and tag signing on    |
 | `scripts/configure/keyvault-scaffold.sh` | Offline key-vault layout on a mounted encrypted volume; secret-free, run before moving key material in |
 
 ## Signing configuration
