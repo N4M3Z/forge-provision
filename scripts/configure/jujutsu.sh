@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Deploy and verify the chezmoi-owned Jujutsu configuration.
 #
-# The canonical config is dotfiles/dot_config/jj/config.toml; this script runs
-# a targeted `chezmoi apply` of it and then verifies the signing contract:
+# The canonical config is dot_config/jj/config.toml.tmpl in the chezmoi source;
+# this script runs a targeted `chezmoi apply` of it and then verifies the
+# signing contract:
 #
 # signing.behavior is "drop" so jj does not sign on every working-copy snapshot
 # (that would touch the YubiKey on nearly every command); git.sign-on-push signs
@@ -10,7 +11,10 @@
 # one touch per push, and pushed commits still land "Verified" on GitHub.
 #
 # jj does not inherit git's identity or signing key at runtime; it keeps its own
-# config, which is why the contract needs verifying at all.
+# config, which is why the contract needs verifying at all. The template copies
+# signing.key from the global git config at apply time, so the check below
+# compares the two and catches a key that drifted or was carried over from
+# another machine.
 #
 # Decision: docs/decisions/ARCH-0032 (jj colocated) + ARCH-0006 (signing).
 #
@@ -41,8 +45,10 @@ if [[ -z "${dotfiles_source}" ]]; then
     echo "fail:jujutsu (chezmoi could not report a source path; run 'chezmoi init' first)"
     exit 1
 fi
-if [[ ! -f "${dotfiles_source}/dot_config/jj/config.toml" ]]; then
-    echo "fail:jujutsu (no jj config in the chezmoi source at ${dotfiles_source})"
+# Ask chezmoi for the source file rather than testing a fixed name: the source
+# carries attribute prefixes and a .tmpl suffix that a literal path would miss.
+if ! chezmoi --source "$dotfiles_source" source-path "$target" >/dev/null 2>&1; then
+    echo "fail:jujutsu (the chezmoi source at ${dotfiles_source} does not manage ${target})"
     exit 1
 fi
 
@@ -95,6 +101,13 @@ failures=0
 verify_value signing.backend gpg || failures=$((failures + 1))
 verify_value signing.behavior drop || failures=$((failures + 1))
 verify_value git.sign-on-push true || failures=$((failures + 1))
+git_signing_key="$(git config --global --get user.signingkey 2>/dev/null || true)"
+if [[ -z "${git_signing_key}" ]]; then
+    echo "fail:jujutsu (git has no user.signingkey in the global config; configure git signing first)"
+    failures=$((failures + 1))
+else
+    verify_value signing.key "${git_signing_key}" || failures=$((failures + 1))
+fi
 if [[ -z "$(read_user_value aliases.push)" ]]; then
     echo "fail:jujutsu (aliases.push is missing)"
     failures=$((failures + 1))
