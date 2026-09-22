@@ -39,20 +39,6 @@ cask "lm-studio"
 # the harness updates itself in place. Configured locally with lm-studio +
 # Proton Lumo as providers; config TBD as scripts/configure/opencode.sh.
 
-# Antigravity CLI (Google's terminal coding agent). An independent cross-reviewer
-# alongside Claude Code and Codex. Config lives under ~/.gemini/; MCP servers are
-# seeded from manifests/gemini/ by scripts/configure/gemini.sh. Auth is
-# interactive: launch `agy` and sign in with a Google account. Google serves this
-# to personal Google plans; the earlier gemini-cli does not. The cask auto-updates,
-# so Homebrew does not pin its version.
-cask "antigravity-cli"
-
-# Antigravity (Google's agent-orchestration platform, the desktop app). Separate
-# product from the `agy` CLI above and from the antigravity-ide editor. Shares the
-# ~/.gemini/ config root and the same Google sign-in. Auto-updates, so Homebrew
-# does not pin its version.
-cask "antigravity"
-
 # Codex (OpenAI's coding-agent CLI) is installed by scripts/install/codex.sh
 # through the vendor installer, not the cask: the cask lags the releases the
 # review models require. Independent cross-reviewer of Claude Code's work via
@@ -504,13 +490,6 @@ cask "steam"
 cask "visual-studio-code"
 cask "raycast"
 
-# Cursor (AI-native editor). Sibling to the existing VS Code install; reuses
-# the VS Code extension ecosystem. Used for AI-assisted editing alongside
-# the terminal-first stack (helix, neovim, gitui). The IDE has its own updater
-# and the cask is auto_updates upstream, so `brew upgrade` leaves it alone.
-# The Cursor CLI (`agent`) comes from scripts/install/cursor-agent.sh, not a cask.
-cask "cursor"
-
 # Zed: GPU-native editor; Claude Code runs in its agent panel via ACP.
 # Cask links the bundled CLI as `zed` (no in-app "install cli" step needed).
 # Config deployed from manifests/zed/ by scripts/configure/zed.sh.
@@ -530,9 +509,7 @@ brew "cmake"
 # jj terminal UIs — Zed has no view of jj state, so a TUI fills the gap.
 #   jjui    — Rust TUI (idursun), the gitui-style analogue; preferred, bound to
 #             `space t j` in Zed.
-#   lazyjj  — lazygit-style alternative, kept for parity with lazygit.
 brew "jjui"
-brew "lazyjj"
 
 # Dependencies for Zed's REPL kernels (scripts/configure/zed-repl-kernel.sh):
 #   bash    — modern bash for the bash_kernel (macOS ships only 3.2; the kernel
@@ -570,13 +547,6 @@ cask "ghostty"
 tap "drolosoft/tap"
 brew "drolosoft/tap/crex"
 
-# Entire CLI (ARCH-0028) — AI-session checkpoint + resume. Captures full
-# transcripts onto per-session entire/<hash> branches via Claude hooks,
-# anchored to the commits they produced. Per-repo enablement with public-
-# repo-safe flags is scripts/configure/entire.sh; usage in docs/tldrs/entire.md.
-tap "entireio/tap"
-cask "entire"
-
 # Meslo LG Nerd Font — Powerline-glyph-patched Meslo. MesloLGS Nerd Font Mono
 # variant is the p10k canonical face and what ghostty's font-family points at.
 cask "font-meslo-lg-nerd-font"
@@ -595,10 +565,6 @@ cask "google-chrome"
 # scripts/configure/firefox.sh hardens that profile from manifests/firefox/user.js
 # once sync has populated it.
 cask "firefox"
-
-# Claude desktop app (Anthropic's native client). Already installed on this
-# Mac; declaration closes the Brewfile gap so a fresh machine matches.
-cask "claude"
 
 # Obsidian (local-first markdown vault editor). Sibling to the "Obsidian Web
 # Clipper" MAS entry, which captures pages into the vault. Vault location is

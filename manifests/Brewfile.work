@@ -25,13 +25,10 @@ tap "N4M3Z/tap"
 brew "N4M3Z/tap/proton-drive-cli"
 
 # ── AI harnesses and local inference ─────────────────────────────────────────
-cask "claude"
+# Harness CLIs and apps come from their vendor installers (scripts/install/*),
+# not Homebrew: the formulas and casks lag the releases and fight the apps'
+# own updaters. Only local inference stays here.
 cask "lm-studio"
-brew "opencode"
-cask "antigravity-cli"
-cask "antigravity"
-cask "codex"
-cask "codex-app"
 
 # ── Runtimes and language toolchains ─────────────────────────────────────────
 brew "rust"
@@ -49,7 +46,6 @@ brew "lazygit"
 brew "git-lfs"
 brew "jj"
 brew "jjui"
-brew "lazyjj"
 tap "umputun/apps"
 brew "umputun/apps/revdiff"
 tap "agavra/tap"
