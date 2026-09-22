@@ -21,7 +21,7 @@
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "${SCRIPT_DIR}/../lib/env.sh"
 
-DCG_VERSION="v0.5.7"
+DCG_VERSION="v0.14.4"
 DCG_UPSTREAM="Dicklesworthstone/destructive_command_guard"
 DCG_FORK="N4M3Z/destructive_command_guard"
 INSTALL_DIR="${HOME}/.local/bin"
@@ -29,10 +29,13 @@ WORK="/tmp/claude/dcg-install"
 
 # Pinned SHA-256 of each upstream release asset — the single source of truth for
 # integrity (see the HashVerifiedExecution rule). Update both when bumping the pin.
+# v0.14.4 digests are the publisher's .sha256 release assets (2026-09-22) and
+# match the skeleton's scripts/tool-versions, which pins the same version for
+# every runedeck repository and its CI. Bump the two together.
 sha_for_target() {
     case "$1" in
-        aarch64-apple-darwin) echo "0fe51d2ea47d5230ae8c2d30cddbe076daa2a1be04846e9352968b0d9a5df283" ;;
-        x86_64-apple-darwin)  echo "d3284f41e90b5329d52e1db97b0975797f75fd554fc306af4f00ce9cd3c691ab" ;;
+        aarch64-apple-darwin) echo "b704fe0190bfeec51bc264a573fa3d620590286b2b2b63b2ca2293aa24aad013" ;;
+        x86_64-apple-darwin)  echo "d9b4e2e565f1e1853039b7c956fa4ce7576c7bb641382fe41ec44a0deabb5f07" ;;
         *) echo "" ;;
     esac
 }
