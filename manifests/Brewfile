@@ -302,11 +302,6 @@ brew "d2"
 # diagrams as-is; new schematics use d2. Installed, not wired.
 brew "svgbob"
 
-# flameshot — screenshot annotation with a scriptable CLI. Installed, not
-# wired; macOS native capture plus a fixed screencapture location covers
-# the interactive flow today.
-brew "flameshot"
-
 # ─── Stack tools present on the machine but absent from the manifest ────────
 # Reconciled 2026-08-26 against `brew leaves`. The observability and proxy
 # cluster (grafana, prometheus, victorialogs, caddy, cliproxyapi, tealdeer)
