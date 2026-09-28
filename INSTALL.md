@@ -103,6 +103,28 @@ gh auth login                       # before configure if DOTFILES_REPO is priva
 Interactive auth the scripts cannot do headlessly: `gh auth login`,
 `codex login`, `agy` (Google sign-in), `wrangler login`, MAS sign-in.
 
+### Locked-down machines
+
+Corporate MDM, sudo behind a 2FA push, and agent-side policy hooks change who
+can run what. Observed on a managed work laptop:
+
+- **`.env` creation**: file-guard policies may block agents from writing any
+  `*.env` path. The agent stages the content under an allowlisted name and the
+  operator copies it into place; the values are identity, not secrets.
+- **Privileged casks**: MDM-deployed apps in `/Applications` are root-owned,
+  and their cask upgrades (plus pkg installers like Teams) shell out to sudo.
+  Run `brew bundle install --file=<absolute path to the scope Brewfile>` from
+  the operator's terminal where sudo can prompt, or leave those apps
+  IT-managed and accept a red bundle check for them.
+- **Tap trust**: Homebrew 6 refuses formulae from untrusted taps, including
+  formulae already installed on a migrated machine. Resolve with the
+  `brew trust <tap>` command the error names.
+- **Operator-only interactive scripts**: YubiKey key generation prompts for a
+  PIN, and every unattended prompt burns a FIDO2 retry attempt; the script
+  skips itself without a terminal. Deploying a private dotfiles repo needs a
+  credential helper that agent sandboxes may deny; run `chezmoi` from the
+  operator's terminal when that happens.
+
 ### Manual steps
 
 macOS keeps some settings in formats with no scriptable interface. An agent cannot do these — surface them to the operator, who completes each by hand:

@@ -49,5 +49,14 @@ if [[ -n "${declared_taps}" ]]; then
     brew trust --tap ${declared_taps}
 fi
 
+# Cask upgrades of root-owned apps (MDM-deployed) and pkg installers shell out
+# to sudo. A headless run has no terminal for the password prompt, so those
+# entries fail individually while the rest of the bundle proceeds. Say so
+# upfront instead of letting the failures read as manifest errors.
+if [[ ! -t 0 ]] && ! sudo -n true 2>/dev/null; then
+    echo "warn:brew-bundle (headless run without cached sudo; casks needing privileged install will fail)"
+    echo "      rerun those interactively: brew bundle install --file=${BREWFILE}"
+fi
+
 echo "apply:Brewfile"
 brew bundle install --file="${BREWFILE}"

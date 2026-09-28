@@ -106,7 +106,6 @@ brew "guumaster/tap/hostctl"
 # ── Browsers and communication ───────────────────────────────────────────────
 cask "google-chrome"
 cask "firefox"
-cask "microsoft-teams"
 cask "raycast"
 cask "obsidian"
 

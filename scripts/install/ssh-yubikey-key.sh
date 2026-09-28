@@ -24,6 +24,14 @@ if [[ -f "${KEY}" ]]; then
     exit 0
 fi
 
+# Key generation prompts for the YubiKey PIN. Without a terminal, ssh-keygen
+# reads empty input and every failed prompt consumes a FIDO2 PIN retry
+# attempt on the hardware key. Never let that happen unattended.
+if [[ ! -t 0 ]]; then
+    echo "skip:ssh-yubikey-key (no interactive terminal; run this script yourself with the YubiKey inserted)"
+    exit 0
+fi
+
 # Use brew's openssh — it has FIDO2 security-key middleware built in.
 # macOS's bundled /usr/bin/ssh-keygen knows the ed25519-sk algorithm but lacks the
 # libsk-libfido2 wrapper, and pointing it at raw libfido2.dylib fails with
