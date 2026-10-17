@@ -102,6 +102,11 @@ gh auth login                       # before configure if DOTFILES_REPO is priva
 
 Interactive auth the scripts cannot do headlessly: `gh auth login`,
 `codex login`, `agy` (Google sign-in), `wrangler login`, MAS sign-in.
+App Store apps are the one bundle step that asks: `mas` needs root for each
+install and update, so `scripts/install/mas-bundle.sh` reports each declared
+app as current, outdated, or missing and confirms the rest one by one.
+`FORGE_MAS=yes ./provision.sh --topic install` accepts them all on a fresh
+machine; without a terminal the step only reports.
 
 ### Manual steps
 

@@ -49,5 +49,19 @@ if [[ -n "${declared_taps}" ]]; then
     brew trust --tap ${declared_taps}
 fi
 
+# brew bundle hands every `mas` entry to mas, which needs root for each install
+# and update (mas 7), so the bundle stalls on sudo or fails. Skip them here
+# (bundle matches the skip list by id) and let mas-bundle.sh handle them below:
+# it reports current apps and asks before it touches one.
+declared_mas=$(bash "${SCRIPT_DIR}/mas-bundle.sh" --ids "${BREWFILE}" | tr '\n' ' ')
+if [[ -n "${declared_mas// /}" ]]; then
+    export HOMEBREW_BUNDLE_MAS_SKIP="${declared_mas% }"
+fi
+
 echo "apply:Brewfile"
 brew bundle install --file="${BREWFILE}"
+status=$?
+
+echo "apply:mas"
+bash "${SCRIPT_DIR}/mas-bundle.sh" "${BREWFILE}" || status=1
+exit "${status}"

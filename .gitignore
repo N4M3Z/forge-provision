@@ -11,6 +11,9 @@
 .opencode/
 config.yaml
 
+# jj workspaces for parallel sessions
+.workspaces/
+
 # Entire session data (runtime, not source)
 .entire/metadata/
 .entire/logs/
