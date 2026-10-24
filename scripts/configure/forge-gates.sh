@@ -4,9 +4,11 @@
 #
 # jj runs no git hooks, so the pre-push-staged gitleaks/semgrep gate is dormant
 # on every jj-colocated repo. This deploys the new .githooks/pre-push (git users)
-# and .githooks/jj-push (the jj `push` alias payload), refreshes the deprecated
-# `gitleaks detect` invocation, and wires both triggers: git core.hooksPath and
-# the repo-local jj `push` alias. Idempotent: re-running converges.
+# and .githooks/jj-push (the jj `push` alias payload), converges every gitleaks
+# hook entry to the bounded push-range scan (`--log-opts "HEAD --not --remotes"`;
+# unbounded dir/detect scans crawl .entire/.specstory/.jj transcripts and pin the
+# CPU), and wires both triggers: git core.hooksPath and the repo-local jj `push`
+# alias. Idempotent: re-running converges.
 #
 # The git/jj wiring is applied directly rather than via `make install`, which
 # would also re-deploy each module's content. The module Makefiles are left
@@ -47,9 +49,14 @@ for repo in "${DEV_DIR}"/forge-*/ ; do
     deploy_hook "${repo}" jj-push
     command chmod +x "${repo}/.githooks/"* 2>/dev/null
 
-    # Check definitions: deploy full set if absent, else refresh the gitleaks line.
+    # Check definitions: deploy full set if absent, else converge unbounded
+    # gitleaks entries (dir/detect/full-history) to the push-range scan.
+    # Staged entries (`--staged`) are already bounded and stay untouched.
     if [[ -f "${repo}/.pre-commit-config.yaml" ]]; then
-        command sed -i '' 's|entry: gitleaks .*|entry: gitleaks detect --no-banner|' \
+        command sed -i '' \
+            -e 's|entry: gitleaks detect --no-banner.*|entry: gitleaks git --no-banner --log-opts "HEAD --not --remotes" .|' \
+            -e 's|entry: gitleaks dir --no-banner \.$|entry: gitleaks git --no-banner --log-opts "HEAD --not --remotes" .|' \
+            -e 's|entry: gitleaks git --no-banner \.$|entry: gitleaks git --no-banner --log-opts "HEAD --not --remotes" .|' \
             "${repo}/.pre-commit-config.yaml"
         gate="refreshed"
     else
@@ -58,11 +65,19 @@ for repo in "${DEV_DIR}"/forge-*/ ; do
     fi
     # .gitleaks.toml must extend the default ruleset; an allowlist-only config
     # silently disables every rule. Deploy the template, or repair in place.
+    # The allowlist must exclude session transcripts and the jj store, or any
+    # dir-mode scan crawls them.
     if [[ -f "${repo}/.gitleaks.toml" ]]; then
         if ! command grep -q 'useDefault' "${repo}/.gitleaks.toml"; then
             { printf '[extend]\nuseDefault = true\n\n'; command cat "${repo}/.gitleaks.toml"; } \
                 > "${repo}/.gitleaks.toml.tmp"
             command mv "${repo}/.gitleaks.toml.tmp" "${repo}/.gitleaks.toml"
+        fi
+        if ! command grep -q 'specstory' "${repo}/.gitleaks.toml"; then
+            command sed -i '' 's|^paths = \[$|paths = [\
+    "\\\\.entire/.*",\
+    "\\\\.specstory/.*",\
+    "\\\\.jj/.*",|' "${repo}/.gitleaks.toml"
         fi
     else
         command cp "${TEMPLATES}/.gitleaks.toml" "${repo}/.gitleaks.toml"
