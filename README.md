@@ -37,6 +37,12 @@ cd forge-provision
 
 Manual settings that cannot be scripted are tracked as a checklist in [INSTALL.md](INSTALL.md#manual-steps).
 
+The opt-in [OpenPGP YubiKey guide](docs/guides/openpgp-yubikey.md) covers an
+encrypted recovery vault, preserving existing PIV smartcard credentials, password
+store migration, and repository-scoped Git signing and SSH. Key ceremonies are
+never started by the default provisioning run. Run `make test-openpgp` for the
+isolated regression tests; these do not access cards or credential stores.
+
 ## Coverage
 
 Filled in as scripts land. See `scripts/<topic>/` for the current set.
