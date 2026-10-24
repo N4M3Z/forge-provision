@@ -97,4 +97,4 @@ Role (primary / backup / legacy) lives in `~/.ssh/config` `IdentityFile` orderin
 - [OpenSSH FIDO2 documentation](https://man.openbsd.org/ssh-keygen) — `-t ed25519-sk`, `gpg.ssh.program`, `SSH_ASKPASS` / `SSH_ASKPASS_REQUIRE`
 - [Yubico SDK: PIV PIN / PUK / management key](https://docs.yubico.com/yesdk/users-manual/application-piv/pin-puk-mgmt-key.html)
 - [theseal/ssh-askpass](https://github.com/theseal/ssh-askpass) — Mac-native ssh-askpass + LaunchAgent
-- forge-provision scripts: `scripts/install/ssh-yubikey-key.sh`, `scripts/configure/git-identity.sh`, `scripts/configure/git-signing-ssh.sh`
+- forge-provision scripts: `scripts/install/ssh-yubikey-key.sh`, `scripts/configure/git-identity.sh`, `scripts/configure/gpg-signing.sh`, `scripts/configure/git-signing-ssh.sh`, `scripts/verify/signing.sh`

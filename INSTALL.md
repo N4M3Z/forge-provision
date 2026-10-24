@@ -10,7 +10,7 @@ Bring a fresh macOS install to the owner's working baseline (Homebrew apps, conf
 
 ## DONE WHEN
 
-`./provision.sh --topic verify` passes (it checks the scope-selected Brewfile, the subset invariant, and that the git identity is real, not a placeholder or private address), and every box under **Manual steps** has been completed by the operator.
+`./provision.sh --topic verify` passes (it checks the scope-selected Brewfile, the subset invariant, that the git identity is real, not a placeholder or private address, and that the git signing key is one gpg can use on this machine), and every box under **Manual steps** has been completed by the operator.
 
 ## TODO
 
